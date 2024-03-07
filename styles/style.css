@@ -1,0 +1,114 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1em;
+}
+
+.button-container {
+    margin-top: 10px;
+}
+
+button {
+    padding: 10px;
+    cursor: pointer;
+}    
+
+textarea {
+    resize: none;
+}
+
+nav {
+    background-color: #444;
+    padding: 0.5em;
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+
+nav li {
+    margin: 0 1em;
+}
+
+nav a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: bold;
+}
+
+main {
+    padding: 2em;
+}
+
+section {
+    margin-bottom: 2em;
+}
+
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1em;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+.grid-container {
+            display: grid;
+            grid-template-columns: max-content max-content max-content; /* Adjust the column width */
+            gap: 10px;
+}
+
+.grid-container > div {
+    display: grid;
+    grid-template-areas:
+    	"label"
+    	"input";
+	}
+
+label {
+    grid-area: label;
+}
+
+input {
+    grid-area: input;
+}
+
+/* Styling for dropdown menus */
+.dropdown-menu {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.dropdown-menu label {
+    margin-right: 10px;
+}
+
+.dropdown-menu select {
+    width: 150px; /* Adjust the width as needed */
+}
