@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Matter Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 1em 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2em auto;
+            padding: 1em;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 { 
+            color: #fff; 
+        }
+        h2, h3 {
+            color: #333;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .gallery {
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            align-items: center;
+        }
+        footer {
+            text-align: center;
+            padding: 1em 0;
+            background-color: #333;
+            color: #fff;
+            width: 100%;
+        }
+        a {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dark Matter Demo</h1>
+        <p>Numerical simulation showing that the observed galactic mass is not enough to justify the velocities of stars far from the galactic center.</p>
+    </header>
+    <div class="container">
+        <h2>About This Project</h2>
+        <p>When I first learned about dark matter, I was skeptical. The idea that a significant portion of the universe's mass was invisible and detectable only through its gravitational effects seemed like a wild theory. The main evidence was that the velocities of stars did not make sense, given the amount of gravity they should have been experiencing. I wanted to explore this more, since a galaxy's gravity is not very intuitive. Did spiral arms cause these measurements? Do all stars have near-circular orbits or could some of them be hyperbolic? Do bright sections of sky have more mass than we suspect?</p>
+	<p>To explore this concept further, I created this basic code to see for myself how dark matter might influence the gravitational behavior within galaxies. By simulating a galaxy with a distributed mass density, where certain regions were denser than others, you can visualize how these variations affect the overall gravitational forces and velocities.</p>
+	<p>I encourage users to play with the parameters and make your own conclusions.</p>
+        <h2>Example</h2>
+        <div class="gallery">
+	    <p>This image shows a comparison of what the expected velocity in this spiral galaxy (Messier 33) is versus the actual measured velocities. A dark matter halo around the  galaxy would explain why that region of space does not produce a lot of light and yet has a impact on velocity. </p>
+            <img src="galaxy_rotation_curve.png" alt="Galaxy rotation curve - shows velocity expected to drop off, but it doesn't">
+	    <p>Source: <a href="https://en.wikipedia.org/wiki/File:Rotation_curve_of_spiral_galaxy_Messier_33_(Triangulum).png">Wikipedia</a><p>
+	    <p>To simulate a galaxy based on visible light, let's assume a Gaussian mass distribution, where the majority of the mass is near the galactic center and it decays as you get further away. This is shown in the plot below, produced by the MATLAB script in the <a href="https://github.com/smutasim/dark_matter_demo/tree/main" target="_blank"> git repository</a>.</p>
+            <img src="Gaussian_mass_distr.jpg" alt="Density of galaxy at a specific distance to the galactic center">
+	    <p>This next plot then shows the expected velocity from this mass distribution. As you can tell, it resembles the expected curve in the first image. However, if you change the mass distribution to be uniform, such that the density of matter is equal along the entire radius of the galaxy, you might see something closer to the actual observed line. Try it yourself and any other mass distributions <a href="https://github.com/smutasim/dark_matter_demo/tree/main" target="_blank">here</a>!</p> 
+            <img src="expected_velocity_distr.jpg" alt="Expected star velocities related to the distance to the galactic center">
+       </div>
+        <h2>Contact</h2>
+        <p>If you have any questions, please <a href="mailto:sbmutasim@gmail.com">contact me</a>.</p>
+    </div>
+    <footer>
+        <p>&copy; 2024 Sharif Mutasim. All rights reserved.</p>
+    </footer>
+</body>
+</html>
