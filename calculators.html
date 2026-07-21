@@ -3,23 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%230a0f1c'/%3E%3Cellipse cx='16' cy='16' rx='12' ry='6' fill='none' stroke='%23d3a44f' stroke-width='1.5'/%3E%3Ccircle cx='27' cy='16' r='2' fill='%235fd6c8'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="styles/style.css">
     <title>Calculators</title>
 </head>
-    
 <body>
-    <header>
-        <h1>Calculators</h1>
+    <header class="site-header">
+        <div class="header-inner">
+            <p class="eyebrow">tools</p>
+            <h1>Calculators</h1>
+            <p class="tagline">Working orbital mechanics tools. Built for quick sanity checks, not mission design.</p>
+        </div>
     </header>
 
-    <nav>
+    <nav class="site-nav">
         <ul>
             <li><a href="index.html">Home</a></li>
-            <li><a href="calculators.html">Calculators</a></li>
+            <li><a href="calculators.html" class="active">Calculators</a></li>
             <li><a href="articles.html">Articles</a></li>
             <li><a href="games.html">Games</a></li>
         </ul>
     </nav>
+<<<<<<< HEAD
+
+    <main>
+        <div class="grid-cards">
+            <div class="card">
+                <h3>Orbit Elements to State Vector</h3>
+                <p>Convert Keplerian elements to a cartesian position and velocity vector. Choose your output reference frame: perifocal (PQW), Earth-centered inertial (ECI/IJK), or Earth-centered, Earth-fixed (ECEF).</p>
+                <p><a href="calc_kep2eci.html">Open calculator &rarr;</a></p>
+            </div>
+            <div class="card cyan">
+                <h3>Hohmann vs. Bi-Elliptic Transfer</h3>
+                <p>Compare the total delta-v and transfer time between two circular orbits using a Hohmann transfer versus a bi-elliptic transfer, with a short animation showing why the bi-elliptic option can win for large radius ratios.</p>
+                <p><a href="calc_transfer.html">Open calculator &rarr;</a></p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Sharif Mutasim. Built one weekend at a time.</p>
+        <div class="foot-links">
+            <a href="https://github.com/smutasim" target="_blank">GitHub</a>
+            <a href="mailto:sbmutasim@gmail.com">Email</a>
+        </div>
+    </footer>
+
+=======
 
     <main id="Deep Space Travel Time">
         <h2>Deep Space Travel Time</h2>
@@ -59,6 +89,7 @@
     <footer>
         <p>&copy; 2023</p>
     </footer>
+>>>>>>> 0cdec83f4c81ca08c7c724a97a1e342e92194d19
     <script src="scripts/script.js"></script>
 </body>
 </html>

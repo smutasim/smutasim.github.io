@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%230a0f1c'/%3E%3Cellipse cx='16' cy='16' rx='12' ry='6' fill='none' stroke='%23d3a44f' stroke-width='1.5'/%3E%3Ccircle cx='27' cy='16' r='2' fill='%235fd6c8'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="styles/style.css">
+    <title>Hohmann vs. Bi-Elliptic Transfer</title>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <p class="eyebrow">calculator</p>
+            <h1>Hohmann vs. Bi-Elliptic Transfer</h1>
+            <p class="tagline">Two ways to move between circular orbits, and the fuel bill for each one.</p>
+        </div>
+    </header>
+
+    <nav class="site-nav">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="calculators.html" class="active">Calculators</a></li>
+            <li><a href="articles.html">Articles</a></li>
+            <li><a href="games.html">Games</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="card cyan">
+            <h2 style="border-bottom:none;padding-bottom:0;">Watch the Difference</h2>
+            <p>A Hohmann transfer uses a single transfer ellipse and two burns. A bi-elliptic transfer swings out past the final orbit first, on a much larger ellipse, then comes back down, for a total of three burns. The animation below shows both paths for the same start and end orbit.</p>
+            <div class="embed-frame">
+                <iframe src="hohmann_vs_bielliptic_animation.html" title="Animation comparing a Hohmann transfer and a bi-elliptic transfer" loading="lazy"></iframe>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="border-bottom:none;padding-bottom:0;">Compare the Two</h2>
+            <p>Enter your starting and ending circular orbit radii, and, for the bi-elliptic case, the radius of the intermediate apoapsis. A bi-elliptic transfer only tends to beat a Hohmann transfer when the ratio between the final and initial radius is large, roughly above 11.94, and even then only if the intermediate radius is pushed out far enough.</p>
+
+            <div class="grid-container">
+                <div>
+                    <label for="r1">Initial circular radius, r1 (km):</label>
+                    <input type="text" id="r1" value="6678">
+                </div>
+                <div>
+                    <label for="r2">Final circular radius, r2 (km):</label>
+                    <input type="text" id="r2" value="42164">
+                </div>
+                <div>
+                    <label for="rb">Bi-elliptic intermediate radius, rb (km):</label>
+                    <input type="text" id="rb" value="100000">
+                </div>
+            </div>
+
+            <div class="dropdown-menu">
+                <label for="celestial-select">Central body:</label>
+                <select id="celestial-select" onchange="updateBody()">
+                    <option value="earth" selected>Earth</option>
+                    <option value="moon">Moon</option>
+                    <option value="sun">Sun</option>
+                    <option value="mercury">Mercury</option>
+                    <option value="venus">Venus</option>
+                    <option value="mars">Mars</option>
+                    <option value="jupiter">Jupiter</option>
+                    <option value="saturn">Saturn</option>
+                    <option value="uranus">Uranus</option>
+                    <option value="neptune">Neptune</option>
+                    <option value="pluto">Pluto</option>
+                </select>
+            </div>
+            <div class="grid-container">
+                <div>
+                    <label for="mu">&mu; (km&sup3;/s&sup2;):</label>
+                    <input type="text" id="mu" value="3.986004418e5" oninput="sanitizeMu()">
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button onclick="compareTransfers()">Compute</button>
+            </div>
+
+            <div id="output" class="output-panel">Set your radii above and click Compute.</div>
+        </div>
+
+        <div class="card cyan">
+            <h2 style="border-bottom:none;padding-bottom:0;">The Math</h2>
+            <p>For a transfer ellipse with periapsis and apoapsis radii r<sub>p</sub> and r<sub>a</sub>, the semi-major axis is a = (r<sub>p</sub> + r<sub>a</sub>)/2, and the speed at any radius r on that ellipse is v = &radic;(&mu;(2/r &minus; 1/a)), the vis-viva equation.</p>
+            <p style="font-family: var(--font-data); font-size: 0.85rem; color: var(--text-muted);">
+                Hohmann: one ellipse, a = (r1+r2)/2, burns at r1 and r2.<br>
+                Bi-elliptic: two ellipses through an intermediate radius rb, burns at r1, rb, and r2.
+            </p>
+            <p>Total delta-v is the sum of the speed changes at each burn, and transfer time is half the orbital period of each ellipse used (Kepler's third law: T = 2&pi;&radic;(a&sup3;/&mu;)). The bi-elliptic path almost always takes longer, sometimes much longer, even in the cases where it costs less delta-v.</p>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Sharif Mutasim. Built one weekend at a time.</p>
+        <div class="foot-links">
+            <a href="https://github.com/smutasim" target="_blank">GitHub</a>
+            <a href="mailto:sbmutasim@gmail.com">Email</a>
+        </div>
+    </footer>
+
+    <script src="scripts/script.js"></script>
+    <script>
+        const gravitationalConstants = {
+            earth: 3.986004418e5,
+            moon: 4.9048695e3,
+            sun: 1.32712440018e11,
+            mercury: 2.2032e4,
+            venus: 3.24859e5,
+            mars: 4.282837e4,
+            jupiter: 1.26686534e8,
+            saturn: 3.7931187e7,
+            uranus: 5.793939e6,
+            neptune: 6.836529e6,
+            pluto: 8.71e2
+        };
+
+        function updateBody() {
+            const body = document.getElementById("celestial-select").value;
+            document.getElementById("mu").value = gravitationalConstants[body].toExponential();
+        }
+
+        function sanitizeMu() {
+            const el = document.getElementById("mu");
+            el.value = el.value.replace(/[^0-9eE.+-]/g, "");
+        }
+
+        function fmt(n, digits) {
+            if (!isFinite(n)) return "undefined";
+            return n.toFixed(digits === undefined ? 3 : digits);
+        }
+
+        function showError(msg) {
+            document.getElementById("output").innerHTML = '<span class="error-text">' + msg + '</span>';
+        }
+
+        function compareTransfers() {
+            const { sqrt, PI, abs } = Math;
+            const r1 = parseFloat(document.getElementById("r1").value);
+            const r2 = parseFloat(document.getElementById("r2").value);
+            const rb = parseFloat(document.getElementById("rb").value);
+            const mu = parseFloat(document.getElementById("mu").value);
+
+            if ([r1, r2, rb, mu].some(v => isNaN(v))) {
+                showError("One or more inputs is not a valid number.");
+                return;
+            }
+            if (r1 <= 0 || r2 <= 0 || rb <= 0 || mu <= 0) {
+                showError("Radii and mu must all be positive.");
+                return;
+            }
+
+            const vCirc = r => sqrt(mu / r);
+            const vis = (r, a) => sqrt(mu * (2 / r - 1 / a));
+            const period = a => 2 * PI * sqrt(Math.pow(a, 3) / mu);
+
+            // Hohmann transfer
+            const aH = (r1 + r2) / 2;
+            const dv1H = abs(vis(r1, aH) - vCirc(r1));
+            const dv2H = abs(vCirc(r2) - vis(r2, aH));
+            const dvHohmann = dv1H + dv2H;
+            const tHohmann = period(aH) / 2;
+
+            // Bi-elliptic transfer (r1 -> rb -> r2)
+            const a1 = (r1 + rb) / 2;
+            const a2 = (rb + r2) / 2;
+            const dvA = abs(vis(r1, a1) - vCirc(r1));
+            const dvB = abs(vis(rb, a2) - vis(rb, a1));
+            const dvC = abs(vCirc(r2) - vis(r2, a2));
+            const dvBi = dvA + dvB + dvC;
+            const tBi = period(a1) / 2 + period(a2) / 2;
+
+            const winner = dvHohmann <= dvBi ? "hohmann" : "bi";
+            const out = document.getElementById("output");
+
+            out.innerHTML =
+                "HOHMANN TRANSFER\n" +
+                "  Burn 1 (at r1):  " + fmt(dv1H) + " km/s\n" +
+                "  Burn 2 (at r2):  " + fmt(dv2H) + " km/s\n" +
+                "  Total dv:        <span class=\"" + (winner === "hohmann" ? "val win" : "val") + "\">" + fmt(dvHohmann) + " km/s</span>\n" +
+                "  Transfer time:   " + fmt(tHohmann / 3600, 2) + " hours\n\n" +
+                "BI-ELLIPTIC TRANSFER (via rb = " + fmt(rb, 0) + " km)\n" +
+                "  Burn 1 (at r1):  " + fmt(dvA) + " km/s\n" +
+                "  Burn 2 (at rb):  " + fmt(dvB) + " km/s\n" +
+                "  Burn 3 (at r2):  " + fmt(dvC) + " km/s\n" +
+                "  Total dv:        <span class=\"" + (winner === "bi" ? "val win" : "val") + "\">" + fmt(dvBi) + " km/s</span>\n" +
+                "  Transfer time:   " + fmt(tBi / 3600, 2) + " hours\n\n" +
+                (winner === "hohmann"
+                    ? "Hohmann wins here, it costs less delta-v (though not necessarily less time)."
+                    : "Bi-elliptic wins here, it costs less delta-v, at the price of a much longer transfer time.");
+        }
+    </script>
+</body>
+</html>

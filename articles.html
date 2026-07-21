@@ -3,34 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%230a0f1c'/%3E%3Cellipse cx='16' cy='16' rx='12' ry='6' fill='none' stroke='%23d3a44f' stroke-width='1.5'/%3E%3Ccircle cx='27' cy='16' r='2' fill='%235fd6c8'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="styles/style.css">
     <title>Articles</title>
 </head>
 <body>
-    <header>
-        <h1>Articles</h1>
+    <header class="site-header">
+        <div class="header-inner">
+            <p class="eyebrow">write-ups</p>
+            <h1>Articles</h1>
+            <p class="tagline">Small demos from the recreational side of the list, written up so someone else can play with them too.</p>
+        </div>
     </header>
-    
-    <nav>
+
+    <nav class="site-nav">
         <ul>
             <li><a href="index.html">Home</a></li>
             <li><a href="calculators.html">Calculators</a></li>
-            <li><a href="articles.html">Articles</a></li>
+            <li><a href="articles.html" class="active">Articles</a></li>
             <li><a href="games.html">Games</a></li>
         </ul>
     </nav>
-    
-    <main id="dark_matter_demo">
-        <h2>Dark Matter Demo!</h2>
-        <p>How do we know dark matter exists? Explore the dynamics of a star in a galaxy by looking at its velocity relative to the galaxy's mass distribution.</p>
-        <p>To read about it and access the repo, click here:</p>
-        <nav>
-            <ul>
-                <li><a href="dark_matter_demo/dark_matter_demo.html" target="_blank">Dark Matter Demo</a></li>
-            </ul>
-        </nav>
+
+    <main>
+        <div class="card">
+            <h2 style="border-bottom:none;padding-bottom:0;">Dark Matter Demo</h2>
+            <p>How do we know dark matter exists? This demo explores the dynamics of a star in a galaxy by comparing its velocity against what the galaxy's visible mass distribution alone would predict.</p>
+            <p>To read about it and access the repo, click here:</p>
+            <nav>
+                <ul>
+                    <li><a href="dark_matter_demo/dark_matter_demo.html" target="_blank">Dark Matter Demo</a></li>
+                </ul>
+            </nav>
+        </div>
     </main>
 
+<<<<<<< HEAD
+    <footer class="site-footer">
+        <p>&copy; 2026 Sharif Mutasim. Built one weekend at a time.</p>
+        <div class="foot-links">
+            <a href="https://github.com/smutasim" target="_blank">GitHub</a>
+            <a href="mailto:sbmutasim@gmail.com">Email</a>
+        </div>
+    </footer>
+
+=======
     <main id="venus_water">
         <h2>Planet Oceans Visualizer</h2>
         <p>Plot 2D and 3D visualizations of different planets with different volumes of water, to see what their surface would look like.</p>
@@ -55,6 +72,7 @@
     <footer>
         <p>&copy; 2023</p>
     </footer>
+>>>>>>> 0cdec83f4c81ca08c7c724a97a1e342e92194d19
     <script src="scripts/script.js"></script>
 </body>
 </html>

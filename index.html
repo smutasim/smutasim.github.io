@@ -1,20 +1,43 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sharif 'Skip' Mutasim: navigation systems engineer, amateur astronomer, and hobbyist builder of small things.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%230a0f1c'/%3E%3Cellipse cx='16' cy='16' rx='12' ry='6' fill='none' stroke='%23d3a44f' stroke-width='1.5'/%3E%3Ccircle cx='27' cy='16' r='2' fill='%235fd6c8'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="styles/style.css">
-    <title>Hello, World</title>
+    <title>Sharif Mutasim | About Me</title>
 </head>
 <body>
+<<<<<<< HEAD
+    <header class="site-header">
+        <svg class="orbit-art" viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="320" cy="160" r="5" fill="#e8bb6a"/>
+            <ellipse cx="320" cy="160" rx="180" ry="70" fill="none" stroke="#3a4a72" stroke-width="1"/>
+            <ellipse cx="320" cy="160" rx="270" ry="110" fill="none" stroke="#243055" stroke-width="1"/>
+            <circle r="4" fill="#5fd6c8">
+                <animateMotion dur="14s" repeatCount="indefinite"
+                    path="M 500,160 A 180,70 0 1,1 140,160 A 180,70 0 1,1 500,160" />
+            </circle>
+            <circle r="3" fill="#d3a44f" opacity="0.8">
+                <animateMotion dur="26s" repeatCount="indefinite"
+                    path="M 590,160 A 270,110 0 1,1 50,160 A 270,110 0 1,1 590,160" />
+            </circle>
+        </svg>
+        <div class="header-inner">
+            <p class="eyebrow">smutasim.github.io</p>
+            <h1>Sharif "Skip" Mutasim</h1>
+            <p class="tagline">Navigation systems engineer by day, amateur astronomer and tinkerer by every other hour. Still figuring it out, but aren't we all?</p>
+        </div>
+=======
     <header>
         <h1>Hello, World</h1>
+>>>>>>> 0cdec83f4c81ca08c7c724a97a1e342e92194d19
     </header>
 
-    <nav>
+    <nav class="site-nav">
         <ul>
-            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html" class="active">Home</a></li>
             <li><a href="calculators.html">Calculators</a></li>
             <li><a href="articles.html">Articles</a></li>
             <li><a href="games.html">Games</a></li>
@@ -22,8 +45,63 @@
     </nav>
 
     <main>
-        <section id="About Me">
+        <section id="about">
             <h2>About Me</h2>
+<<<<<<< HEAD
+            <p>I am a Senior Navigation Systems Engineer at The Aerospace Corporation, based in Colorado Springs. My work lives at the intersection of orbit determination, Kalman filtering, and positioning, navigation, and timing (PNT). Most days that means chasing down where something is, how confident I should be in that answer, and how to make the next estimate better than the last one.</p>
+            <p>I picked up a M.S. in Aerospace Engineering, focused on astrodynamics, from Purdue, and I am currently working through a M.S. in Computer Science at CU Boulder in whatever hours are left over. That second degree is less about switching careers and more about closing the gap between the orbital mechanics I already know cold and the machine learning tools that keep showing up in the same problems.</p>
+            <p>Outside of the day job I keep a running list of things I want to understand better, and every so often that list turns into a notebook, a script, or a small website like this one.</p>
+        </section>
+
+        <section id="focus">
+            <h2>What I Work On</h2>
+            <p>The short version: I help figure out where things are in space, and how sure we can be about it.</p>
+            <div class="chip-row">
+                <span class="chip">Orbit Determination</span>
+                <span class="chip">Kalman Filtering</span>
+                <span class="chip">PNT / GNSS</span>
+                <span class="chip">EO / SAR Geolocation</span>
+                <span class="chip">Applied Machine Learning</span>
+                <span class="chip">Small-Body Astronomy</span>
+            </div>
+            <p style="margin-top:1.2em;">I have a handful of publications in ION and AIAA venues, mostly on the navigation and orbit determination side of that list. Lately I have also been spending time on small-body astronomy, using LSST data to help rank and classify asteroids.</p>
+        </section>
+
+        <section id="beyond">
+            <h2>Beyond the Office</h2>
+            <div class="two-col">
+                <div class="card">
+                    <h3>Amateur Astronomy</h3>
+                    <p>I run my own observing sessions and have built tools to support them, including a planetary eyepiece planner with a full ephemeris and procedurally rendered planets, and a deep field generator that builds procedural star systems. I contribute to LSST/SSSC working groups and attended the Sagan Summer Workshop, which was focused on the Roman Space Telescope and how microlensing and exoplanet transits will show up in its data.</p>
+                </div>
+                <div class="card cyan">
+                    <h3>Wildlife Photography</h3>
+                    <p>I shoot local wildlife, bears, foxes, bighorn sheep, bobcats, with a Canon 7D and a 55-250mm lens, mostly chasing backlight and the split second before an animal moves. I got tired of existing photo editors, so I built my own: a Python and PySide6 desktop app with its own Windows build script.</p>
+                </div>
+            </div>
+            <p style="margin-top:1.5em;">I also spend a fair amount of time on recreational dives into whatever has caught my attention that month: xenobots and anthrobots, geoengineering, the density structure of the interstellar medium, antimatter trapped in planetary magnetic fields. Sometimes those dives turn into a prototype, like a small algorithm I built to test whether Kepler and TESS could be misclassifying transits caused by solar system small bodies occulting background stars rather than real exoplanets.</p>
+        </section>
+
+        <section id="explore">
+            <h2>Explore the Site</h2>
+            <div class="grid-cards">
+                <div class="card">
+                    <h3>Calculators</h3>
+                    <p>Working tools for orbital mechanics: convert Keplerian elements to state vectors in the reference frame of your choice, and compare Hohmann versus bi-elliptic transfers.</p>
+                    <p><a href="calculators.html">Open the calculators &rarr;</a></p>
+                </div>
+                <div class="card cyan">
+                    <h3>Articles</h3>
+                    <p>Write-ups and small demos from the recreational side of the list, starting with a dark matter simulation you can play with yourself.</p>
+                    <p><a href="articles.html">Read the articles &rarr;</a></p>
+                </div>
+                <div class="card">
+                    <h3>Games</h3>
+                    <p>Wild Isle Zoo, an idle tap-to-build zoo game I have been putting together in my spare time, one animal exhibit at a time.</p>
+                    <p><a href="games.html">Play the games &rarr;</a></p>
+                </div>
+            </div>
+=======
             <p>
                 I work in the aerospace industry, driven by a deep passion for space exploration and the engineering challenges involved in expanding humanity's reach beyond Earth. 
                 What excites me the most is the potential to develop technologies that enable long-duration space missions, ensure safe spaceflight for all, and promote the science 
@@ -40,11 +118,16 @@
                 This is what motivates me every day - the desire to contribute to a future where humanity thrives both on Earth and beyond. Thanks for visiting this page, I hope
                 some of this work sparks curiosity! And feel free to reach out directly.
             </p>
+>>>>>>> 0cdec83f4c81ca08c7c724a97a1e342e92194d19
         </section>
     </main>
 
-    <footer>
-        <p>&copy; 2023</p>
+    <footer class="site-footer">
+        <p>&copy; 2026 Sharif Mutasim. Built one weekend at a time.</p>
+        <div class="foot-links">
+            <a href="https://github.com/smutasim" target="_blank">GitHub</a>
+            <a href="mailto:sbmutasim@gmail.com">Email</a>
+        </div>
     </footer>
 
     <script src="scripts/script.js"></script>

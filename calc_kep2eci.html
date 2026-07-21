@@ -3,189 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%230a0f1c'/%3E%3Cellipse cx='16' cy='16' rx='12' ry='6' fill='none' stroke='%23d3a44f' stroke-width='1.5'/%3E%3Ccircle cx='27' cy='16' r='2' fill='%235fd6c8'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="styles/style.css">
-    <title>Kep->ECI Calc</title>
+    <title>Orbit Elements to State Vector</title>
 </head>
-    
 <body>
-    <header>
-        <h1>Keplerian to ECI Calculator</h1>
+    <header class="site-header">
+        <div class="header-inner">
+            <p class="eyebrow">calculator</p>
+            <h1>Orbit Elements to State Vector</h1>
+            <p class="tagline">Convert Keplerian orbital elements into a cartesian position and velocity, in the reference frame of your choice.</p>
+        </div>
     </header>
-    
-    <nav>
+
+    <nav class="site-nav">
         <ul>
             <li><a href="index.html">Home</a></li>
-            <li><a href="calculators.html">Calculators</a></li>
+            <li><a href="calculators.html" class="active">Calculators</a></li>
             <li><a href="articles.html">Articles</a></li>
             <li><a href="games.html">Games</a></li>
         </ul>
     </nav>
-    
-</head>
-<body>
-    <h2>Input Keplerian Elements</h2>
-    <div class="grid-container">
-        <div>
-            <label for="sma">Semi-major axis (km):</label>
-            <input type="text" id="a" name="a" value="6378">
+
+    <main>
+        <div class="card">
+            <h2 style="border-bottom:none;padding-bottom:0;">Input Keplerian Elements</h2>
+            <div class="grid-container">
+                <div>
+                    <label for="a">Semi-major axis, a (km):</label>
+                    <input type="text" id="a" name="a" value="6928">
+                </div>
+                <div>
+                    <label for="e">Eccentricity, e:</label>
+                    <input type="text" id="e" name="e" value="0.1">
+                </div>
+                <div>
+                    <label for="i">Inclination, i:</label>
+                    <input type="text" id="i" name="i" value="45">
+                </div>
+                <div>
+                    <label for="raan">RAAN, &Omega;:</label>
+                    <input type="text" id="raan" name="raan" value="0">
+                </div>
+                <div>
+                    <label for="w">Arg. of periapsis, &omega;:</label>
+                    <input type="text" id="w" name="w" value="0">
+                </div>
+                <div>
+                    <label for="f">True anomaly, &nu;:</label>
+                    <input type="text" id="f" name="f" value="0">
+                </div>
+            </div>
+
+            <div class="dropdown-menu">
+                <label for="unit">Angle units:</label>
+                <select id="unit" name="unit">
+                    <option value="degs">Degrees</option>
+                    <option value="rads">Radians</option>
+                </select>
+            </div>
+
+            <div class="dropdown-menu">
+                <label for="celestial-select">Central body:</label>
+                <select id="celestial-select" name="celestial-select" onchange="updateBody()">
+                    <option value="earth">Earth</option>
+                    <option value="moon">Moon</option>
+                    <option value="sun">Sun</option>
+                    <option value="mercury">Mercury</option>
+                    <option value="venus">Venus</option>
+                    <option value="mars">Mars</option>
+                    <option value="jupiter">Jupiter</option>
+                    <option value="saturn">Saturn</option>
+                    <option value="uranus">Uranus</option>
+                    <option value="neptune">Neptune</option>
+                    <option value="pluto">Pluto</option>
+                </select>
+            </div>
+
+            <div class="grid-container">
+                <div>
+                    <label for="mu">&mu; (km&sup3;/s&sup2;):</label>
+                    <input type="text" id="mu" name="mu" value="3.986004418e5" oninput="sanitizeNumberInput('mu')">
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.4em;">Output Reference Frame</h3>
+            <div class="dropdown-menu">
+                <label for="frame">Frame:</label>
+                <select id="frame" name="frame" onchange="updateFrameUI()">
+                    <option value="pqw">Perifocal (PQW)</option>
+                    <option value="eci" selected>Inertial, equatorial of date (ECI / IJK)</option>
+                    <option value="bodyfixed">Rotating body-fixed</option>
+                </select>
+            </div>
+
+            <div id="bodyfixed-controls" style="display:none;">
+                <p class="note">The body-fixed frame is the equatorial inertial frame rotated by angle &theta; about the polar axis, with the frame's own rotation rate &omega; used to correct the velocity (v<sub>fixed</sub> = R(&theta;)v<sub>inertial</sub> &minus; &omega; &times; r<sub>fixed</sub>). &theta; defaults to 0 and &omega; auto-fills from the selected body's approximate sidereal rotation rate; both are editable.</p>
+                <div class="grid-container">
+                    <div>
+                        <label for="theta">Rotation angle, &theta; (matches angle unit above):</label>
+                        <input type="text" id="theta" name="theta" value="0">
+                    </div>
+                    <div>
+                        <label for="omega">Rotation rate, &omega; (rad/s):</label>
+                        <input type="text" id="omega" name="omega" value="7.2921150e-5" oninput="sanitizeNumberInput('omega')">
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button onclick="kepToStateVector()">Compute</button>
+            </div>
+
+            <label for="output">Result:</label>
+            <div id="output" class="output-panel">Set your elements above and click Compute.</div>
         </div>
-        <div>
-            <label for="e">Eccentricity:     </label>
-            <input type="text" id="e" name="e" value="0.1">
+
+        <div class="card cyan">
+            <h2 style="border-bottom:none;padding-bottom:0;">What are Keplerian Elements?</h2>
+            <p>Keplerian elements describe an orbit as a fixed ellipse in space, plus where a body currently sits on that ellipse. The semi-major axis and eccentricity set the size and shape of the ellipse. Inclination, RAAN, and argument of periapsis orient that ellipse in three dimensions relative to the central body's equator and a reference direction. True anomaly is the one element that changes with time: it marks where the orbiting body is along the ellipse at a given instant.</p>
         </div>
-        <div>
-            <label for="i">Inclination:      </label>
-            <input type="text" id="i" name="i" value="45">
+
+        <div class="card">
+            <h2 style="border-bottom:none;padding-bottom:0;">What is ECI?</h2>
+            <p>ECI, Earth-centered inertial, is a non-rotating frame centered on Earth (or, more generally, the central body) with axes fixed relative to distant stars rather than to the body's surface. It is the natural frame for propagating orbits, since Newton's laws apply directly in an inertial frame. The perifocal frame (PQW) is a convenient intermediate frame aligned with the orbit itself: P points toward periapsis, Q is 90 degrees ahead in the direction of motion, and W is along the orbit normal. A body-fixed frame, by contrast, rotates with the central body, which is what you want if you care about ground tracks or surface-relative geometry rather than inertial motion.</p>
         </div>
-        <div>
-            <label for="raan">RAAN:          </label>
-            <input type="text" id="raan" name="raan" value="0">
+
+        <div class="card cyan">
+            <h2 style="border-bottom:none;padding-bottom:0;">The Math</h2>
+            <p>Position and velocity are first built in the perifocal frame directly from true anomaly, which avoids the branch and singularity issues that come from routing through eccentric anomaly:</p>
+            <p style="font-family: var(--font-data); font-size: 0.85rem; color: var(--text-muted);">
+                p = a(1&minus;e&sup2;), r = p / (1 + e&middot;cos&nu;), h = &radic;(&mu;p)<br>
+                r<sub>PQW</sub> = [r&middot;cos&nu;, r&middot;sin&nu;, 0]<br>
+                v<sub>PQW</sub> = (&mu;/h)&middot;[&minus;sin&nu;, e+cos&nu;, 0]
+            </p>
+            <p>The perifocal state is then rotated into ECI with the standard 3-1-3 Euler rotation through &Omega;, i, and &omega;. For the rotating body-fixed frame, the ECI state is rotated once more by the body's rotation angle &theta;, and the velocity gets an extra &minus;&omega;&times;r correction to account for the fact that the frame itself is spinning.</p>
         </div>
-        <div>
-            <label for="w">Arg of Periapsis: </label>
-            <input type="text" id="w" name="w" value="0">
-        </div>
-        <div>
-            <label for="f">True Anomaly:     </label>
-            <input type="text" id="f" name="f" value="0">
-        </div>
-    </div>
-
-<div class="dropdown-menu">
-    <label for="unit">Select Unit:</label>
-    <select id="unit" name="unit">
-        <option value="degs">Degrees</option>
-        <option value="rads">Radians</option>
-    </select>
-</div>
-
-<!-- Dropdown for Celestial Bodies -->
-<div class="dropdown-menu">
-    <label for="celestial-select">Select Celestial Body:</label>
-    <select id="celestial-select" name="celestial-select" onchange="updateMu()">
-        <option value="earth">Earth</option>
-        <option value="moon">Moon</option>
-        <option value="sun">Sun</option>
-	<option value="mercury">Mercury</option>
-	<option value="venus">Venus</option>
-	<option value="mars">Mars</option>
-	<option value="jupiter">Jupiter</option>
-	<option value="saturn">Saturn</option>
-	<option value="uranus">Uranus</option>
-	<option value="neptune">Neptune</option>
-	<option value="pluto">Pluto</option>
-    </select>
-</div>
-
-<div>
-	<label for="f">mu (km^3/s^2):</label>
-	<input type="text" id="mu" name="mu" style="width: 175px;" value="3.986004418e5" oninput="updateCustomMu()">
-</div>
-
-<div class="button-container">
-	<button onclick="kepToECI()">Compute</button>
-</div>
-
-        <!-- Textarea for output -->
-	<textarea id="output" style="width: 50%; height: 200px;"></textarea>
-</div>
-
-
-    <main id="What are Keplerian Elements?">
-        <h2>What are Keplerian Elements?</h2>
-        <p>not yet</p>
     </main>
 
-    <main id="What is ECI?">
-        <h2>What is ECI?</h2>
-        <p>not yet</p>
-    </main>
-
-    <main id="The Math:">
-        <h2>The Math:</h2>
-        <p>not yet</p>
-    </main>
+    <footer class="site-footer">
+        <p>&copy; 2026 Sharif Mutasim. Built one weekend at a time.</p>
+        <div class="foot-links">
+            <a href="https://github.com/smutasim" target="_blank">GitHub</a>
+            <a href="mailto:sbmutasim@gmail.com">Email</a>
+        </div>
+    </footer>
 
     <script src="scripts/script.js"></script>
     <script>
-        // Gravitational constants for celestial bodies
+        // Gravitational parameters, mu (km^3/s^2)
         const gravitationalConstants = {
-            earth: 3.986004418e5, // (km^3/s^2)
+            earth: 3.986004418e5,
             moon: 4.9048695e3,
             sun: 1.32712440018e11,
-	    mercury: 2.2032e4, venus: 3.24859e5, mars: 4.282837e4, jupiter: 1.26686534e8, saturn: 3.7931187e7, uranus: 5.793939e6, neptune: 6.836529e6, pluto: 8.71e2
+            mercury: 2.2032e4,
+            venus: 3.24859e5,
+            mars: 4.282837e4,
+            jupiter: 1.26686534e8,
+            saturn: 3.7931187e7,
+            uranus: 5.793939e6,
+            neptune: 6.836529e6,
+            pluto: 8.71e2
         };
 
-        // Function to update the "mu" input based on the selected celestial body
-        function updateMu() {
-            const celestialSelect = document.getElementById("celestial-select");
-            const muInput = document.getElementById("mu");
-            const selectedCelestial = celestialSelect.value;
+        // Approximate sidereal rotation rates, omega (rad/s). Negative = retrograde.
+        const rotationRates = {
+            earth: 7.2921150e-5,
+            moon: 2.6617e-6,
+            sun: 2.865e-6,
+            mercury: 1.240e-6,
+            venus: -2.99e-7,
+            mars: 7.0882e-5,
+            jupiter: 1.7585e-4,
+            saturn: 1.6379e-4,
+            uranus: -1.012e-4,
+            neptune: 1.083e-4,
+            pluto: -1.1385e-5
+        };
 
-            // Set the "mu" input based on the selected celestial body
-            muInput.value = gravitationalConstants[selectedCelestial].toExponential();
+        function updateBody() {
+            const body = document.getElementById("celestial-select").value;
+            document.getElementById("mu").value = gravitationalConstants[body].toExponential();
+            document.getElementById("omega").value = rotationRates[body].toExponential();
         }
 
-        // Function to allow manual modification of "mu" while keeping it numeric
-        function updateCustomMu() {
-            const muInput = document.getElementById("mu");
-
-            // Ensure that the input only contains numeric or scientific notation characters
-            muInput.value = muInput.value.replace(/[^0-9eE.+-]/g, "");
+        function sanitizeNumberInput(id) {
+            const el = document.getElementById(id);
+            el.value = el.value.replace(/[^0-9eE.+-]/g, "");
         }
 
+        function updateFrameUI() {
+            const frame = document.getElementById("frame").value;
+            document.getElementById("bodyfixed-controls").style.display = (frame === "bodyfixed") ? "block" : "none";
+        }
 
-// Function to convert Keplerian orbital elements to ECI state
-	function kepToECI() {
-		const outputTextarea = document.getElementById("output");
-		const a  = parseFloat(document.getElementById("a").value);
-		const e  = parseFloat(document.getElementById("e").value);
-		let i  = parseFloat(document.getElementById("i").value);
-		let raan  = parseFloat(document.getElementById("raan").value);
-		let w  = parseFloat(document.getElementById("w").value);
-		let f  = parseFloat(document.getElementById("f").value);
-		const mu  = parseFloat(document.getElementById("mu").value);
-		const unit  = document.getElementById("unit").value;
+        function showError(msg) {
+            const out = document.getElementById("output");
+            out.innerHTML = '<span class="error-text">' + msg + '</span>';
+        }
 
-    		// Import functions
-    		const {sin, cos, atan, tan, sqrt, PI } = Math;
+        function fmt(n) {
+            if (!isFinite(n)) return "undefined";
+            return n.toPrecision(8).replace(/\.?0+$/, m => m.includes(".") ? "" : m);
+        }
 
-		console.log(a)
-		if (a<0){
-			outputTextarea.value = "Negative semi-major axes are not compatible";
-			return;
-		}
-    		if (unit=='degs') {
-      			const conv = PI/180;
-      			i = i*conv;
-      			raan = raan*conv;
-      			w = w*conv;
-      			f = f*conv;
-    		}
-      
-    		// Eccentric anomaly (E) calculation
-    		E = 2*atan(sqrt((1-e)/(1+e))*tan(f/2));
+        function kepToStateVector() {
+            const { sin, cos, sqrt, PI, abs } = Math;
 
-    		// Perifocal coordinates
-    		rPeri = a*(1-e*cos(E));
-    		vPeri = sqrt(mu/a)/rPeri;
-  
-    		xf = rPeri*cos(E);
-    		yf = rPeri*sin(E);
+            const a = parseFloat(document.getElementById("a").value);
+            const e = parseFloat(document.getElementById("e").value);
+            let i = parseFloat(document.getElementById("i").value);
+            let raan = parseFloat(document.getElementById("raan").value);
+            let w = parseFloat(document.getElementById("w").value);
+            let f = parseFloat(document.getElementById("f").value);
+            const mu = parseFloat(document.getElementById("mu").value);
+            const unit = document.getElementById("unit").value;
+            const frame = document.getElementById("frame").value;
 
-    		// Coordinates in the ECI frame
-    		x = xf*(cos(w)*cos(raan)-sin(w)*cos(i)*sin(raan)) - yf*(sin(w)*cos(raan)+cos(w)*cos(i)*sin(raan));
-    		y = xf*(cos(w)*sin(raan)+sin(w)*cos(i)*cos(raan)) + yf*(cos(w)*cos(i)*cos(raan)-sin(w)*sin(raan));
-    		z = xf*(sin(w)*sin(i)) + yf*(cos(w)*sin(i));
-  
-    		vx = vPeri*(-sin(E)*(cos(w)*cos(raan)-sin(w)*cos(i)*sin(raan)) - cos(E)*(sin(w)*cos(raan)+cos(w)*cos(i)*sin(raan)));
-    		vy = vPeri*(-sin(E)*(cos(w)*sin(raan)+sin(w)*cos(i)*cos(raan)) + cos(E)*(cos(w)*cos(i)*cos(raan)-sin(w)*sin(raan)));
-    		vz = vPeri*(sin(E)*sin(w)*sin(i) + cos(E)*cos(w)*sin(i));
+            if ([a, e, i, raan, w, f, mu].some(v => isNaN(v))) {
+                showError("One or more inputs is not a valid number.");
+                return;
+            }
+            if (e < 0) {
+                showError("Eccentricity cannot be negative.");
+                return;
+            }
+            if (abs(e - 1) < 1e-9) {
+                showError("e = 1 is a parabolic orbit, which has no finite semi-major axis. This calculator handles elliptical (0 <= e < 1) and hyperbolic (e > 1) orbits only.");
+                return;
+            }
+            if (e < 1 && a <= 0) {
+                showError("Elliptical orbits (e < 1) require a positive semi-major axis.");
+                return;
+            }
+            if (e > 1 && a >= 0) {
+                showError("Hyperbolic orbits (e > 1) require a negative semi-major axis (by convention).");
+                return;
+            }
+            if (mu <= 0) {
+                showError("mu must be positive.");
+                return;
+            }
 
-    		const result = {x,y,z,vx,vy,vz};
-    		outputTextarea.value = JSON.stringify(result);
-}
+            let theta = parseFloat(document.getElementById("theta").value || "0");
+            let omega = parseFloat(document.getElementById("omega").value || "0");
 
+            if (unit === "degs") {
+                const conv = PI / 180;
+                i *= conv; raan *= conv; w *= conv; f *= conv; theta *= conv;
+            }
+
+            // Semi-latus rectum and radius from true anomaly (valid for ellipse and hyperbola alike)
+            const p = a * (1 - e * e);
+            const denom = 1 + e * cos(f);
+            if (denom <= 1e-9) {
+                showError("This true anomaly is beyond the asymptote of the hyperbolic orbit; no real position exists there.");
+                return;
+            }
+            const r = p / denom;
+            const h = sqrt(mu * p);
+
+            // Perifocal (PQW) position and velocity
+            const rp = [r * cos(f), r * sin(f), 0];
+            const vp = [-(mu / h) * sin(f), (mu / h) * (e + cos(f)), 0];
+
+            if (frame === "pqw") {
+                renderResult("Perifocal (PQW)", rp, vp);
+                return;
+            }
+
+            // Rotation from perifocal to ECI (3-1-3: RAAN, inclination, arg. of periapsis)
+            const cO = cos(raan), sO = sin(raan);
+            const ci = cos(i), si = sin(i);
+            const cw = cos(w), sw = sin(w);
+
+            const R11 = cO * cw - sO * sw * ci;
+            const R12 = -cO * sw - sO * cw * ci;
+            const R21 = sO * cw + cO * sw * ci;
+            const R22 = -sO * sw + cO * cw * ci;
+            const R31 = sw * si;
+            const R32 = cw * si;
+
+            const rEci = [
+                R11 * rp[0] + R12 * rp[1],
+                R21 * rp[0] + R22 * rp[1],
+                R31 * rp[0] + R32 * rp[1]
+            ];
+            const vEci = [
+                R11 * vp[0] + R12 * vp[1],
+                R21 * vp[0] + R22 * vp[1],
+                R31 * vp[0] + R32 * vp[1]
+            ];
+
+            if (frame === "eci") {
+                renderResult("Inertial / equatorial of date (ECI)", rEci, vEci);
+                return;
+            }
+
+            // Rotating body-fixed frame: rotate by theta about the polar (Z) axis,
+            // then correct velocity for the frame's own spin: v_fixed = R*v_eci - omega x r_fixed
+            const ct = cos(theta), st = sin(theta);
+            const rFixed = [
+                ct * rEci[0] + st * rEci[1],
+                -st * rEci[0] + ct * rEci[1],
+                rEci[2]
+            ];
+            const vRot = [
+                ct * vEci[0] + st * vEci[1],
+                -st * vEci[0] + ct * vEci[1],
+                vEci[2]
+            ];
+            // omega x r_fixed, with omega = [0,0,omega]
+            const omegaCrossR = [-omega * rFixed[1], omega * rFixed[0], 0];
+            const vFixed = [
+                vRot[0] - omegaCrossR[0],
+                vRot[1] - omegaCrossR[1],
+                vRot[2] - omegaCrossR[2]
+            ];
+
+            renderResult("Rotating body-fixed", rFixed, vFixed);
+        }
+
+        function renderResult(frameLabel, rVec, vVec) {
+            const out = document.getElementById("output");
+            const rMag = Math.sqrt(rVec[0]**2 + rVec[1]**2 + rVec[2]**2);
+            const vMag = Math.sqrt(vVec[0]**2 + vVec[1]**2 + vVec[2]**2);
+            out.textContent =
+                "Frame: " + frameLabel + "\n" +
+                "r = [" + fmt(rVec[0]) + ", " + fmt(rVec[1]) + ", " + fmt(rVec[2]) + "] km   (|r| = " + fmt(rMag) + " km)\n" +
+                "v = [" + fmt(vVec[0]) + ", " + fmt(vVec[1]) + ", " + fmt(vVec[2]) + "] km/s  (|v| = " + fmt(vMag) + " km/s)";
+        }
     </script>
 </body>
 </html>
