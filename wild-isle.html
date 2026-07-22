@@ -746,10 +746,10 @@ const TIERS=[['base','Farm & Field'],['bird','Birds'],['water','Water Animals'],
 
 /* Same idea as SP above: cost to build, pay per collection, per = minutes between collections. */
 const STORES={
-icecream:{n:'Ice Cream Stand',cost:6000,pay:12000,per:10,cap:120,art:c=>storeArt('#f2b7c6','#fff','🍦')},
-balloon:{n:'Balloon Cart',cost:15000,pay:43500,per:15,cap:120,art:c=>storeArt('#f2c14e','#fff','🎈')},
-popcorn:{n:'Popcorn Stand',cost:35000,pay:155000,per:25,cap:120,art:c=>storeArt('#d9432f','#fff','🍿')},
-gift:{n:'Gift Shop',cost:80000,pay:528000,per:40,cap:120,art:c=>storeArt('#5b8dd9','#fff','🎁')}
+icecream:{n:'Ice Cream Stand',cost:12000,pay:6000,per:10,cap:120,art:c=>storeArt('#f2b7c6','#fff','🍦')},
+balloon:{n:'Balloon Cart',cost:40000,pay:20000,per:15,cap:120,art:c=>storeArt('#f2c14e','#fff','🎈')},
+popcorn:{n:'Popcorn Stand',cost:150000,pay:75000,per:25,cap:120,art:c=>storeArt('#d9432f','#fff','🍿')},
+gift:{n:'Gift Shop',cost:750000,pay:500000,per:40,cap:120,art:c=>storeArt('#5b8dd9','#fff','🎁')}
 };
 function storeArt(c1,c2,emo){
   let s='';
@@ -801,8 +801,8 @@ const SLOT_COST=[0,50000,250000];
 /* ---- exhibit footprints, habitats & payout cycles ---- */
 const FP={duck:1,chicken:1,owl:1,otter:1,beaver:1,snake:1,turtle:1,platypus:1,iguana:1, 
 komodo:3,giraffe:3,hippo:3,rhino:3,polar:3,elephant:3,dolphin:3,kraken:3,mammoth:3,dragon:3,megalodon:3,dinosaur:3};
-const HAB={buffalo:'pond',duck:'pond',flamingo:'pond',otter:'pond',beaver:'pond',seaturtle:'pond',dolphin:'pond',platypus:'pond',sealion:'pond',hippo:'pond',crocodile:'pond',kraken:'pond',narwhal:'pond',shark:'pond',megalodon:'pond',
-penguin:'ice',polar:'ice',yeti:'ice',mammoth:'ice',seal:'ice',
+const HAB={buffalo:'pond',duck:'pond',flamingo:'pond',otter:'pond',beaver:'pond',seaturtle:'pond',dolphin:'pond',platypus:'pond',sealion:'pond',hippo:'pond',crocodile:'pond',kraken:'pond',shark:'pond',megalodon:'pond',
+penguin:'ice',polar:'ice',yeti:'ice',mammoth:'ice',seal:'ice',narwhal:'ice',
 eagle:'perch',owl:'perch',
 gorilla:'savanna',zebra:'savanna',giraffe:'savanna',lion:'savanna',rhino:'savanna',elephant:'savanna',liger:'savanna',wildhorse:'savanna',
 panda:'bamboo',
