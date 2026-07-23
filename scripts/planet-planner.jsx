@@ -1,0 +1,950 @@
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+/* ============================================================
+   PLANETARY EYEPIECE PLANNER
+   Ephemeris: JPL approximate Keplerian elements (valid 1800-2050)
+   Galilean moons: Meeus low-accuracy method (Astronomical Algorithms ch.44)
+   Saturn ring geometry: pole-vector projection
+   No external assets — all planet "models" are procedural canvas renders.
+   ============================================================ */
+
+const D2R = Math.PI / 180, R2D = 180 / Math.PI;
+const AUKM = 1.495978707e8;
+const norm360 = d => ((d % 360) + 360) % 360;
+const wrap180 = d => { let x = norm360(d); return x > 180 ? x - 360 : x; };
+const norm24 = h => ((h % 24) + 24) % 24;
+const wrap12 = h => { let x = norm24(h); return x > 12 ? x - 24 : x; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- calendar <-> JD ---------- */
+function jdFromCal(y, m, d) {
+  if (m <= 2) { y -= 1; m += 12; }
+  const A = Math.floor(y / 100), B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5;
+}
+function calFromJd(jd) {
+  const Z = Math.floor(jd + 0.5), F = jd + 0.5 - Z;
+  let A = Z;
+  if (Z >= 2299161) { const a = Math.floor((Z - 1867216.25) / 36524.25); A = Z + 1 + a - Math.floor(a / 4); }
+  const B = A + 1524, C = Math.floor((B - 122.1) / 365.25), D = Math.floor(365.25 * C), E = Math.floor((B - D) / 30.6001);
+  const day = B - D - Math.floor(30.6001 * E) + F;
+  const month = E < 14 ? E - 1 : E - 13;
+  const year = month > 2 ? C - 4716 : C - 4715;
+  const dfrac = day - Math.floor(day);
+  const h = dfrac * 24, hh = Math.floor(h), mm = Math.floor((h - hh) * 60 + 0.5);
+  return { y: year, m: month, d: Math.floor(day), hh, mm: Math.min(mm, 59) };
+}
+function jdFromLocalStr(str, tz) {
+  // "YYYY-MM-DDTHH:MM" interpreted in tz (hours east of UT... here tz = UTC offset)
+  const m = str.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return null;
+  const [, Y, Mo, D, H, Mi] = m.map(Number);
+  return jdFromCal(Y, Mo, D) + (H + Mi / 60 - tz) / 24;
+}
+function localStrFromJd(jd, tz) {
+  const c = calFromJd(jd + tz / 24);
+  const p = (n, w = 2) => String(n).padStart(w, "0");
+  return `${p(c.y, 4)}-${p(c.m)}-${p(c.d)}T${p(c.hh)}:${p(c.mm)}`;
+}
+function fmtDateShort(jd) {
+  const c = calFromJd(jd);
+  const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][c.m - 1];
+  return `${mo} ${c.y}`;
+}
+function fmtDateTime(jd, tz) {
+  const c = calFromJd(jd + tz / 24);
+  const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][c.m - 1];
+  const p = n => String(n).padStart(2, "0");
+  return `${c.d} ${mo} ${c.y}, ${p(c.hh)}:${p(c.mm)}`;
+}
+
+/* ---------- Keplerian elements (JPL approx, J2000 + rates/century) ---------- */
+const EL = {
+  mercury: [0.38709927,0.00000037, 0.20563593,0.00001906, 7.00497902,-0.00594749, 252.25032350,149472.67411175, 77.45779628,0.16047689, 48.33076593,-0.12534081],
+  venus:   [0.72333566,0.00000390, 0.00677672,-0.00004107, 3.39467605,-0.00078890, 181.97909950,58517.81538729, 131.60246718,0.00268329, 76.67984255,-0.27769418],
+  earth:   [1.00000261,0.00000562, 0.01671123,-0.00004392, -0.00001531,-0.01294668, 100.46457166,35999.37244981, 102.93768193,0.32327364, 0.0,0.0],
+  mars:    [1.52371034,0.00001847, 0.09339410,0.00007882, 1.84969142,-0.00813131, -4.55343205,19140.30268499, -23.94362959,0.44441088, 49.55953891,-0.29257343],
+  jupiter: [5.20288700,-0.00011607, 0.04838624,-0.00013253, 1.30439695,-0.00183714, 34.39644051,3034.74612775, 14.72847983,0.21252668, 100.47390909,0.20469106],
+  saturn:  [9.53667594,-0.00125060, 0.05386179,-0.00050991, 2.48599187,0.00193609, 49.95424423,1222.49362201, 92.59887831,-0.41897216, 113.66242448,-0.28867794],
+  uranus:  [19.18916464,-0.00196176, 0.04725744,-0.00004397, 0.77263783,-0.00242939, 313.23810451,428.48202785, 170.95427630,0.40805281, 74.01692503,0.04240589],
+  neptune: [30.06992276,0.00026291, 0.00859048,0.00005105, 1.77004347,0.00035372, -55.12002969,218.45945325, 44.96476227,-0.32241464, 131.78422574,-0.00508664],
+};
+
+const PLANETS = {
+  mercury: { name: "Mercury", dKm: 4879,   flat: 0.000, base: "#b8afa5" },
+  venus:   { name: "Venus",   dKm: 12104,  flat: 0.000, base: "#f0e4c8" },
+  mars:    { name: "Mars",    dKm: 6792,   flat: 0.006, base: "#c85a2c" },
+  jupiter: { name: "Jupiter", dKm: 142984, flat: 0.065, base: "#e6d9bc" },
+  saturn:  { name: "Saturn",  dKm: 120536, flat: 0.098, base: "#e3d3a4" },
+  uranus:  { name: "Uranus",  dKm: 51118,  flat: 0.023, base: "#a7dade" },
+  neptune: { name: "Neptune", dKm: 49528,  flat: 0.017, base: "#4169c8" },
+};
+const PKEYS = Object.keys(PLANETS);
+
+function heliPos(key, T) {
+  const e = EL[key];
+  const a = e[0] + e[1] * T, ec = e[2] + e[3] * T, I = (e[4] + e[5] * T) * D2R;
+  const L = e[6] + e[7] * T, peri = e[8] + e[9] * T, node = e[10] + e[11] * T;
+  const M = norm360(L - peri) * D2R, w = (peri - node) * D2R, O = node * D2R;
+  let Ea = M;
+  for (let i = 0; i < 10; i++) Ea = Ea - (Ea - ec * Math.sin(Ea) - M) / (1 - ec * Math.cos(Ea));
+  const xp = a * (Math.cos(Ea) - ec), yp = a * Math.sqrt(1 - ec * ec) * Math.sin(Ea);
+  const cw = Math.cos(w), sw = Math.sin(w), cO = Math.cos(O), sO = Math.sin(O), ci = Math.cos(I), si = Math.sin(I);
+  return [
+    (cw * cO - sw * sO * ci) * xp + (-sw * cO - cw * sO * ci) * yp,
+    (cw * sO + sw * cO * ci) * xp + (-sw * sO + cw * cO * ci) * yp,
+    (sw * si) * xp + (cw * si) * yp,
+  ];
+}
+const vlen = v => Math.hypot(v[0], v[1], v[2]);
+const EPS = 23.43928 * D2R;
+function eclToEq(v) {
+  return [v[0], v[1] * Math.cos(EPS) - v[2] * Math.sin(EPS), v[1] * Math.sin(EPS) + v[2] * Math.cos(EPS)];
+}
+function raDec(vEq) {
+  const d = vlen(vEq);
+  return { ra: norm360(Math.atan2(vEq[1], vEq[0]) * R2D), dec: Math.asin(vEq[2] / d) * R2D, dist: d };
+}
+function posAngle(raT, decT, raB, decB) {
+  // position angle of target (raT/decT) as seen from body at (raB/decB), N through E
+  const dra = (raT - raB) * D2R, dT = decT * D2R, dB = decB * D2R;
+  return Math.atan2(Math.cos(dT) * Math.sin(dra), Math.sin(dT) * Math.cos(dB) - Math.cos(dT) * Math.sin(dB) * Math.cos(dra)) * R2D;
+}
+
+/* ---------- full state at JD ---------- */
+function computeState(jd) {
+  const T = (jd - 2451545.0) / 36525.0;
+  const earth = heliPos("earth", T);
+  const R = vlen(earth);
+  const sunGeo = eclToEq([-earth[0], -earth[1], -earth[2]]);
+  const sun = raDec(sunGeo);
+  const sunEclLon = norm360(Math.atan2(-earth[1], -earth[0]) * R2D);
+
+  const out = { jd, T, sun: { ...sun, eclLon: sunEclLon }, planets: {} };
+
+  for (const key of PKEYS) {
+    const p = heliPos(key, T);
+    const r = vlen(p);
+    const geoEcl = [p[0] - earth[0], p[1] - earth[1], p[2] - earth[2]];
+    const geoEq = eclToEq(geoEcl);
+    const { ra, dec, dist } = raDec(geoEq);
+    const eclLon = norm360(Math.atan2(geoEcl[1], geoEcl[0]) * R2D);
+    const cosI = clamp((r * r + dist * dist - R * R) / (2 * r * dist), -1, 1);
+    const phaseAng = Math.acos(cosI) * R2D;
+    const k = (1 + cosI) / 2;
+    const cosE = clamp((R * R + dist * dist - r * r) / (2 * R * dist), -1, 1);
+    const elong = Math.acos(cosE) * R2D;
+    const elongDir = Math.sin((eclLon - sunEclLon) * D2R) > 0 ? "E" : "W";
+    const angDiam = 206265 * PLANETS[key].dKm / (dist * AUKM);
+    const limbPA = posAngle(sun.ra, sun.dec, ra, dec);
+
+    let mag = 0;
+    const lg = 5 * Math.log10(r * dist), i = phaseAng;
+    if (key === "mercury") mag = -0.613 + lg + 0.06328 * i - 1.6336e-3 * i * i + 3.3644e-5 * i ** 3 - 3.4265e-7 * i ** 4 + 1.6893e-9 * i ** 5 - 3.0334e-12 * i ** 6;
+    else if (key === "venus") mag = -4.384 + lg - 1.044e-3 * i + 3.687e-4 * i * i - 2.814e-6 * i ** 3 + 8.938e-9 * i ** 4;
+    else if (key === "mars") mag = -1.601 + lg + 0.02267 * i - 1.302e-4 * i * i;
+    else if (key === "jupiter") mag = -9.395 + lg - 3.7e-4 * i + 6.16e-4 * i * i;
+    else if (key === "uranus") mag = -7.19 + lg + 0.002 * i;
+    else if (key === "neptune") mag = -6.87 + lg;
+
+    const st = { key, ra, dec, dist, r, phaseAng, k, elong, elongDir, angDiam, mag, limbPA, geoEqUnit: geoEq.map(v => v / dist) };
+
+    if (key === "saturn") {
+      const ap = 40.589 * D2R, dp = 83.537 * D2R;
+      const pole = [Math.cos(dp) * Math.cos(ap), Math.cos(dp) * Math.sin(ap), Math.sin(dp)];
+      const dot = pole[0] * st.geoEqUnit[0] + pole[1] * st.geoEqUnit[1] + pole[2] * st.geoEqUnit[2];
+      st.ringB = Math.asin(clamp(-dot, -1, 1)) * R2D;
+      st.polePA = posAngle(40.589, 83.537, ra, dec);
+      mag = -8.88 + lg - 2.60 * Math.abs(Math.sin(st.ringB * D2R)) + 1.25 * Math.sin(st.ringB * D2R) ** 2;
+      st.mag = mag;
+    }
+    if (key === "jupiter") {
+      st.polePA = posAngle(268.057, 64.495, ra, dec);
+      const d = jd - 2451545.0;
+      st.cm2 = norm360(181.62 + 870.1869147 * d);
+    }
+    if (key === "mars") {
+      st.polePA = posAngle(317.681, 52.887, ra, dec);
+      st.cm = norm360(176.63 + 350.89198226 * (jd - 2451545.0)); // illustrative rotation
+    }
+    out.planets[key] = st;
+  }
+  return out;
+}
+
+/* ---------- Galilean moons (Meeus low-accuracy) ---------- */
+function galileanMoons(jd) {
+  const d = jd - 2451545.0;
+  const V = norm360(172.74 + 0.00111588 * d);
+  const M = norm360(357.529 + 0.9856003 * d);
+  const N = norm360(20.020 + 0.0830853 * d + 0.329 * Math.sin(V * D2R));
+  const J = norm360(66.115 + 0.9025179 * d - 0.329 * Math.sin(V * D2R));
+  const A = 1.915 * Math.sin(M * D2R) + 0.020 * Math.sin(2 * M * D2R);
+  const B = 5.555 * Math.sin(N * D2R) + 0.168 * Math.sin(2 * N * D2R);
+  const K = (J + A - B);
+  const Re = 1.00014 - 0.01671 * Math.cos(M * D2R) - 0.00014 * Math.cos(2 * M * D2R);
+  const r = 5.20872 - 0.25208 * Math.cos(N * D2R) - 0.00611 * Math.cos(2 * N * D2R);
+  const Del = Math.sqrt(r * r + Re * Re - 2 * r * Re * Math.cos(K * D2R));
+  const psi = Math.asin(clamp(Re / Del * Math.sin(K * D2R), -1, 1)) * R2D;
+  const lam = 34.35 + 0.083091 * d + 0.329 * Math.sin(V * D2R) + B;
+  const Ds = 3.12 * Math.sin((lam + 42.8) * D2R);
+  const De = Ds - 2.22 * Math.sin(psi * D2R) * Math.cos((lam + 22) * D2R) - 1.30 * ((r - Del) / Del) * Math.sin((lam - 100.5) * D2R);
+  const dt = d - Del / 173;
+  let u1 = 163.8069 + 203.4058646 * dt + psi - B;
+  let u2 = 358.4140 + 101.2916335 * dt + psi - B;
+  let u3 = 5.7176 + 50.2345180 * dt + psi - B;
+  let u4 = 224.8092 + 21.4879800 * dt + psi - B;
+  const G = 331.18 + 50.310482 * dt, H = 87.45 + 21.569231 * dt;
+  u1 += 0.473 * Math.sin(2 * (u1 - u2) * D2R);
+  u2 += 1.065 * Math.sin(2 * (u2 - u3) * D2R);
+  u3 += 0.165 * Math.sin(G * D2R);
+  u4 += 0.843 * Math.sin(H * D2R);
+  const rr = [
+    5.9057 - 0.0244 * Math.cos(2 * (u1 - u2) * D2R),
+    9.3966 - 0.0882 * Math.cos(2 * (u2 - u3) * D2R),
+    14.9883 - 0.0216 * Math.cos(G * D2R),
+    26.3627 - 0.1939 * Math.cos(H * D2R),
+  ];
+  const us = [u1, u2, u3, u4];
+  const names = ["Io", "Europa", "Ganymede", "Callisto"];
+  const mags = [5.0, 5.3, 4.6, 5.7];
+  return names.map((nm, i) => {
+    const u = norm360(us[i]);
+    return {
+      name: nm, short: ["I", "E", "G", "C"][i], mag: mags[i],
+      xEast: rr[i] * Math.sin(u * D2R),           // + = east of Jupiter (Rj)
+      yNorth: -rr[i] * Math.cos(u * D2R) * Math.sin(De * D2R),
+      nearSide: Math.cos(u * D2R) < 0,            // u≈180 -> in front (transit side)
+      rJ: rr[i], u,
+    };
+  });
+}
+
+/* ---------- Saturn moons: mean circular orbits (approximate phases!) ---------- */
+const SAT_MOONS = [
+  { name: "Tethys", short: "Te", aRs: 4.89, P: 1.8878, L0: 200, mag: 10.2 },
+  { name: "Dione",  short: "Di", aRs: 6.26, P: 2.7369, L0: 40,  mag: 10.4 },
+  { name: "Rhea",   short: "Rh", aRs: 8.74, P: 4.5175, L0: 300, mag: 9.7 },
+  { name: "Titan",  short: "Ti", aRs: 20.27, P: 15.9454, L0: 120, mag: 8.4 },
+];
+function saturnMoons(jd, ringB) {
+  const d = jd - 2451545.0;
+  return SAT_MOONS.map(m => {
+    const u = norm360(m.L0 + (360 / m.P) * d) * D2R;
+    return {
+      name: m.name, short: m.short, mag: m.mag,
+      xEast: m.aRs * Math.sin(u),
+      yNorth: -m.aRs * Math.cos(u) * Math.sin(ringB * D2R),
+      nearSide: Math.cos(u) < 0, aRs: m.aRs,
+    };
+  });
+}
+
+/* ---------- rise / set ---------- */
+function riseSet(ra, dec, jd, lat, lonEast, h0) {
+  const jd0 = Math.floor(jd - 0.5) + 0.5;
+  const gmst0 = norm360(280.46061837 + 360.98564736629 * (jd0 - 2451545.0));
+  const transit = norm360(ra - lonEast - gmst0) / 15.04106864;
+  const sh = Math.sin(h0 * D2R), sp = Math.sin(lat * D2R), sd = Math.sin(dec * D2R);
+  const cp = Math.cos(lat * D2R), cd = Math.cos(dec * D2R);
+  const cosH = (sh - sp * sd) / (cp * cd);
+  if (cosH < -1) return { status: "circumpolar", transit };
+  if (cosH > 1) return { status: "never", transit };
+  const H = Math.acos(cosH) * R2D / 15.04106864;
+  return { status: "ok", rise: norm24(transit - H), set: norm24(transit + H), transit };
+}
+const fmtHM = h => { const hh = Math.floor(norm24(h)); const mm = Math.round((norm24(h) - hh) * 60); return `${String(hh).padStart(2, "0")}:${String(mm % 60).padStart(2, "0")}`; };
+function fmtDelta(dh, refWord) {
+  const a = Math.abs(dh), hh = Math.floor(a), mm = Math.round((a - hh) * 60);
+  const t = hh > 0 ? `${hh}h${String(mm).padStart(2, "0")}m` : `${mm}m`;
+  return `${t} ${dh < 0 ? "before" : "after"} ${refWord}`;
+}
+
+/* ---------- min/max angular size scan (2026–2038) ---------- */
+function scanMinMax() {
+  const res = {};
+  const hist = {};
+  for (const k of PKEYS) { res[k] = { min: { v: 1e9, jd: 0 }, max: { v: -1, jd: 0 }, localMaxima: [] }; hist[k] = { j2: 0, v2: -1, j1: 0, v1: -1 }; }
+  const start = jdFromCal(2025, 1, 1), end = jdFromCal(2040, 1, 1);
+  for (let jd = start; jd < end; jd += 1) {
+    const T = (jd - 2451545.0) / 36525.0;
+    const e = heliPos("earth", T);
+    for (const k of PKEYS) {
+      const p = heliPos(k, T);
+      const dist = Math.hypot(p[0] - e[0], p[1] - e[1], p[2] - e[2]);
+      const ang = 206265 * PLANETS[k].dKm / (dist * AUKM);
+      const r = res[k];
+      if (ang < r.min.v) r.min = { v: ang, jd };
+      if (ang > r.max.v) r.max = { v: ang, jd };
+      const h = hist[k];
+      if (h.v1 > h.v2 && h.v1 > ang) r.localMaxima.push({ jd: h.j1, v: h.v1 });
+      h.j2 = h.j1; h.v2 = h.v1; h.j1 = jd; h.v1 = ang;
+    }
+  }
+  return res;
+}
+function nextLocalMax(mm, fromJd) {
+  const arr = mm.localMaxima;
+  if (!arr.length) return mm.max;
+  const found = arr.find(m => m.jd >= fromJd);
+  return found || arr[arr.length - 1];
+}
+
+/* ============================================================
+   PROCEDURAL PLANET RENDERING
+   ============================================================ */
+function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function poleRotation(P) { return Math.atan2(-Math.cos(P * D2R), -Math.sin(P * D2R)) + Math.PI / 2; }
+
+function drawDarkPhase(ctx, R, k, limbPA) {
+  // dark region: limb semicircle (dark side) + terminator half-ellipse, bright limb toward +x pre-rotation
+  const chi = limbPA * D2R;
+  const rot = Math.atan2(-Math.cos(chi), -Math.sin(chi));
+  const t = R * (2 * k - 1);
+  ctx.save();
+  ctx.rotate(rot);
+  ctx.beginPath();
+  const N = 60;
+  for (let i = 0; i <= N; i++) { // dark limb 90°→270°
+    const a = (90 + 180 * i / N) * D2R;
+    const x = R * Math.cos(a), y = R * Math.sin(a);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  for (let i = 0; i <= N; i++) { // terminator 270°→90° (through (-t,0))
+    const a = (270 - 180 * i / N) * D2R;
+    ctx.lineTo(t * Math.cos(a), R * Math.sin(a)); // terminator: x = t·cos(a)
+  }
+  ctx.closePath();
+  ctx.fillStyle = "rgba(2,3,8,0.985)";
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawJupiterSurface(ctx, Re, Rp, cm2, grsLon) {
+  const bands = [
+    { lat: 0, hw: 7, c: "#efe3c6" },
+    { lat: 12, hw: 6, c: "#a9704a" }, { lat: -13, hw: 7, c: "#b07850" },
+    { lat: 24, hw: 4, c: "#d9c8a3" }, { lat: -24, hw: 4, c: "#d9c8a3" },
+    { lat: 30, hw: 3, c: "#bd9a72" }, { lat: -31, hw: 3, c: "#bd9a72" },
+    { lat: 42, hw: 5, c: "#cbb992" }, { lat: -42, hw: 5, c: "#cbb992" },
+  ];
+  ctx.fillStyle = PLANETS.jupiter.base;
+  ctx.beginPath(); ctx.ellipse(0, 0, Re, Rp, 0, 0, 2 * Math.PI); ctx.fill();
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(0, 0, Re, Rp, 0, 0, 2 * Math.PI); ctx.clip();
+  for (const b of bands) {
+    const y = -Rp * Math.sin(b.lat * D2R);
+    const h = 2 * Rp * Math.sin(b.hw * D2R);
+    ctx.fillStyle = b.c;
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(-Re, y - h / 2, 2 * Re, h);
+  }
+  ctx.globalAlpha = 1;
+  // polar hoods
+  ctx.fillStyle = "rgba(160,145,115,0.55)";
+  ctx.fillRect(-Re, -Rp, 2 * Re, Rp * (1 - Math.sin(58 * D2R)));
+  ctx.fillRect(-Re, Rp * Math.sin(58 * D2R), 2 * Re, Rp);
+  // Great Red Spot
+  const dL = wrap180(grsLon - cm2);
+  if (Math.abs(dL) < 82) {
+    const latG = -22 * D2R;
+    const x = -Re * Math.cos(latG) * Math.sin(dL * D2R);
+    const y = -Rp * Math.sin(latG);
+    const w = Re * 0.115 * Math.cos(dL * D2R), h = Rp * 0.075;
+    ctx.fillStyle = "#c2634b";
+    ctx.beginPath(); ctx.ellipse(x, y, Math.max(w, 0.4), h, 0, 0, 2 * Math.PI); ctx.fill();
+    ctx.strokeStyle = "rgba(140,60,40,0.7)"; ctx.lineWidth = Math.max(Re * 0.012, 0.3);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawSaturnGlobe(ctx, Re, Rp) {
+  ctx.fillStyle = PLANETS.saturn.base;
+  ctx.beginPath(); ctx.ellipse(0, 0, Re, Rp, 0, 0, 2 * Math.PI); ctx.fill();
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(0, 0, Re, Rp, 0, 0, 2 * Math.PI); ctx.clip();
+  const bands = [{ lat: 18, hw: 8, c: "#cdb884" }, { lat: -16, hw: 7, c: "#d2be8c" }, { lat: 40, hw: 8, c: "#c3b184" }];
+  for (const b of bands) {
+    const y = -Rp * Math.sin(b.lat * D2R), h = 2 * Rp * Math.sin(b.hw * D2R);
+    ctx.globalAlpha = 0.6; ctx.fillStyle = b.c; ctx.fillRect(-Re, y - h / 2, 2 * Re, h);
+  }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "rgba(150,150,130,0.5)";
+  ctx.fillRect(-Re, -Rp, 2 * Re, Rp * (1 - Math.sin(62 * D2R)));
+  ctx.restore();
+}
+
+function makeRingCanvas(Re, sinB) {
+  const RA_o = 2.27, RA_i = 2.03, RB_o = 1.95, RB_i = 1.53, RC_i = 1.24;
+  const w = Math.ceil(Re * RA_o * 2 + 6), h = Math.ceil(Math.max(Re * RA_o * 2 * Math.abs(sinB), 2) + 6);
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = Math.max(h, 4);
+  const c = cv.getContext("2d");
+  c.translate(w / 2, cv.height / 2);
+  const sy = Math.max(Math.abs(sinB), 0.008);
+  const ring = (ro, ri, fill) => {
+    c.beginPath();
+    c.ellipse(0, 0, Re * ro, Re * ro * sy, 0, 0, 2 * Math.PI);
+    c.ellipse(0, 0, Re * ri, Re * ri * sy, 0, 0, 2 * Math.PI, true);
+    c.fillStyle = fill; c.fill("evenodd");
+  };
+  ring(RA_o, RA_i, "rgba(214,199,160,0.88)");
+  ring(RB_o, RB_i, "rgba(236,222,182,0.97)");
+  ring(RB_i, RC_i, "rgba(160,150,125,0.35)");
+  return { cv, RA_o };
+}
+
+function drawMarsSurface(ctx, Re, Rp, cm) {
+  const g = ctx.createRadialGradient(-Re * 0.2, -Rp * 0.2, Re * 0.1, 0, 0, Re);
+  g.addColorStop(0, "#d97a3e"); g.addColorStop(1, "#a8431c");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(0, 0, Re, Rp, 0, 0, 2 * Math.PI); ctx.fill();
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(0, 0, Re, Rp, 0, 0, 2 * Math.PI); ctx.clip();
+  // dark albedo patches rotating with illustrative CM (Syrtis-like)
+  const feats = [{ lon: 290, lat: 5, w: 0.35, h: 0.3 }, { lon: 0, lat: -25, w: 0.5, h: 0.16 }, { lon: 100, lat: -15, w: 0.3, h: 0.14 }, { lon: 200, lat: 15, w: 0.25, h: 0.12 }];
+  ctx.fillStyle = "rgba(90,45,25,0.55)";
+  for (const f of feats) {
+    const dL = wrap180(f.lon - cm);
+    if (Math.abs(dL) > 80) continue;
+    const x = -Re * Math.cos(f.lat * D2R) * Math.sin(dL * D2R);
+    const y = -Rp * Math.sin(f.lat * D2R);
+    ctx.beginPath();
+    ctx.ellipse(x, y, Math.max(Re * f.w * Math.cos(dL * D2R), 0.3), Rp * f.h, 0, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+  // polar caps
+  ctx.fillStyle = "rgba(245,245,240,0.9)";
+  ctx.beginPath(); ctx.ellipse(0, -Rp * 0.88, Re * 0.28, Rp * 0.1, 0, 0, 2 * Math.PI); ctx.fill();
+  ctx.fillStyle = "rgba(245,245,240,0.5)";
+  ctx.beginPath(); ctx.ellipse(0, Rp * 0.9, Re * 0.2, Rp * 0.07, 0, 0, 2 * Math.PI); ctx.fill();
+  ctx.restore();
+}
+
+function drawMercurySurface(ctx, Re) {
+  ctx.fillStyle = PLANETS.mercury.base;
+  ctx.beginPath(); ctx.arc(0, 0, Re, 0, 2 * Math.PI); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(0, 0, Re, 0, 2 * Math.PI); ctx.clip();
+  const rnd = mulberry(77);
+  ctx.fillStyle = "rgba(70,66,60,0.25)";
+  for (let i = 0; i < 26; i++) {
+    const a = rnd() * 2 * Math.PI, rr = Math.sqrt(rnd()) * Re * 0.92;
+    ctx.beginPath(); ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, Re * (0.03 + rnd() * 0.09), 0, 2 * Math.PI); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawVenusSurface(ctx, Re) {
+  const g = ctx.createRadialGradient(-Re * 0.25, -Re * 0.25, Re * 0.1, 0, 0, Re);
+  g.addColorStop(0, "#f7efdb"); g.addColorStop(1, "#e2d0a8");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, Re, 0, 2 * Math.PI); ctx.fill();
+}
+
+function drawIceGiant(ctx, Re, Rp, key) {
+  const c1 = key === "uranus" ? "#b8e4e6" : "#5a7fdd", c2 = key === "uranus" ? "#8fc6cc" : "#31509f";
+  const g = ctx.createRadialGradient(-Re * 0.25, -Rp * 0.25, Re * 0.1, 0, 0, Re);
+  g.addColorStop(0, c1); g.addColorStop(1, c2);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(0, 0, Re, Rp, 0, 0, 2 * Math.PI); ctx.fill();
+  if (key === "neptune") {
+    ctx.save(); ctx.beginPath(); ctx.ellipse(0, 0, Re, Rp, 0, 0, 2 * Math.PI); ctx.clip();
+    ctx.fillStyle = "rgba(255,255,255,0.14)"; ctx.fillRect(-Re, -Rp * 0.45, 2 * Re, Rp * 0.16);
+    ctx.restore();
+  }
+}
+
+function limbDarken(ctx, Re, Rp) {
+  const g = ctx.createRadialGradient(0, 0, Math.min(Re, Rp) * 0.55, 0, 0, Math.max(Re, Rp));
+  g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(0.85, "rgba(0,0,10,0.08)"); g.addColorStop(1, "rgba(0,0,10,0.42)");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(0, 0, Re, Rp, 0, 0, 2 * Math.PI); ctx.fill();
+}
+
+/* Master renderer: planet at (cx,cy) with equatorial radius Rpx on given ctx.
+   Supersamples internally for small disks. Returns nothing. */
+function renderPlanet(ctx, cx, cy, Rpx, key, st, opts = {}) {
+  const grsLon = opts.grsLon ?? 68;
+  const flat = PLANETS[key].flat;
+  const needRings = key === "saturn";
+  const pad = needRings ? 2.45 : 1.15;
+  const ss = Rpx < 30 ? clamp(Math.ceil(48 / Math.max(Rpx, 1)), 2, 24) : 1;
+  const R = Rpx * ss;
+  const size = Math.ceil(R * pad * 2 + 8);
+  const off = document.createElement("canvas");
+  off.width = size; off.height = size;
+  const c = off.getContext("2d");
+  c.translate(size / 2, size / 2);
+
+  const poleRot = st.polePA !== undefined ? poleRotation(st.polePA) : 0;
+  c.save();
+  c.rotate(poleRot);
+  const Re = R, Rp = R * (1 - flat);
+
+  let ringInfo = null;
+  if (needRings) {
+    const sinB = Math.sin((st.ringB || 0) * D2R);
+    ringInfo = makeRingCanvas(Re, sinB);
+    // far half of rings (behind planet): the half opposite the visible face
+    c.save();
+    const nearIsLower = (st.ringB || 0) > 0; // seeing N face -> near arm crosses S (lower, N-up frame)
+    c.beginPath();
+    if (nearIsLower) c.rect(-size, -size, 2 * size, size); else c.rect(-size, 0, 2 * size, size);
+    c.clip();
+    c.drawImage(ringInfo.cv, -ringInfo.cv.width / 2, -ringInfo.cv.height / 2);
+    c.restore();
+    drawSaturnGlobe(c, Re, Rp);
+    // near half of rings on top
+    c.save();
+    c.beginPath();
+    if (nearIsLower) c.rect(-size, 0, 2 * size, size); else c.rect(-size, -size, 2 * size, size);
+    c.clip();
+    c.drawImage(ringInfo.cv, -ringInfo.cv.width / 2, -ringInfo.cv.height / 2);
+    c.restore();
+    limbDarken(c, Re, Rp);
+  } else if (key === "jupiter") {
+    drawJupiterSurface(c, Re, Rp, st.cm2 || 0, grsLon);
+    limbDarken(c, Re, Rp);
+  } else if (key === "mars") {
+    drawMarsSurface(c, Re, Rp, st.cm || 0);
+    limbDarken(c, Re, Rp);
+  } else if (key === "mercury") {
+    drawMercurySurface(c, Re); limbDarken(c, Re, Re);
+  } else if (key === "venus") {
+    drawVenusSurface(c, Re); limbDarken(c, Re, Re);
+  } else {
+    drawIceGiant(c, Re, Rp, key); limbDarken(c, Re, Rp);
+  }
+  c.restore();
+
+  // phase shading (matters for Mercury/Venus, slight for Mars)
+  if (st.k < 0.995 && !needRings && key !== "jupiter") {
+    drawDarkPhase(c, R * (1 - flat / 2), st.k, st.limbPA);
+  }
+
+  const drawSize = size / ss;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(off, cx - drawSize / 2, cy - drawSize / 2, drawSize, drawSize);
+}
+
+function drawStarPoint(ctx, x, y, mag, tint = "#fff") {
+  const r = clamp(2.6 - 0.22 * (mag + 1), 0.9, 4.5);
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
+  g.addColorStop(0, tint); g.addColorStop(0.25, tint); g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r * 3, 0, 2 * Math.PI); ctx.fill();
+}
+
+/* ============================================================
+   UI COMPONENTS
+   ============================================================ */
+const S = {
+  panel: { background: "#0c111d", border: "1px solid #1c2333", borderRadius: 10, padding: "14px 16px" },
+  label: { fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7288", fontFamily: "'IBM Plex Mono', ui-monospace, monospace" },
+  mono: { fontFamily: "'IBM Plex Mono', ui-monospace, monospace" },
+  input: { background: "#060910", border: "1px solid #232c42", color: "#e8ebf4", borderRadius: 6, padding: "6px 8px", fontSize: 13, fontFamily: "'IBM Plex Mono', ui-monospace, monospace", width: "100%", boxSizing: "border-box" },
+};
+
+function Field({ label, children }) {
+  return <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+    <span style={S.label}>{label}</span>{children}
+  </div>;
+}
+
+/* ---------- Eyepiece view (true angular scale) ---------- */
+function EyepieceView({ state, selKey, tfovArcsec, magX, grsLon, moonsJ, moonsS }) {
+  const ref = useRef(null);
+  const SIZE = 500;
+  useEffect(() => {
+    const ctx = ref.current.getContext("2d");
+    const st = state.planets[selKey];
+    ctx.clearRect(0, 0, SIZE, SIZE);
+    // field
+    ctx.save();
+    ctx.beginPath(); ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 2, 0, 2 * Math.PI); ctx.clip();
+    ctx.fillStyle = "#02030a"; ctx.fillRect(0, 0, SIZE, SIZE);
+    const rnd = mulberry(selKey.length * 1013 + 7);
+    for (let i = 0; i < 130; i++) {
+      const x = rnd() * SIZE, y = rnd() * SIZE, b = rnd();
+      ctx.fillStyle = `rgba(210,220,255,${0.06 + b * 0.35})`;
+      ctx.fillRect(x, y, b > 0.92 ? 1.5 : 1, b > 0.92 ? 1.5 : 1);
+    }
+    const pxPerAs = SIZE / tfovArcsec;
+    const Rpx = (st.angDiam / 2) * pxPerAs;
+    const cx = SIZE / 2, cy = SIZE / 2;
+
+    const subPixel = Rpx < 0.55;
+    if (subPixel) {
+      drawStarPoint(ctx, cx, cy, st.mag, key2tint(selKey));
+    } else {
+      renderPlanet(ctx, cx, cy, Rpx, selKey, st, { grsLon });
+    }
+    // moons at true separation
+    const drawMoon = (m, RjPx, tint) => {
+      const mx = cx - m.xEast * RjPx, my = cy - m.yNorth * RjPx; // east = left, north = up
+      const onDisk = Math.hypot(mx - cx, my - cy) < Rpx * 1.0;
+      if (onDisk && !m.nearSide) return; // occulted behind planet
+      drawStarPoint(ctx, mx, my, m.mag, tint);
+      ctx.fillStyle = "rgba(160,170,200,0.85)";
+      ctx.font = "9px ui-monospace, monospace";
+      ctx.fillText(m.short, mx + 4, my - 4);
+    };
+    if (selKey === "jupiter" && Rpx >= 0.25) moonsJ.forEach(m => drawMoon(m, Rpx, "#e8e2d0"));
+    if (selKey === "saturn" && Rpx >= 0.25) moonsS.forEach(m => drawMoon(m, Rpx, "#ded6bf"));
+
+    ctx.restore();
+    // eyepiece rim
+    ctx.strokeStyle = "#2a3350"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 2, 0, 2 * Math.PI); ctx.stroke();
+    // orientation marks
+    ctx.fillStyle = "#5a6480"; ctx.font = "10px ui-monospace, monospace"; ctx.textAlign = "center";
+    ctx.fillText("N", SIZE / 2, 16); ctx.fillText("E", 14, SIZE / 2 + 3);
+    ctx.textAlign = "left";
+    if (subPixel) {
+      ctx.fillStyle = "#e0a13e"; ctx.font = "11px ui-monospace, monospace";
+      const px = ((state.planets[selKey].angDiam) * SIZE / tfovArcsec).toFixed(2);
+      ctx.fillText(`disk = ${px} px at this scale — appears stellar`, 16, SIZE - 18);
+    }
+  }, [state, selKey, tfovArcsec, grsLon, moonsJ, moonsS]);
+  return <canvas ref={ref} width={SIZE} height={SIZE} style={{ width: "100%", maxWidth: SIZE, display: "block", margin: "0 auto" }} />;
+}
+const key2tint = k => ({ mercury: "#d8d2c8", venus: "#fff3d6", mars: "#ffb08a", jupiter: "#ffe9c4", saturn: "#f4e8c2", uranus: "#c8f0f2", neptune: "#9db8ff" }[k]);
+
+/* ---------- Detail (magnified) view ---------- */
+function DetailView({ state, selKey, grsLon }) {
+  const ref = useRef(null);
+  const W = 500, H = 320;
+  useEffect(() => {
+    const ctx = ref.current.getContext("2d");
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#04060d"; ctx.fillRect(0, 0, W, H);
+    const st = state.planets[selKey];
+    const R = selKey === "saturn" ? 92 : 118;
+    renderPlanet(ctx, W / 2, H / 2, R, selKey, st, { grsLon });
+    ctx.strokeStyle = "#1c2333"; ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+  }, [state, selKey, grsLon]);
+  return <canvas ref={ref} width={W} height={H} style={{ width: "100%", display: "block", borderRadius: 8 }} />;
+}
+
+/* ---------- Comparison strip: all planets at one angular scale ---------- */
+function CompareStrip({ state, minmax, sel, onSel, grsLon }) {
+  const scale = 1.5; // px per arcsec — shared by every disk
+  return (
+    <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
+      {PKEYS.map(k => <CompareCell key={k} k={k} st={state.planets[k]} mm={minmax[k]} scale={scale} active={sel === k} onSel={onSel} grsLon={grsLon} />)}
+    </div>
+  );
+}
+function CompareCell({ k, st, mm, scale, active, onSel, grsLon }) {
+  const ref = useRef(null);
+  const CS = 118;
+  useEffect(() => {
+    const ctx = ref.current.getContext("2d");
+    ctx.clearRect(0, 0, CS, CS);
+    ctx.fillStyle = "#04060d"; ctx.fillRect(0, 0, CS, CS);
+    const Rpx = (st.angDiam / 2) * scale;
+    // ghost rings: max & min possible angular size at this same scale
+    ctx.strokeStyle = "rgba(120,130,160,0.35)"; ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(CS / 2, CS / 2, (mm.max.v / 2) * scale, 0, 2 * Math.PI); ctx.stroke();
+    ctx.strokeStyle = "rgba(120,130,160,0.22)";
+    ctx.beginPath(); ctx.arc(CS / 2, CS / 2, Math.max((mm.min.v / 2) * scale, 1), 0, 2 * Math.PI); ctx.stroke();
+    ctx.setLineDash([]);
+    if (Rpx < 0.5) drawStarPoint(ctx, CS / 2, CS / 2, st.mag, key2tint(k));
+    else renderPlanet(ctx, CS / 2, CS / 2, Rpx, k, st, { grsLon });
+  }, [st, scale, mm, grsLon]);
+  return (
+    <div onClick={() => onSel(k)} style={{
+      cursor: "pointer", minWidth: 128, borderRadius: 8, padding: 6,
+      border: active ? "1px solid #d4693f" : "1px solid #1c2333",
+      background: active ? "#151020" : "#0a0e18", transition: "border-color .15s",
+    }}>
+      <canvas ref={ref} width={CS} height={CS} style={{ width: "100%", borderRadius: 5 }} />
+      <div style={{ marginTop: 5, fontSize: 12.5, color: "#e8ebf4", fontWeight: 600 }}>{PLANETS[k].name}</div>
+      <div style={{ ...S.mono, fontSize: 10.5, color: "#8a92aa" }}>{st.angDiam.toFixed(1)}″ · m {st.mag.toFixed(1)}</div>
+      <div style={{ ...S.mono, fontSize: 9.5, color: "#5a6480" }}>range {mm.min.v.toFixed(1)}–{mm.max.v.toFixed(1)}″</div>
+    </div>
+  );
+}
+
+/* ---------- Rise/set table ---------- */
+function RiseSetTable({ state, lat, lon, tz, sel, onSel }) {
+  const sunRS = riseSet(state.sun.ra, state.sun.dec, state.jd, lat, lon, -0.8333);
+  const rows = PKEYS.map(k => {
+    const p = state.planets[k];
+    const rs = riseSet(p.ra, p.dec, state.jd, lat, lon, -0.5667);
+    return { k, p, rs };
+  });
+  const cell = { padding: "7px 10px", borderBottom: "1px solid #161d2e", fontSize: 12, whiteSpace: "nowrap" };
+  return (
+    <div style={{ overflowX: "auto" }}>
+      <table style={{ borderCollapse: "collapse", width: "100%", ...S.mono }}>
+        <thead>
+          <tr style={{ color: "#6b7288", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em", textAlign: "left" }}>
+            <th style={cell}>Body</th><th style={cell}>Rise (local)</th><th style={cell}>vs sunrise</th>
+            <th style={cell}>Set (local)</th><th style={cell}>vs sunset</th><th style={cell}>Elong.</th><th style={cell}>Window</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style={{ color: "#c8b273" }}>
+            <td style={cell}>Sun</td>
+            <td style={cell}>{sunRS.status === "ok" ? fmtHM(sunRS.rise + tz) : sunRS.status}</td><td style={cell}>—</td>
+            <td style={cell}>{sunRS.status === "ok" ? fmtHM(sunRS.set + tz) : ""}</td><td style={cell}>—</td>
+            <td style={cell}>—</td><td style={cell}>—</td>
+          </tr>
+          {rows.map(({ k, p, rs }) => {
+            let vsRise = "—", vsSet = "—", win;
+            if (rs.status === "ok" && sunRS.status === "ok") {
+              vsRise = fmtDelta(wrap12(rs.rise - sunRS.rise), "sunrise");
+              vsSet = fmtDelta(wrap12(rs.set - sunRS.set), "sunset");
+            }
+            if (p.elong < 12) win = ["glare", "#d4693f"];
+            else if (p.elong > 155) win = ["all night", "#7fc98a"];
+            else if (p.elongDir === "E") win = ["evening", "#8fb6e8"];
+            else win = ["morning", "#c9a86a"];
+            return (
+              <tr key={k} onClick={() => onSel(k)} style={{ color: "#d5dae8", cursor: "pointer", background: sel === k ? "#141a2b" : "transparent" }}>
+                <td style={{ ...cell, color: "#fff", fontWeight: 600 }}>{PLANETS[k].name}</td>
+                <td style={cell}>{rs.status === "ok" ? fmtHM(rs.rise + tz) : rs.status}</td>
+                <td style={cell}>{vsRise}</td>
+                <td style={cell}>{rs.status === "ok" ? fmtHM(rs.set + tz) : ""}</td>
+                <td style={cell}>{vsSet}</td>
+                <td style={cell}>{p.elong.toFixed(0)}°{p.elongDir}</td>
+                <td style={{ ...cell, color: win[1] }}>{win[0]}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ============================================================
+   APP
+   ============================================================ */
+function App() {
+  const nowJd = useMemo(() => Date.now() / 86400000 + 2440587.5, []);
+  const [jd, setJd] = useState(nowJd);
+  const [tz, setTz] = useState(-6);
+  const [lat, setLat] = useState(38.834);
+  const [lon, setLon] = useState(-104.821);
+  const [scopeFL, setScopeFL] = useState(750);
+  const [epFL, setEpFL] = useState(25);
+  const [epAFOV, setEpAFOV] = useState(50);
+  const [barlow, setBarlow] = useState(1);
+  const [sel, setSel] = useState("venus");
+  const [grsLon, setGrsLon] = useState(68);
+  const [playing, setPlaying] = useState(false);
+  const [playStep, setPlayStep] = useState(1); // days per tick
+
+  const state = useMemo(() => computeState(jd), [jd]);
+  const minmax = useMemo(() => scanMinMax(), []);
+  const moonsJ = useMemo(() => galileanMoons(jd), [jd]);
+  const moonsS = useMemo(() => saturnMoons(jd, state.planets.saturn.ringB), [jd, state]);
+
+  useEffect(() => {
+    if (!playing) return;
+    const id = setInterval(() => setJd(j => j + playStep), 120);
+    return () => clearInterval(id);
+  }, [playing, playStep]);
+
+  const magX = (scopeFL * barlow) / epFL;
+  const tfovArcsec = (epAFOV / magX) * 3600;
+  const st = state.planets[sel];
+  const mm = minmax[sel];
+  const nlm = useMemo(() => nextLocalMax(mm, jd), [mm, jd]);
+
+  // next GRS transit
+  let nextGRS = null;
+  if (sel === "jupiter") {
+    const dDeg = norm360(grsLon - st.cm2);
+    nextGRS = jd + dDeg / 870.1869147;
+  }
+
+  const btn = (label, on, fn) => (
+    <button onClick={fn} style={{
+      background: on ? "#d4693f" : "#141a2b", color: on ? "#0c0805" : "#c6ccdc",
+      border: "1px solid " + (on ? "#d4693f" : "#232c42"), borderRadius: 6,
+      padding: "5px 10px", fontSize: 12, cursor: "pointer", ...S.mono,
+    }}>{label}</button>
+  );
+
+  const presets = [["32mm/52°", 32, 52], ["25mm/50°", 25, 50], ["10mm/58°", 10, 58], ["6mm/60°", 6, 60], ["4mm/82°", 4, 82]];
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#05070d", color: "#e8ebf4", fontFamily: "'Space Grotesk','Avenir Next',system-ui,sans-serif", padding: "18px 16px 40px" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+        input[type=range]{accent-color:#d4693f}
+        ::-webkit-scrollbar{height:8px;width:8px}::-webkit-scrollbar-thumb{background:#232c42;border-radius:4px}`}</style>
+
+      <div style={{ maxWidth: 1160, margin: "0 auto" }}>
+        {/* header */}
+        <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", marginBottom: 14 }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>
+            Eyepiece Planner <span style={{ color: "#d4693f" }}>·</span> Planets
+          </h1>
+          <span style={{ ...S.mono, fontSize: 11.5, color: "#6b7288" }}>{fmtDateTime(jd, tz)} (UTC{tz >= 0 ? "+" : ""}{tz})</span>
+        </div>
+
+        {/* time control */}
+        <div style={{ ...S.panel, marginBottom: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 12, alignItems: "end" }}>
+            <Field label="Date & time (local)">
+              <input style={S.input} type="datetime-local" value={localStrFromJd(jd, tz)}
+                onChange={e => { const j = jdFromLocalStr(e.target.value, tz); if (j) setJd(j); }} />
+            </Field>
+            <Field label="UTC offset">
+              <input style={S.input} type="number" step="0.5" value={tz} onChange={e => setTz(parseFloat(e.target.value) || 0)} />
+            </Field>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {btn("−1m", false, () => setJd(j => j - 30.44))}
+              {btn("−1w", false, () => setJd(j => j - 7))}
+              {btn("−1d", false, () => setJd(j => j - 1))}
+              {btn("Now", false, () => setJd(Date.now() / 86400000 + 2440587.5))}
+              {btn("+1d", false, () => setJd(j => j + 1))}
+              {btn("+1w", false, () => setJd(j => j + 7))}
+              {btn("+1m", false, () => setJd(j => j + 30.44))}
+            </div>
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              {btn(playing ? "❚❚ Pause" : "▶ Animate", playing, () => setPlaying(p => !p))}
+              <select style={{ ...S.input, width: "auto" }} value={playStep} onChange={e => setPlayStep(parseFloat(e.target.value))}>
+                <option value={1 / 24}>1 hr / tick</option>
+                <option value={1}>1 day / tick</option>
+                <option value={7}>1 wk / tick</option>
+              </select>
+            </div>
+          </div>
+          <input type="range" min={nowJd - 365} max={nowJd + 365 * 4} step={0.25} value={jd}
+            onChange={e => setJd(parseFloat(e.target.value))}
+            style={{ width: "100%", marginTop: 12 }} />
+          <div style={{ display: "flex", justifyContent: "space-between", ...S.mono, fontSize: 10, color: "#5a6480" }}>
+            <span>−1 yr</span><span>today</span><span>+4 yr</span>
+          </div>
+        </div>
+
+        {/* location + optics */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 12, marginBottom: 12 }}>
+          <div style={S.panel}>
+            <div style={{ ...S.label, marginBottom: 10 }}>Observer location</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10, alignItems: "end" }}>
+              <Field label="Latitude °N"><input style={S.input} type="number" step="0.01" value={lat} onChange={e => setLat(parseFloat(e.target.value) || 0)} /></Field>
+              <Field label="Longitude °E"><input style={S.input} type="number" step="0.01" value={lon} onChange={e => setLon(parseFloat(e.target.value) || 0)} /></Field>
+              {btn("Colo Spgs", Math.abs(lat - 38.834) < 0.01, () => { setLat(38.834); setLon(-104.821); setTz(-6); })}
+            </div>
+          </div>
+          <div style={S.panel}>
+            <div style={{ ...S.label, marginBottom: 10 }}>Optics — {magX.toFixed(0)}× · true field {(tfovArcsec / 3600).toFixed(2)}° ({(tfovArcsec / 60).toFixed(0)}′)</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
+              <Field label="Scope FL mm"><input style={S.input} type="number" value={scopeFL} onChange={e => setScopeFL(parseFloat(e.target.value) || 750)} /></Field>
+              <Field label="Eyepiece mm"><input style={S.input} type="number" value={epFL} onChange={e => setEpFL(parseFloat(e.target.value) || 25)} /></Field>
+              <Field label="AFOV °"><input style={S.input} type="number" value={epAFOV} onChange={e => setEpAFOV(parseFloat(e.target.value) || 50)} /></Field>
+              <Field label="Barlow">
+                <select style={S.input} value={barlow} onChange={e => setBarlow(parseFloat(e.target.value))}>
+                  <option value={1}>1×</option><option value={2}>2×</option><option value={3}>3×</option>
+                </select>
+              </Field>
+            </div>
+            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+              {presets.map(([l, f, a]) => btn(l, epFL === f && epAFOV === a, () => { setEpFL(f); setEpAFOV(a); }))}
+            </div>
+          </div>
+        </div>
+
+        {/* comparison strip */}
+        <div style={{ ...S.panel, marginBottom: 12 }}>
+          <div style={{ ...S.label, marginBottom: 8 }}>All planets · common angular scale (1.5 px/″) · dashed ring = max possible size, inner ring = min · click to select</div>
+          <CompareStrip state={state} minmax={minmax} sel={sel} onSel={setSel} grsLon={grsLon} />
+        </div>
+
+        {/* main: eyepiece + detail + stats */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(340px,1fr))", gap: 12, marginBottom: 12 }}>
+          <div style={S.panel}>
+            <div style={{ ...S.label, marginBottom: 8 }}>
+              Through the eyepiece — {PLANETS[sel].name} at {magX.toFixed(0)}× (true scale, N up · E left)
+            </div>
+            <EyepieceView state={state} selKey={sel} tfovArcsec={tfovArcsec} magX={magX} grsLon={grsLon} moonsJ={moonsJ} moonsS={moonsS} />
+            <div style={{ ...S.mono, fontSize: 10.5, color: "#5a6480", marginTop: 6 }}>
+              Idealized optics: no seeing, diffraction, or chromatic effects. Correct-image sky orientation.
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={S.panel}>
+              <div style={{ ...S.label, marginBottom: 8 }}>Magnified detail — {PLANETS[sel].name}</div>
+              <DetailView state={state} selKey={sel} grsLon={grsLon} />
+            </div>
+            <div style={{ ...S.panel, flex: 1 }}>
+              <div style={{ ...S.label, marginBottom: 10 }}>{PLANETS[sel].name} — physical circumstances</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px", ...S.mono, fontSize: 12.5 }}>
+                <Stat l="Angular diameter" v={`${st.angDiam.toFixed(2)}″`} />
+                <Stat l="Absolute range" v={`${mm.min.v.toFixed(1)}–${mm.max.v.toFixed(1)}″`} />
+                <Stat l="Next best window" v={`${fmtDateShort(nlm.jd)} (${nlm.v.toFixed(1)}″)`} hi />
+                <Stat l="Magnitude" v={st.mag.toFixed(2)} hi={st.mag < 0} />
+                <Stat l="Illuminated" v={`${(st.k * 100).toFixed(1)}%`} hi={st.k < 0.6} />
+                <Stat l="Phase angle" v={`${st.phaseAng.toFixed(1)}°`} />
+                <Stat l="Elongation" v={`${st.elong.toFixed(1)}° ${st.elongDir === "E" ? "east (evening)" : "west (morning)"}`} />
+                <Stat l="Distance" v={`${st.dist.toFixed(3)} AU`} />
+                {sel === "saturn" && <Stat l="Ring opening B" v={`${st.ringB.toFixed(1)}° (${st.ringB >= 0 ? "north" : "south"} face)`} hi />}
+                {sel === "jupiter" && <Stat l="CM (Sys II)" v={`${st.cm2.toFixed(0)}°`} />}
+                {sel === "jupiter" && nextGRS && <Stat l="Next GRS transit" v={fmtDateTime(nextGRS, tz)} hi />}
+              </div>
+              {(sel === "mercury" || sel === "venus") &&
+                <div style={{ ...S.mono, fontSize: 11, color: "#8fb6e8", marginTop: 10 }}>
+                  {st.k < 0.5 ? "Crescent phase — best disk detail near greatest elongation." : st.k > 0.9 ? "Nearly full — small disk, far side of the Sun." : "Half to gibbous phase."}
+                </div>}
+              {sel === "jupiter" &&
+                <div style={{ display: "flex", gap: 10, alignItems: "end", marginTop: 10 }}>
+                  <Field label="GRS Sys-II longitude ° (drifts ~1–2°/mo — check a current value)">
+                    <input style={S.input} type="number" value={grsLon} onChange={e => setGrsLon(parseFloat(e.target.value) || 0)} />
+                  </Field>
+                </div>}
+            </div>
+          </div>
+        </div>
+
+        {/* moons list */}
+        {(sel === "jupiter" || sel === "saturn") && (
+          <div style={{ ...S.panel, marginBottom: 12 }}>
+            <div style={{ ...S.label, marginBottom: 8 }}>
+              {sel === "jupiter" ? "Galilean moons (Meeus low-accuracy — good for identification)" : "Saturn's bright moons — mean circular orbits; orbital phase is APPROXIMATE, verify events with a full ephemeris"}
+            </div>
+            <div style={{ display: "flex", gap: 18, flexWrap: "wrap", ...S.mono, fontSize: 12 }}>
+              {(sel === "jupiter" ? moonsJ : moonsS).map(m => (
+                <div key={m.name} style={{ color: "#d5dae8" }}>
+                  <span style={{ color: "#d4693f" }}>{m.name}</span>{" "}
+                  {Math.abs(m.xEast).toFixed(1)} radii {m.xEast >= 0 ? "E" : "W"}
+                  {Math.abs(m.xEast) < 1 && (m.nearSide ? " · transiting" : " · occulted")}
+                  <span style={{ color: "#5a6480" }}> · m{m.mag.toFixed(1)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* rise/set */}
+        <div style={{ ...S.panel, marginBottom: 12 }}>
+          <div style={{ ...S.label, marginBottom: 8 }}>Rise · set relative to the Sun — {lat.toFixed(2)}°N, {lon.toFixed(2)}°E</div>
+          <RiseSetTable state={state} lat={lat} lon={lon} tz={tz} sel={sel} onSel={setSel} />
+        </div>
+
+        <div style={{ ...S.mono, fontSize: 10.5, color: "#454d63", lineHeight: 1.6 }}>
+          Model notes: positions from JPL approximate Keplerian elements (arcmin-level, 1800–2050); magnitudes via Mallama/Meeus fits;
+          Saturn ring opening from the J2000 ring-pole vector; GRS placement uses System II rotation with a user-set spot longitude;
+          Mars surface rotation and Saturn-moon orbital phases are illustrative. Rise/set assumes standard refraction at the horizon, sea level.
+          Planet surfaces are procedural renders, not photographic maps.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ l, v, hi }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <span style={{ fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "#5a6480" }}>{l}</span>
+      <span style={{ color: hi ? "#e8a86a" : "#e8ebf4" }}>{v}</span>
+    </div>
+  );
+}
