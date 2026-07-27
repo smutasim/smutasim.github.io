@@ -1798,6 +1798,7 @@ function flyText(html,x,y){
 }
 let audioCtx=null;
 function coinBlip(){
+  if(!state.musicOn)return;
   try{
     audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
     const o=audioCtx.createOscillator(),g=audioCtx.createGain();
@@ -1832,6 +1833,7 @@ const MUS_SECTIONS=[
 ];
 const MUS_STEP=0.22, MUS_SEC_STEPS=16, MUS_SEC_DUR=MUS_STEP*MUS_SEC_STEPS, MUS_LOOP_DUR=MUS_SEC_DUR*MUS_SECTIONS.length;
 let musicPlaying=false, musicTimer=null;
+let musActiveNodes=[]; // tracks every scheduled node so stop() can silence them immediately instead of letting already-scheduled audio play out
 function musPlayNote(freq,startTime,dur,type,peak){
   if(!freq)return;
   const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
@@ -1841,6 +1843,7 @@ function musPlayNote(freq,startTime,dur,type,peak){
   gain.gain.exponentialRampToValueAtTime(0.001,startTime+dur);
   osc.connect(gain).connect(audioCtx.destination);
   osc.start(startTime);osc.stop(startTime+dur+0.05);
+  musActiveNodes.push({node:osc,gain,until:startTime+dur+0.1});
 }
 function musPlayClick(startTime){
   const bufferSize=Math.floor(audioCtx.sampleRate*0.03);
@@ -1850,6 +1853,7 @@ function musPlayClick(startTime){
   const src=audioCtx.createBufferSource();src.buffer=buffer;
   const g=audioCtx.createGain();g.gain.setValueAtTime(0.05,startTime);
   src.connect(g).connect(audioCtx.destination);src.start(startTime);
+  musActiveNodes.push({node:src,gain:g,until:startTime+0.1});
 }
 function musScheduleSection(sec,startTime){
   sec.mel.forEach((n,i)=>musPlayNote(MUS_NOTES[n],startTime+i*MUS_STEP,MUS_STEP*0.85,sec.melType,sec.melGain));
@@ -1867,7 +1871,9 @@ function startMusic(){
     musicPlaying=true;
     (function loop(){
       if(!musicPlaying)return;
-      musScheduleLoop(audioCtx.currentTime+0.05);
+      const now=audioCtx.currentTime;
+      musActiveNodes=musActiveNodes.filter(n=>n.until>now-1); // trim nodes that have already finished
+      musScheduleLoop(now+0.05);
       musicTimer=setTimeout(loop,MUS_LOOP_DUR*1000);
     })();
   }catch(e){}
@@ -1875,6 +1881,18 @@ function startMusic(){
 function stopMusic(){
   musicPlaying=false;
   clearTimeout(musicTimer);
+  if(audioCtx){
+    const now=audioCtx.currentTime;
+    musActiveNodes.forEach(({node,gain})=>{
+      try{
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(gain.gain.value,now);
+        gain.gain.linearRampToValueAtTime(0,now+0.03); // quick fade avoids a click
+      }catch(e){}
+      try{node.stop(now+0.04);}catch(e){}
+    });
+  }
+  musActiveNodes=[];
 }
 function updateMusicBtn(){
   $('#musicBtn').classList.toggle('toggled',!musicPlaying);
