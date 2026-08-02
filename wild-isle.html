@@ -151,6 +151,7 @@ h1,h2,h3,.disp{font-family:'Fredoka','Nunito',system-ui,sans-serif;}
     <button class="rndBtn" id="zin">+</button>
     <button class="rndBtn" id="zout">−</button>
     <button class="rndBtn" id="helpBtn">?</button>
+    <button class="rndBtn" id="resetBtn" title="Reset Game">🔄</button>
   </div>
 </div>
 
@@ -836,9 +837,10 @@ function freshState(){
     musicOn:true,
     seenHelp:false,last:nowMs()};
 }
-let saveT=null,dirty=false;
-function save(){dirty=true;clearTimeout(saveT);saveT=setTimeout(doSave,1200);}
+let saveT=null,dirty=false,resettingGame=false;
+function save(){if(resettingGame)return;dirty=true;clearTimeout(saveT);saveT=setTimeout(doSave,1200);}
 async function doSave(){
+  if(resettingGame)return;
   if(!dirty)return;dirty=false;
   state.last=nowMs();
   try{await window.storage.set('wild-isle-save',JSON.stringify(state));}catch(e){console.error('save failed',e);}
@@ -851,6 +853,16 @@ async function loadState(){
         state=Object.assign(freshState(),s);state.v=2;return true;}}
   }catch(e){/* no save yet */}
   state=freshState();return false;
+}
+async function resetGame(){
+  if(!confirm('This will permanently erase ALL progress on this island (gold, animals, everything) and start over from scratch.\n\nThis cannot be undone. Reset anyway?'))return;
+  resettingGame=true;
+  clearTimeout(saveT);
+  try{stopMusic();}catch(e){}
+  try{await window.storage.delete('wild-isle-save');}catch(e){}
+  await new Promise(r=>setTimeout(r,300)); // let any save that was already mid-flight resolve
+  try{await window.storage.delete('wild-isle-save');}catch(e){} // then sweep it away for good
+  location.reload();
 }
 function migrateV1(s){
   const items=s.items||[];const exp=s.exp||0;
@@ -2023,6 +2035,7 @@ $('#nMove').onclick=()=>{
   else{setMode('move');toast('Tap the thing you want to move');}
 };
 $('#helpBtn').onclick=openHelp;
+$('#resetBtn').onclick=resetGame;
 
 /* ================= init ================= */
 (async function init(){
