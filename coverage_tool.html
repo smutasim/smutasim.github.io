@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Constellation Coverage Analyzer</title>
+<style>
+  :root{
+    --bg:#0a0e16;
+    --panel:#111827;
+    --panel-2:#0d1320;
+    --line:#233047;
+    --line-soft:#1a2436;
+    --text:#dbe6f0;
+    --text-dim:#7f93ab;
+    --cyan:#5ee6d0;
+    --amber:#ffb84d;
+    --red:#ff6b6b;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Roboto Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:13px;
+  }
+  .topbar{
+    display:flex; align-items:baseline; gap:10px;
+    padding:14px 18px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#0d1421,#0a0e16);
+  }
+  .topbar h1{
+    font-size:15px; letter-spacing:.08em; font-weight:700; margin:0;
+    text-transform:uppercase; color:var(--cyan);
+  }
+  .topbar .sub{ color:var(--text-dim); font-family:var(--mono); font-size:11px;}
+  .layout{ display:grid; grid-template-columns:340px 1fr; gap:0; min-height:calc(100vh - 50px);}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
+
+  .panel{ background:var(--panel); border-right:1px solid var(--line); padding:14px; overflow-y:auto;}
+  .main{ padding:14px; display:flex; flex-direction:column; gap:14px;}
+
+  .section-label{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--text-dim); margin:16px 0 8px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .section-label:first-child{ margin-top:0;}
+
+  .card{
+    background:var(--panel-2); border:1px solid var(--line-soft); border-radius:6px;
+    padding:10px 10px 12px; margin-bottom:8px; position:relative;
+  }
+  .card-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .swatch{ width:11px; height:11px; border-radius:2px; flex:0 0 auto;}
+  .card-head input[type=text]{ flex:1; background:none; border:none; color:var(--text); font-weight:600; font-size:12.5px;}
+  .card-head input[type=text]:focus{ outline:none; border-bottom:1px solid var(--cyan);}
+  .icon-btn{
+    background:none; border:1px solid var(--line-soft); color:var(--text-dim); border-radius:4px;
+    width:20px; height:20px; cursor:pointer; font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:hover{ border-color:var(--cyan); color:var(--cyan);}
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;}
+  .field{ display:flex; flex-direction:column; gap:2px;}
+  .field label{ font-family:var(--mono); font-size:9.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em;}
+  .field input, .field select{
+    background:#0a0f18; border:1px solid var(--line-soft); color:var(--text);
+    font-family:var(--mono); font-size:12px; padding:4px 6px; border-radius:4px;
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--cyan);}
+  .field-full{ grid-column:1/-1;}
+  .toggle-row{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); margin-top:4px;}
+  .toggle-row input{ accent-color:var(--cyan);}
+
+  button.primary{
+    width:100%; background:var(--cyan); color:#04211c; border:none; border-radius:5px;
+    font-weight:700; font-size:12px; padding:9px; cursor:pointer; letter-spacing:.03em;
+    text-transform:uppercase; font-family:var(--mono);
+  }
+  button.primary:disabled{ opacity:.4; cursor:default;}
+  button.ghost{
+    width:100%; background:none; color:var(--cyan); border:1px dashed var(--line-soft);
+    border-radius:5px; font-size:12px; padding:8px; cursor:pointer; margin-top:4px;
+  }
+  button.ghost:hover{ border-color:var(--cyan);}
+
+  .mode-grid{ display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .mode-btn{
+    background:#0a0f18; border:1px solid var(--line-soft); color:var(--text-dim);
+    border-radius:5px; padding:8px 4px; font-size:11px; cursor:pointer; text-align:center;
+  }
+  .mode-btn.active{ border-color:var(--cyan); color:var(--cyan); background:#0d1c1a;}
+
+  .main .card-strip{ display:flex; gap:10px; flex-wrap:wrap;}
+  .stat-box{
+    flex:1; min-width:120px; background:var(--panel-2); border:1px solid var(--line-soft);
+    border-radius:6px; padding:10px 12px;
+  }
+  .stat-box .big{ font-family:var(--mono); font-size:26px; font-weight:700; color:var(--cyan); line-height:1.1;}
+  .stat-box .label{ font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; margin-top:2px;}
+  .stat-box.warn .big{ color:var(--amber);}
+
+  .metric-toggle{ display:flex; gap:6px; margin-bottom:8px;}
+  .metric-toggle button{
+    background:#0a0f18; border:1px solid var(--line-soft); color:var(--text-dim);
+    padding:5px 10px; border-radius:5px; font-size:11px; cursor:pointer;
+  }
+  .metric-toggle button.active{ border-color:var(--cyan); color:var(--cyan);}
+
+  .map-wrap{ background:var(--panel-2); border:1px solid var(--line-soft); border-radius:6px; padding:10px;}
+  canvas{ width:100%; display:block; border-radius:4px; background:#050810;}
+  .legend{ display:flex; align-items:center; gap:8px; margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .legend-bar{ flex:1; height:8px; border-radius:3px; background:linear-gradient(90deg,#0b1830,#183a6b,#1f7a8c,#5ee6d0,#ffe066,#ffffff);}
+
+  .slider-row{ display:flex; align-items:center; gap:10px; margin-top:6px;}
+  .slider-row input[type=range]{ flex:1; accent-color:var(--cyan);}
+  .slider-row .t{ font-family:var(--mono); font-size:11px; color:var(--text-dim); min-width:78px; text-align:right;}
+  .play-btn{ background:none;border:1px solid var(--line-soft); color:var(--cyan); border-radius:4px; width:26px;height:26px;cursor:pointer;}
+
+  .progress-wrap{ height:4px; background:var(--line-soft); border-radius:2px; overflow:hidden; margin-top:8px;}
+  .progress-bar{ height:100%; width:0%; background:var(--cyan); transition:width .1s linear;}
+
+  .footnote{ font-size:10.5px; color:var(--text-dim); line-height:1.5;}
+  .sat-legend{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; font-family:var(--mono); font-size:10px; color:var(--text-dim);}
+  .sat-legend span{ display:flex; align-items:center; gap:4px;}
+  .sat-legend i{ width:8px;height:8px;border-radius:50%; display:inline-block;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Coverage Analyzer</h1>
+  <div class="sub">walker / streets-of-coverage / custom &mdash; J2-aware ground-track propagation</div>
+</div>
+
+<div class="layout">
+  <!-- LEFT PANEL: CONFIG -->
+  <div class="panel">
+    <div class="section-label">Constellations <button class="icon-btn" id="addConst" title="Add constellation">+</button></div>
+    <div id="constList"></div>
+    <button class="ghost" id="addConstBtn">+ Add Constellation</button>
+
+    <div class="section-label">Global Parameters</div>
+    <div class="card">
+      <div class="field-row">
+        <div class="field">
+          <label>Min Elevation (&deg;)</label>
+          <input type="number" id="elevMin" value="10" min="0" max="89" step="1">
+        </div>
+        <div class="field">
+          <label>Grid / Compute</label>
+          <select id="quality">
+            <option value="fast">Fast (coarse)</option>
+            <option value="standard" selected>Standard</option>
+            <option value="detailed">Detailed (slower)</option>
+          </select>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="j2Toggle" checked>
+        <label for="j2Toggle">Include J2 secular perturbation (RAAN &amp; latitude-argument drift)</label>
+      </div>
+    </div>
+
+    <div class="section-label">Time Window</div>
+    <div class="card">
+      <div class="mode-grid">
+        <div class="mode-btn active" data-mode="instant">Instantaneous</div>
+        <div class="mode-btn" data-mode="period">One Orbital Period</div>
+        <div class="mode-btn" data-mode="day">24 Hours</div>
+        <div class="mode-btn" data-mode="custom">Custom</div>
+      </div>
+      <div class="field-row" id="customRow" style="display:none; margin-top:8px;">
+        <div class="field field-full">
+          <label>Custom Duration (hours, max 168)</label>
+          <input type="number" id="customHours" value="48" min="0.1" max="168" step="1">
+        </div>
+      </div>
+    </div>
+
+    <button class="primary" id="runBtn">Run Analysis</button>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="footnote" id="perfNote" style="margin-top:8px;"></div>
+  </div>
+
+  <!-- MAIN: RESULTS -->
+  <div class="main">
+
+    <div class="map-wrap">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div class="metric-toggle" id="metricToggle">
+          <button data-metric="pct" class="active">Coverage %</button>
+          <button data-metric="avgsv">Avg SVs Visible</button>
+        </div>
+        <div class="metric-toggle" id="defToggle">
+          <button data-def="visited" class="active">% Ever Visited</button>
+          <button data-def="avg">% Time-Avg Instant.</button>
+        </div>
+      </div>
+
+      <div class="card-strip" id="statStrip" style="margin:10px 0 10px;"></div>
+
+      <canvas id="mapCanvas" width="960" height="480"></canvas>
+      <div class="legend">
+        <span>None</span><div class="legend-bar"></div><span>Full</span>
+      </div>
+      <div id="satLegend" class="sat-legend"></div>
+      <div id="instantControls" class="slider-row" style="display:none;">
+        <button class="play-btn" id="playBtn">&#9654;</button>
+        <input type="range" id="timeSlider" min="0" max="1000" value="0">
+        <div class="t" id="timeReadout">t = 0 min</div>
+      </div>
+    </div>
+
+    <div class="footnote">
+      Coverage is computed on an area-weighted lat/lon grid using analytic (Kepler + optional J2 secular)
+      propagation and a spherical-cap visibility test per satellite &mdash; not a full numerical orbit integrator.
+      Coastlines are simplified for visual reference only.
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- constants ----------
+const Re = 6378.137;          // km
+const MU = 398600.4418;       // km^3/s^2
+const J2 = 1.08262668e-3;
+const WE = 7.2921159e-5;      // rad/s, Earth rotation rate
+const DEG = Math.PI/180, RAD = 180/Math.PI;
+
+let constellations = [];
+let constIdCounter = 0;
+const palette = ['#5ee6d0','#ffb84d','#ff6b6b','#8e7cff','#6ee7ff','#c6ff6b','#ff8fd6','#ffd166'];
+
+function newConstellation(overrides){
+  const id = constIdCounter++;
+  const c = Object.assign({
+    id, name:'Constellation '+(id+1), type:'walker-delta', color:palette[id%palette.length],
+    enabled:true, altitude:550, inclination:53, planes:6, satsPerPlane:11, phaseFactor:1,
+    raanSpread:360, phaseOffsetDeg:0
+  }, overrides||{});
+  return c;
+}
+constellations.push(newConstellation({name:'Walker Shell A', altitude:550, inclination:53, planes:6, satsPerPlane:11, phaseFactor:1}));
+
+// ---------- UI: constellation cards ----------
+function typeFields(c){
+  if(c.type==='custom'){
+    return `
+      <div class="field"><label>RAAN Spread (&deg;)</label><input type="number" data-f="raanSpread" value="${c.raanSpread}" min="0" max="360"></div>
+      <div class="field"><label>Inter-plane Phase (&deg;)</label><input type="number" data-f="phaseOffsetDeg" value="${c.phaseOffsetDeg}" min="0" max="360"></div>`;
+  }
+  if(c.type==='streets'){
+    return `
+      <div class="field"><label>RAAN Spread (&deg;)</label><input type="number" data-f="raanSpread" value="${c.raanSpread}" min="0" max="360"></div>
+      <div class="field"><label>Phase = half in-track spacing</label><input type="text" value="auto" disabled></div>`;
+  }
+  // walker delta / star
+  return `
+    <div class="field"><label>Phase Factor F (0..P-1)</label><input type="number" data-f="phaseFactor" value="${c.phaseFactor}" min="0" max="${c.planes-1}"></div>
+    <div class="field"><label>RAAN Spread</label><input type="text" value="${c.type==='walker-star'?'180° (Star)':'360° (Delta)'}" disabled></div>`;
+}
+
+function renderConstList(){
+  const el = document.getElementById('constList');
+  el.innerHTML = constellations.map(c=>`
+    <div class="card" data-id="${c.id}">
+      <div class="card-head">
+        <div class="swatch" style="background:${c.color}"></div>
+        <input type="text" data-f="name" value="${c.name}">
+        <label class="toggle-row" style="margin:0;"><input type="checkbox" data-f="enabled" ${c.enabled?'checked':''}></label>
+        <button class="icon-btn" data-act="del">&times;</button>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Type</label>
+          <select data-f="type">
+            <option value="walker-delta" ${c.type==='walker-delta'?'selected':''}>Walker Delta</option>
+            <option value="walker-star" ${c.type==='walker-star'?'selected':''}>Walker Star</option>
+            <option value="streets" ${c.type==='streets'?'selected':''}>Streets of Coverage</option>
+            <option value="custom" ${c.type==='custom'?'selected':''}>Custom Phasing</option>
+          </select>
+        </div>
+        <div class="field"><label>Altitude (km)</label><input type="number" data-f="altitude" value="${c.altitude}" min="160" max="40000"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Inclination (&deg;)</label><input type="number" data-f="inclination" value="${c.inclination}" min="0" max="180"></div>
+        <div class="field"><label># Planes</label><input type="number" data-f="planes" value="${c.planes}" min="1" max="60"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Sats / Plane</label><input type="number" data-f="satsPerPlane" value="${c.satsPerPlane}" min="1" max="80"></div>
+        <div class="field"><label>Total Sats</label><input type="text" value="${c.planes*c.satsPerPlane}" disabled></div>
+      </div>
+      <div class="field-row">
+        ${typeFields(c)}
+      </div>
+    </div>
+  `).join('');
+
+  el.querySelectorAll('.card').forEach(card=>{
+    const id = +card.dataset.id;
+    const c = constellations.find(x=>x.id===id);
+    card.querySelectorAll('[data-f]').forEach(inp=>{
+      inp.addEventListener('change', ()=>{
+        const f = inp.dataset.f;
+        if(inp.type==='checkbox') c[f]=inp.checked;
+        else if(inp.tagName==='SELECT') c[f]=inp.value;
+        else if(inp.type==='number') c[f]=parseFloat(inp.value)||0;
+        else c[f]=inp.value;
+        renderConstList();
+        updatePerfNote();
+      });
+    });
+    card.querySelector('[data-act="del"]').addEventListener('click', ()=>{
+      constellations = constellations.filter(x=>x.id!==id);
+      renderConstList(); updatePerfNote();
+    });
+  });
+}
+document.getElementById('addConstBtn').addEventListener('click', ()=>{
+  constellations.push(newConstellation({}));
+  renderConstList(); updatePerfNote();
+});
+renderConstList();
+
+// ---------- time mode UI ----------
+let timeMode = 'instant';
+document.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    timeMode = btn.dataset.mode;
+    document.getElementById('customRow').style.display = timeMode==='custom' ? 'grid':'none';
+    document.getElementById('instantControls').style.display = timeMode==='instant' ? 'flex':'none';
+    document.getElementById('defToggle').style.display = timeMode==='instant' ? 'none':'flex';
+    updatePerfNote();
+  });
+});
+document.getElementById('defToggle').style.display='none';
+
+// ---------- metric toggles ----------
+let currentMetric='pct', currentDef='visited';
+document.getElementById('metricToggle').addEventListener('click', e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  document.querySelectorAll('#metricToggle button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentMetric = e.target.dataset.metric;
+  if(lastResult) renderMap(lastResult);
+});
+document.getElementById('defToggle').addEventListener('click', e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  document.querySelectorAll('#defToggle button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentDef = e.target.dataset.def;
+  if(lastResult) renderStats(lastResult);
+});
+
+// ---------- physics ----------
+function lambdaMax(a, elevRad){
+  // Earth central angle at edge of coverage circle
+  const x = (Re/a)*Math.cos(elevRad);
+  const c = Math.min(1, Math.max(-1, x));
+  return Math.acos(c) - elevRad;
+}
+
+function buildSatellites(){
+  const elevRad = (parseFloat(document.getElementById('elevMin').value)||0)*DEG;
+  const useJ2 = document.getElementById('j2Toggle').checked;
+  let sats = [];
+  constellations.filter(c=>c.enabled).forEach(c=>{
+    const a = Re + c.altitude;
+    const n = Math.sqrt(MU/(a*a*a)); // rad/s
+    const i = c.inclination*DEG;
+    const P = Math.max(1,c.planes|0), S = Math.max(1,c.satsPerPlane|0);
+    let raanSpread, phaseStepDeg;
+    if(c.type==='walker-star'){ raanSpread = 180; phaseStepDeg = c.phaseFactor*360/(P*S); }
+    else if(c.type==='walker-delta'){ raanSpread = 360; phaseStepDeg = c.phaseFactor*360/(P*S); }
+    else if(c.type==='streets'){ raanSpread = c.raanSpread; phaseStepDeg = (360/S)/2; }
+    else { raanSpread = c.raanSpread; phaseStepDeg = c.phaseOffsetDeg; }
+
+    let RAANdot=0, uDotExtra=0;
+    if(useJ2){
+      const f = 1.5*n*J2*(Re/a)*(Re/a);
+      RAANdot = -f*Math.cos(i);
+      const argPerigeeDot = 0.5*f*(5*Math.cos(i)*Math.cos(i)-1);
+      const meanAnomDot = 0.5*f*(3*Math.cos(i)*Math.cos(i)-1);
+      uDotExtra = argPerigeeDot + meanAnomDot;
+    }
+    const lambda = lambdaMax(a, elevRad);
+
+    for(let p=0;p<P;p++){
+      const Omega0 = (P>1 ? p*raanSpread/P : 0)*DEG;
+      for(let s=0;s<S;s++){
+        const u0 = (s*360/S + p*phaseStepDeg)*DEG;
+        sats.push({
+          consId:c.id, color:c.color, i, a, n, Omega0, u0,
+          RAANdot, uDot: n+uDotExtra, lambda
+        });
+      }
+    }
+  });
+  return sats;
+}
+
+function subPoint(sat, t){
+  const Omega = sat.Omega0 + sat.RAANdot*t;
+  const u = sat.u0 + sat.uDot*t;
+  const cosU=Math.cos(u), sinU=Math.sin(u), cosO=Math.cos(Omega), sinO=Math.sin(Omega), cosI=Math.cos(sat.i), sinI=Math.sin(sat.i);
+  const x = cosO*cosU - sinO*sinU*cosI;
+  const y = sinO*cosU + cosO*sinU*cosI;
+  const z = sinU*sinI;
+  const lat = Math.asin(Math.max(-1,Math.min(1,z)));
+  let lonEci = Math.atan2(y,x);
+  const gmst = WE*t;
+  let lon = lonEci - gmst;
+  lon = Math.atan2(Math.sin(lon), Math.cos(lon)); // wrap to -pi..pi
+  return {lat, lon};
+}
+
+// ---------- grid ----------
+function makeGrid(stepDeg){
+  const nLat = Math.round(180/stepDeg)+1;
+  const nLon = Math.round(360/stepDeg);
+  const lats = new Float64Array(nLat);
+  for(let r=0;r<nLat;r++) lats[r] = (-90 + r*stepDeg)*DEG;
+  const weights = new Float64Array(nLat);
+  let wsum=0;
+  for(let r=0;r<nLat;r++){ weights[r]=Math.cos(lats[r]); wsum+=weights[r]*nLon; }
+  return {nLat, nLon, stepDeg, lats, weights, wsum};
+}
+
+function rasterizeVisible(grid, sub, lambda, visibleNow){
+  const {nLat,nLon,stepDeg,lats} = grid;
+  const dLatCells = Math.min(nLat, Math.ceil(lambda*RAD/stepDeg)+1);
+  const rCenter = Math.round((sub.lat*RAD+90)/stepDeg);
+  const rLo = Math.max(0, rCenter-dLatCells), rHi = Math.min(nLat-1, rCenter+dLatCells);
+  const cosLambda = Math.cos(lambda);
+  const lonCenterDeg = sub.lon*RAD;
+  for(let r=rLo;r<=rHi;r++){
+    const phiG = lats[r];
+    const denom = Math.cos(phiG)*Math.cos(sub.lat);
+    let dLonMaxDeg;
+    if(denom < 1e-9){
+      dLonMaxDeg = 180; // near pole, whole row plausible; edge handled by rHi/rLo bound anyway
+    } else {
+      const rhs = (cosLambda - Math.sin(phiG)*Math.sin(sub.lat))/denom;
+      if(rhs>1) continue;         // row out of range
+      if(rhs<-1) dLonMaxDeg = 180; // full row visible
+      else dLonMaxDeg = Math.acos(rhs)*RAD;
+    }
+    const cLo = Math.floor((lonCenterDeg - dLonMaxDeg + 180)/stepDeg);
+    const cHi = Math.ceil((lonCenterDeg + dLonMaxDeg + 180)/stepDeg);
+    const rowOff = r*nLon;
+    for(let cc=cLo; cc<=cHi; cc++){
+      let c = ((cc % nLon)+nLon)%nLon;
+      visibleNow[rowOff+c] += 1;
+    }
+  }
+}
+
+// ---------- analysis run ----------
+let lastResult = null;
+let animId = null, playing=false;
+
+function qualityParams(){
+  const q = document.getElementById('quality').value;
+  if(q==='fast') return {stepDeg:4, maxSteps:120};
+  if(q==='detailed') return {stepDeg:2, maxSteps:450};
+  return {stepDeg:3, maxSteps:250};
+}
+
+function estimatedDuration(sats){
+  if(timeMode==='period'){
+    let maxT=0;
+    sats.forEach(s=>{ maxT=Math.max(maxT, 2*Math.PI/s.n); });
+    return maxT || 5400;
+  }
+  if(timeMode==='day') return 86400;
+  if(timeMode==='custom'){
+    const h = Math.min(168, Math.max(0.1, parseFloat(document.getElementById('customHours').value)||24));
+    return h*3600;
+  }
+  return 0; // instant
+}
+
+function updatePerfNote(){
+  const sats = buildSatellites();
+  const {stepDeg,maxSteps} = qualityParams();
+  const grid = makeGrid(stepDeg);
+  let note = `${sats.length} satellites &middot; grid ${grid.nLat}&times;${grid.nLon} (${stepDeg}&deg;)`;
+  if(timeMode!=='instant'){
+    note += ` &middot; up to ${maxSteps} time steps`;
+  }
+  document.getElementById('perfNote').innerHTML = note;
+}
+updatePerfNote();
+['elevMin','quality','j2Toggle','customHours'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', updatePerfNote);
+});
+
+function runAnalysis(){
+  cancelAnimation();
+  const sats = buildSatellites();
+  if(sats.length===0){ alert('Enable at least one constellation.'); return; }
+  const {stepDeg,maxSteps} = qualityParams();
+  const grid = makeGrid(stepDeg);
+  const N = grid.nLat*grid.nLon;
+
+  if(timeMode==='instant'){
+    document.getElementById('instantControls').style.display='flex';
+    let maxPeriod=0; sats.forEach(s=>maxPeriod=Math.max(maxPeriod,2*Math.PI/s.n));
+    document.getElementById('timeSlider').max = 1000;
+    runInstant(sats, grid, 0, maxPeriod);
+    return;
+  }
+  document.getElementById('instantControls').style.display='none';
+
+  const duration = estimatedDuration(sats);
+  const steps = Math.max(2, maxSteps);
+  const dt = duration/steps;
+
+  const timeCovered = new Float64Array(N);
+  const sumSats = new Float64Array(N);
+  const maxSatsArr = new Float64Array(N);
+  const visibleNow = new Int32Array(N);
+
+  const bar = document.getElementById('progressBar');
+  const t0 = performance.now();
+  let step = 0;
+
+  function chunk(){
+    const chunkStart = performance.now();
+    while(step < steps && performance.now()-chunkStart < 24){
+      visibleNow.fill(0);
+      const t = step*dt;
+      for(let k=0;k<sats.length;k++){
+        const sub = subPoint(sats[k], t);
+        rasterizeVisible(grid, sub, sats[k].lambda, visibleNow);
+      }
+      for(let idx=0; idx<N; idx++){
+        const v = visibleNow[idx];
+        if(v>0) timeCovered[idx]++;
+        sumSats[idx]+=v;
+        if(v>maxSatsArr[idx]) maxSatsArr[idx]=v;
+      }
+      step++;
+    }
+    bar.style.width = Math.round(100*step/steps)+'%';
+    if(step<steps){
+      requestAnimationFrame(chunk);
+    } else {
+      const elapsed = (performance.now()-t0).toFixed(0);
+      lastResult = {grid, timeCovered, sumSats, maxSatsArr, steps, duration, mode:timeMode, elapsed, sats};
+      renderStats(lastResult);
+      renderMap(lastResult);
+      bar.style.width='0%';
+    }
+  }
+  chunk();
+}
+
+function runInstant(sats, grid, t, periodForSlider){
+  const N = grid.nLat*grid.nLon;
+  const visibleNow = new Int32Array(N);
+  for(let k=0;k<sats.length;k++){
+    const sub = subPoint(sats[k], t);
+    rasterizeVisible(grid, sub, sats[k].lambda, visibleNow);
+  }
+  lastResult = {grid, instantVisible:visibleNow, mode:'instant', t, period:periodForSlider, sats};
+  renderStats(lastResult);
+  renderMap(lastResult);
+  renderSatDots(lastResult);
+}
+
+document.getElementById('runBtn').addEventListener('click', runAnalysis);
+
+// instant slider / play
+const slider = document.getElementById('timeSlider');
+slider.addEventListener('input', ()=>{
+  if(!lastResult || lastResult.mode!=='instant') return;
+  const frac = slider.value/1000;
+  const t = frac*lastResult.period;
+  document.getElementById('timeReadout').textContent = 't = '+(t/60).toFixed(1)+' min';
+  const sats = lastResult.sats;
+  runInstant(sats, lastResult.grid, t, lastResult.period);
+});
+document.getElementById('playBtn').addEventListener('click', ()=>{
+  playing = !playing;
+  document.getElementById('playBtn').innerHTML = playing? '&#10073;&#10073;' : '&#9654;';
+  if(playing) animate();
+});
+function animate(){
+  if(!playing) return;
+  let v = (+slider.value + 4) % 1001;
+  slider.value = v;
+  slider.dispatchEvent(new Event('input'));
+  animId = requestAnimationFrame(animate);
+}
+function cancelAnimation(){ playing=false; document.getElementById('playBtn').innerHTML='&#9654;'; if(animId) cancelAnimationFrame(animId); }
+
+// ---------- stats ----------
+// Geometric max latitude any satellite can ever reach: min(incl,180-incl) + footprint radius
+// (lambda). Coverage % is reported both globally and restricted to that reachable band.
+function achievableBandDeg(sats){
+  let maxReach = 0;
+  const seen = new Set();
+  sats.forEach(s=>{
+    if(seen.has(s.consId)) return;
+    seen.add(s.consId);
+    const inclDeg = s.i*RAD;
+    const reach = Math.min(inclDeg, 180-inclDeg) + s.lambda*RAD;
+    maxReach = Math.max(maxReach, Math.min(90, reach));
+  });
+  return maxReach;
+}
+
+// area-weighted coverage % over rows passing includeRow(latDeg), using the current
+// coverage definition (mode + visited/time-avg toggle)
+function coveragePct(res, includeRow){
+  const grid = res.grid;
+  let w_sum=0, val_sum=0;
+  for(let r=0;r<grid.nLat;r++){
+    const latDeg = grid.lats[r]*RAD;
+    if(!includeRow(latDeg)) continue;
+    const w = grid.weights[r];
+    for(let c=0;c<grid.nLon;c++){
+      const idx = r*grid.nLon+c;
+      let v;
+      if(res.mode==='instant'){ v = res.instantVisible[idx]>0 ? 1:0; }
+      else { v = currentDef==='visited' ? (res.timeCovered[idx]>0?1:0) : (res.timeCovered[idx]/res.steps); }
+      w_sum += w; val_sum += w*v;
+    }
+  }
+  return w_sum>0 ? 100*val_sum/w_sum : 0;
+}
+
+function renderStats(res){
+  const strip = document.getElementById('statStrip');
+  const grid = res.grid;
+  const maxReach = achievableBandDeg(res.sats);
+
+  if(res.mode==='instant'){
+    const globalPct = coveragePct(res, ()=>true);
+    const accessPct = coveragePct(res, latDeg=>Math.abs(latDeg)<=maxReach+1e-6);
+    let sumV=0, maxV=0;
+    for(let idx=0; idx<res.instantVisible.length; idx++){ sumV+=res.instantVisible[idx]; if(res.instantVisible[idx]>maxV) maxV=res.instantVisible[idx]; }
+    const avgV = sumV/res.instantVisible.length;
+    strip.innerHTML = statBox(globalPct.toFixed(1)+'%','Coverage % (Global)')+
+      statBox(accessPct.toFixed(1)+'%', `Coverage % (Accessible Band, &plusmn;${maxReach.toFixed(0)}&deg;)`)+
+      statBox(avgV.toFixed(2),'Avg SVs Visible (grid mean)')+
+      statBox(maxV.toFixed(0),'Max Simultaneous SVs');
+    return;
+  }
+
+  const globalPct = coveragePct(res, ()=>true);
+  const accessPct = coveragePct(res, latDeg=>Math.abs(latDeg)<=maxReach+1e-6);
+  let sumSVtotal=0, globalMax=0;
+  const N = grid.nLat*grid.nLon;
+  for(let r=0;r<grid.nLat;r++){
+    const w = grid.weights[r];
+    for(let c=0;c<grid.nLon;c++){
+      const idx=r*grid.nLon+c;
+      sumSVtotal += w*(res.sumSats[idx]/res.steps);
+      if(res.maxSatsArr[idx]>globalMax) globalMax=res.maxSatsArr[idx];
+    }
+  }
+  const avgSVglobal = sumSVtotal/grid.wsum;
+  const globalLabel = currentDef==='visited' ? 'Coverage % (Global, Ever Visited)' : 'Coverage % (Global, Time-Avg Instant.)';
+  const accessLabel = currentDef==='visited'
+    ? `Coverage % (Accessible Band, &plusmn;${maxReach.toFixed(0)}&deg;, Ever Visited)`
+    : `Coverage % (Accessible Band, &plusmn;${maxReach.toFixed(0)}&deg;, Time-Avg Instant.)`;
+  strip.innerHTML = statBox(globalPct.toFixed(1)+'%', globalLabel)+
+    statBox(accessPct.toFixed(1)+'%', accessLabel)+
+    statBox(avgSVglobal.toFixed(2),'Avg SVs Visible (area+time)')+
+    statBox(globalMax.toFixed(0),'Max Simultaneous SVs (anywhere)')+
+    statBox((res.duration/3600).toFixed(1)+' h','Window Analyzed')+
+    statBox(res.elapsed+' ms','Compute Time ('+res.steps+' steps)');
+}
+function statBox(big,label){ return `<div class="stat-box"><div class="big">${big}</div><div class="label">${label}</div></div>`; }
+
+// ---------- map rendering ----------
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+function colorForValue(v){ // v in 0..1
+  // deep indigo -> blue -> teal -> cyan -> yellow -> white
+  const stops = [
+    [0.00, [11,24,48]],
+    [0.15, [24,58,107]],
+    [0.40, [31,122,140]],
+    [0.65, [94,230,208]],
+    [0.85, [255,224,102]],
+    [1.00, [255,255,255]]
+  ];
+  v = Math.max(0,Math.min(1,v));
+  for(let i=0;i<stops.length-1;i++){
+    const [t0,c0]=stops[i], [t1,c1]=stops[i+1];
+    if(v>=t0 && v<=t1){
+      const f=(v-t0)/(t1-t0);
+      return [
+        Math.round(c0[0]+(c1[0]-c0[0])*f),
+        Math.round(c0[1]+(c1[1]-c0[1])*f),
+        Math.round(c0[2]+(c1[2]-c0[2])*f)
+      ];
+    }
+  }
+  return stops[stops.length-1][1];
+}
+
+function renderMap(res){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#050810';
+  ctx.fillRect(0,0,W,H);
+
+  const grid = res.grid;
+  const cellW = W/grid.nLon, cellH = H/grid.nLat;
+
+  let getVal;
+  if(res.mode==='instant'){
+    const maxSeen = Math.max(1, ...res.instantVisible);
+    getVal = (idx)=> currentMetric==='pct' ? (res.instantVisible[idx]>0?1:0) : Math.min(1, res.instantVisible[idx]/Math.max(1,maxSeen));
+  } else {
+    if(currentMetric==='pct'){
+      getVal = (idx)=> currentDef==='visited' ? (res.timeCovered[idx]>0?1:0) : (res.timeCovered[idx]/res.steps);
+    } else {
+      let maxAvg=0.001;
+      for(let idx=0; idx<res.sumSats.length; idx++){ const a=res.sumSats[idx]/res.steps; if(a>maxAvg) maxAvg=a; }
+      getVal = (idx)=> (res.sumSats[idx]/res.steps)/maxAvg;
+    }
+  }
+
+  for(let r=0;r<grid.nLat;r++){
+    for(let c=0;c<grid.nLon;c++){
+      const idx=r*grid.nLon+c;
+      const v = getVal(idx);
+      const [rr,gg,bb] = colorForValue(v);
+      ctx.fillStyle = `rgb(${rr},${gg},${bb})`;
+      // row 0 = -90 lat (south) -> draw from bottom
+      const y = H - (r+1)*cellH;
+      ctx.fillRect(c*cellW, y, cellW+1, cellH+1);
+    }
+  }
+
+  drawCoastlines();
+  drawGraticule();
+  if(res.mode==='instant') renderSatDots(res);
+}
+
+function projLon(lonDeg){ return (lonDeg+180)/360*W; }
+function projLat(latDeg){ return H - (latDeg+90)/180*H; }
+
+function drawGraticule(){
+  ctx.strokeStyle = 'rgba(200,220,255,0.12)';
+  ctx.lineWidth=1;
+  for(let lon=-180;lon<=180;lon+=30){
+    ctx.beginPath(); ctx.moveTo(projLon(lon),0); ctx.lineTo(projLon(lon),H); ctx.stroke();
+  }
+  for(let lat=-90;lat<=90;lat+=30){
+    ctx.beginPath(); ctx.moveTo(0,projLat(lat)); ctx.lineTo(W,projLat(lat)); ctx.stroke();
+  }
+}
+
+// simplified low-poly coastline reference (approximate, for visual context only)
+const COASTLINES = [
+ [[-155,68],[-165,60],[-160,55],[-150,60],[-140,60],[-130,55],[-125,48],[-124,40],[-117,32],[-105,20],[-97,16],[-90,14],[-84,8],[-77,8],[-70,10],[-60,10],[-52,5],[-50,0],[-48,-8],[-40,-15],[-45,-23],[-55,-33],[-62,-40],[-68,-52],[-70,-55],[-72,-50],[-73,-40],[-71,-30],[-71,-18],[-77,-5],[-80,2],[-83,9],[-90,15],[-97,22],[-110,28],[-120,35],[-124,42],[-124,49],[-130,54],[-140,60],[-150,62],[-155,68]],
+ [[-10,36],[0,38],[9,44],[3,42],[7,43],[10,44],[13,45],[13,42],[16,40],[19,40],[23,37],[27,37],[30,36],[35,37],[36,41],[30,45],[27,44],[22,42],[15,45],[10,44],[5,43],[-1,43],[-5,36],[-9,37],[-10,36]],
+ [[-18,15],[-16,20],[-11,25],[-5,28],[10,32],[15,32],[20,31],[25,31],[32,31],[35,30],[36,20],[43,12],[48,12],[51,12],[45,2],[42,-3],[41,-8],[40,-15],[35,-22],[33,-27],[28,-33],[20,-34],[15,-27],[13,-15],[12,-5],[9,4],[3,6],[-5,5],[-10,7],[-15,10],[-17,14],[-18,15]],
+ [[27,36],[35,36],[42,40],[48,40],[55,38],[60,40],[68,38],[75,35],[80,20],[78,10],[80,7],[85,20],[90,22],[95,18],[100,13],[103,4],[104,1],[108,10],[115,5],[120,10],[122,14],[121,18],[120,23],[122,30],[121,31],[123,38],[128,38],[130,36],[130,40],[135,35],[140,36],[141,42],[145,43],[142,45],[140,40],[135,35],[132,34],[129,33],[126,34],[122,32],[118,25],[113,22],[108,16],[102,15],[99,13],[98,10],[100,6],[104,1],[107,-6],[110,-8],[113,-8],[116,-8],[120,-9],[124,-8],[125,-4],[122,0],[118,0],[110,2],[105,3],[100,5],[95,6],[92,15],[90,22],[88,22],[85,20],[80,16],[75,10],[73,15],[68,23],[65,25],[60,25],[55,26],[51,29],[48,30],[45,30],[42,29],[38,27],[35,28],[32,31],[27,36]],
+ [[113,-22],[115,-20],[122,-18],[124,-14],[130,-12],[136,-12],[141,-11],[142,-14],[145,-16],[146,-19],[150,-22],[153,-25],[153,-28],[151,-33],[150,-36],[147,-38],[144,-38],[140,-38],[137,-35],[135,-33],[132,-31],[128,-32],[124,-32],[122,-33],[117,-35],[115,-33],[115,-30],[114,-25],[113,-22]],
+ [[-68,-54],[-64,-55],[-60,-63],[-45,-63],[-30,-65],[0,-70],[40,-67],[80,-66],[120,-66],[150,-66],[-150,-70],[-100,-73],[-68,-54]]
+];
+function drawCoastlines(){
+  ctx.strokeStyle = 'rgba(219,230,240,0.55)';
+  ctx.lineWidth=1;
+  COASTLINES.forEach(poly=>{
+    ctx.beginPath();
+    poly.forEach(([lon,lat],i)=>{
+      const x=projLon(lon), y=projLat(lat);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  });
+}
+
+function renderSatDots(res){
+  if(!res.sats) return;
+  const sats = res.sats;
+  const t = res.t||0;
+  const byConst = {};
+  sats.forEach(s=>{
+    const sub = subPoint(s,t);
+    const x = projLon(sub.lon*RAD), y = projLat(sub.lat*RAD);
+    ctx.fillStyle = s.color;
+    ctx.beginPath(); ctx.arc(x,y,2.4,0,7); ctx.fill();
+    byConst[s.color]=true;
+  });
+  const legend = document.getElementById('satLegend');
+  const uniq = {};
+  constellations.filter(c=>c.enabled).forEach(c=>uniq[c.color]=c.name);
+  legend.innerHTML = Object.entries(uniq).map(([color,name])=>`<span><i style="background:${color}"></i>${name}</span>`).join('');
+}
+
+// initial paint (empty instant state at t=0 for immediate feedback)
+runAnalysis();
+</script>
+</body>
+</html>
