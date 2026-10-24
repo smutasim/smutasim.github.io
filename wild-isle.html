@@ -21,7 +21,7 @@
 html,body{height:100%;overflow:hidden;}
 body{
   font-family:'Nunito',system-ui,-apple-system,sans-serif;
-  background:radial-gradient(120% 90% at 50% 10%, var(--sea2), var(--sea1) 70%);
+  background:radial-gradient(120% 90% at 50% 30%, #5cc4cf, #2f97a6 55%, #1f7584 100%);
   color:var(--ink);
   user-select:none;-webkit-user-select:none;
   touch-action:none;
@@ -33,26 +33,47 @@ h1,h2,h3,.disp{font-family:'Fredoka','Nunito',system-ui,sans-serif;}
 #worldSvg{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;}
 #worldSvg.dragging{cursor:grabbing;}
 .coinPulse{animation:coinbob 1.4s ease-in-out infinite;}
-@keyframes coinbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes coinbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.bob{animation:bob 2.6s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.6px)}}
+.waves{animation:wavedrift 9s ease-in-out infinite alternate;}
+@keyframes wavedrift{from{transform:translate(0,0)}to{transform:translate(26px,8px)}}
+.foam{animation:foam 3.2s ease-in-out infinite;}
+@keyframes foam{0%,100%{opacity:.85}50%{opacity:.35}}
+.sparkleT{animation:twinkle 2.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center;}
+@keyframes twinkle{0%,100%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1.1)}}
 .placeGhost{opacity:.55;pointer-events:none;}
-@media (prefers-reduced-motion: reduce){ .coinPulse{animation:none} }
+#clouds{position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden;}
+.cloud{position:absolute;left:-260px;width:220px;height:70px;opacity:.38;animation:cloudmove linear infinite;}
+.cloud::before,.cloud::after{content:'';position:absolute;background:#fff;border-radius:50%;}
+.cloud::before{width:120px;height:56px;left:20px;top:12px;box-shadow:60px 6px 0 -6px #fff,-14px 14px 0 -12px #fff;}
+.cloud::after{width:70px;height:62px;left:70px;top:-6px;}
+@keyframes cloudmove{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 520px))}}
+@media (prefers-reduced-motion: reduce){ .coinPulse,.bob,.waves,.foam,.cloud,.sparkleT{animation:none} }
 
 /* ---------- HUD ---------- */
 #hud{position:fixed;top:0;left:0;right:0;display:flex;gap:8px;padding:10px 10px 0;z-index:20;pointer-events:none;align-items:flex-start;flex-wrap:wrap;}
-.chip{pointer-events:auto;display:flex;align-items:center;gap:6px;background:var(--panel);border:2px solid rgba(47,79,62,.18);border-radius:999px;padding:5px 12px 5px 7px;box-shadow:var(--shadow);font-weight:800;font-size:15px;}
+.chip{pointer-events:auto;display:flex;align-items:center;gap:6px;background:linear-gradient(#fffdf6,var(--panel));border:2px solid rgba(47,79,62,.18);border-radius:999px;padding:5px 12px 5px 7px;box-shadow:var(--shadow);font-weight:800;font-size:15px;transition:transform .15s;}
 .chip svg{display:block}
 .chip .sub{font-size:10.5px;font-weight:700;color:var(--ink2);margin-left:2px;}
+.chip.pulse{animation:chippulse .35s ease-out;}
+@keyframes chippulse{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+#chipLv{padding:4px 12px 4px 4px;gap:7px;cursor:pointer;}
+#chipLv .lvBadge{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe58a,#f0b429 60%,#c98a12);color:#6b4500;font-family:'Fredoka',sans-serif;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;border:2px solid #fff6d6;box-shadow:0 2px 0 #b07a10;}
+#chipLv .xpWrap{width:74px;height:9px;border-radius:6px;background:#e6dcc2;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.15);}
+#chipLv .xpFill{height:100%;background:linear-gradient(90deg,#5cc46e,#9be07a);border-radius:6px;transition:width .4s;}
+#chipLv .xpTxt{font-size:10px;font-weight:800;color:var(--ink2);line-height:1;margin-top:2px;}
 #zoomBtns{margin-left:auto;display:flex;gap:6px;pointer-events:auto;}
-.rndBtn{width:38px;height:38px;border-radius:12px;border:2px solid rgba(47,79,62,.18);background:var(--panel);font-size:20px;font-weight:800;color:var(--pine);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.rndBtn{width:38px;height:38px;border-radius:12px;border:2px solid rgba(47,79,62,.18);background:linear-gradient(#fffdf6,var(--panel));font-size:19px;font-weight:800;color:var(--pine);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'Fredoka',sans-serif;}
 .rndBtn.toggled{background:var(--panel2);opacity:0.6;}
-.rndBtn:active{transform:scale(.93);}
+.rndBtn:active{transform:scale(.9);}
 
 /* ---------- bottom nav ---------- */
-#nav{position:fixed;bottom:0;left:0;right:0;display:flex;gap:8px;padding:10px 12px calc(12px + env(safe-area-inset-bottom));z-index:20;justify-content:center;}
-.navBtn{position:relative;flex:1;max-width:110px;background:var(--pine);color:#fff;border:none;border-radius:16px;padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'Fredoka',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.02em;box-shadow:0 4px 0 #1e372b, var(--shadow);cursor:pointer;}
+#nav{position:fixed;bottom:0;left:0;right:0;display:flex;gap:8px;padding:10px 12px calc(12px + env(safe-area-inset-bottom));z-index:20;justify-content:center;pointer-events:none;}
+.navBtn{pointer-events:auto;position:relative;flex:1;max-width:110px;background:linear-gradient(#4a7a60,var(--pine));color:#fff;border:2px solid rgba(255,255,255,.18);border-radius:18px;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'Fredoka',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.02em;box-shadow:0 4px 0 #1e372b, var(--shadow);cursor:pointer;}
 .navBtn:active{transform:translateY(2px);box-shadow:0 2px 0 #1e372b;}
-.navBtn.toggled{background:var(--gold-d);box-shadow:0 4px 0 #93700f,var(--shadow);}
-.navBtn .ico{font-size:19px;line-height:1;}
+.navBtn.toggled{background:linear-gradient(#e0b23a,var(--gold-d));box-shadow:0 4px 0 #93700f,var(--shadow);}
+.navBtn .ico{font-size:20px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25));}
 .badge{position:absolute;top:-6px;right:-4px;background:var(--bad);color:#fff;font-size:11px;font-weight:800;min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--panel);}
 
 /* ---------- modal ---------- */
@@ -77,9 +98,16 @@ h1,h2,h3,.disp{font-family:'Fredoka','Nunito',system-ui,sans-serif;}
 .aw.silh svg{filter:brightness(0);opacity:.45;}
 .buyBtn{border:none;border-radius:999px;padding:6px 14px;font-family:'Fredoka',sans-serif;font-weight:600;font-size:13px;color:#fff;background:var(--good);box-shadow:0 3px 0 #35753f;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
 .buyBtn:active{transform:translateY(2px);box-shadow:0 1px 0 #35753f;}
-.buyBtn:disabled{background:#b7bdb4;box-shadow:0 3px 0 #8f958c;opacity:.8;}
 .buyBtn.star{background:var(--star);box-shadow:0 3px 0 var(--star-d);}
 .buyBtn.warn{background:var(--bad);box-shadow:0 3px 0 #96382b;}
+.buyBtn.ghost{background:var(--panel2);color:var(--ink2);box-shadow:0 3px 0 #d8caa6;}
+.buyBtn:disabled,.buyBtn.star:disabled,.buyBtn.short{background:#b7bdb4;box-shadow:0 3px 0 #8f958c;opacity:.85;}
+.buyBtn svg{flex:none;}
+.card.locked{background:#f6f1e4;}
+.card.locked .nm{color:var(--ink2);}
+.lockTag{font-size:12px;font-weight:800;color:#8a7a52;background:#efe4c6;border-radius:999px;padding:5px 12px;}
+.newTag{position:absolute;top:6px;left:6px;background:var(--bad);color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;}
+.card{position:relative;}
 .rowBtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
 
 /* ---------- info sheet ---------- */
@@ -112,6 +140,23 @@ h1,h2,h3,.disp{font-family:'Fredoka','Nunito',system-ui,sans-serif;}
 .fly svg{flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));}
 @keyframes flyup{from{transform:translateY(0);opacity:1}to{transform:translateY(-46px);opacity:0}}
 
+.coinFly{position:fixed;left:0;top:0;width:20px;height:20px;z-index:72;pointer-events:none;transition:transform .7s cubic-bezier(.5,-0.3,.7,1),opacity .7s;}
+.confetti{position:fixed;top:-12px;width:9px;height:14px;z-index:95;pointer-events:none;border-radius:2px;animation:confall linear forwards;}
+@keyframes confall{to{transform:translate(var(--dx),110vh) rotate(var(--rot));}}
+
+/* ---------- dialogs (confirm / level-up / win) ---------- */
+#dlgWrap{position:fixed;inset:0;background:rgba(18,42,38,.55);z-index:90;display:none;align-items:center;justify-content:center;padding:16px;}
+#dlgWrap.open{display:flex;}
+#dlg{background:var(--panel);border-radius:22px;max-width:380px;width:100%;padding:18px 18px 16px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.35);animation:dlgpop .3s cubic-bezier(.3,1.5,.5,1);max-height:88vh;overflow-y:auto;}
+@keyframes dlgpop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+#dlg h2{font-size:24px;color:var(--pine);margin-bottom:6px;}
+#dlg p{font-size:14px;font-weight:700;color:var(--ink2);line-height:1.4;margin-bottom:12px;}
+#dlg .big{font-size:52px;line-height:1.1;margin-bottom:4px;}
+.unlockRow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 12px;}
+.unlockRow .u{width:92px;background:#fff;border:2px solid var(--panel2);border-radius:14px;padding:6px 4px;font-size:11.5px;font-weight:800;color:var(--pine);}
+.rewardRow{display:flex;gap:10px;justify-content:center;margin-bottom:12px;font-weight:800;font-size:16px;}
+.rewardRow span{display:flex;align-items:center;gap:5px;background:#fff;border-radius:999px;padding:5px 12px;border:2px solid var(--panel2);}
+.setRow{display:flex;align-items:center;justify-content:space-between;background:#fff;border:2px solid var(--panel2);border-radius:14px;padding:10px 12px;margin-bottom:8px;font-weight:800;color:var(--pine);}
 .hint{font-size:12.5px;color:var(--ink2);font-weight:700;text-align:center;padding:6px 10px;}
 .secH{font-family:'Fredoka',sans-serif;font-weight:600;color:var(--pine);font-size:15px;margin:12px 2px 8px;}
 
@@ -138,20 +183,21 @@ h1,h2,h3,.disp{font-family:'Fredoka','Nunito',system-ui,sans-serif;}
 <body>
 <div id="viewport">
   <svg id="worldSvg" draggable="false" ondragstart="return false">
-  <g id="gRoot"><g id="gWorld"></g><g id="gVis"></g><g id="gFx"></g></g></svg>
+  <g id="gRoot"><g id="gSea"></g><g id="gWorld"></g><g id="gVis"></g><g id="gFront"></g><g id="gFx"></g></g></svg>
 </div>
+<div id="clouds"><div class="cloud" style="top:14%;animation-duration:95s;animation-delay:-20s"></div><div class="cloud" style="top:46%;animation-duration:130s;animation-delay:-80s;transform:scale(.7)"></div><div class="cloud" style="top:72%;animation-duration:110s;animation-delay:-50s"></div></div>
 
 <div id="hud">
+  <div class="chip" id="chipLv" title="Level"></div>
   <div class="chip" id="chipGold"></div>
   <div class="chip" id="chipStar"></div>
   <div class="chip" id="chipRate"></div>
   <div id="zoomBtns">
-    <button class="rndBtn" id="musicBtn" title="Music">🎵</button>
+    <button class="rndBtn" id="musicBtn" title="Music on/off">🎵</button>
     <button class="rndBtn" id="recenterBtn" title="Recenter">🎯</button>
-    <button class="rndBtn" id="zin">+</button>
-    <button class="rndBtn" id="zout">−</button>
-    <button class="rndBtn" id="helpBtn">?</button>
-    <button class="rndBtn" id="resetBtn" title="Reset Game">🔄</button>
+    <button class="rndBtn" id="zin" title="Zoom in">+</button>
+    <button class="rndBtn" id="zout" title="Zoom out">−</button>
+    <button class="rndBtn" id="setBtn" title="Settings & help">⚙️</button>
   </div>
 </div>
 
@@ -170,6 +216,7 @@ h1,h2,h3,.disp{font-family:'Fredoka','Nunito',system-ui,sans-serif;}
 
 <div id="confirmBar"><span id="confirmLabel">Place here?</span><button id="okBtn">✓</button><button id="noBtn">✕</button></div>
 <div id="toasts"></div>
+<div id="dlgWrap"><div id="dlg"></div></div>
 
 <script>
 'use strict';
@@ -668,6 +715,8 @@ function basiliskArt(){
 /* ============================================================================
    GAME BALANCE / TUNING: edit animal numbers HERE and nowhere else.
    Every animal below has:
+     lv    - player level that unlocks it (one new unlock per level, Tap Zoo
+             style; for bred species this is the level the crossbreed opens)
      cost  - gold to buy it (buyable base/bird/water/rept/big species only;
              hybrids/mythicals/the capstone have no cost, they're bred instead)
      pay   - gold earned per coin collected from its exhibit (at 1 animal;
@@ -675,103 +724,113 @@ function basiliskArt(){
      per   - minutes between coin collections
      breed - minutes to hatch it in the hatchery (same-species 3rd/4th,
              or a crossbreed producing this species)
-   Nothing else in the file computes these; change a number here and it's
-   the only place you need to touch.
+   XP per coin collected is derived from `per` and the tier (see xpFor()).
+   Pacing was tuned with a player simulation: a typical player (6-minute
+   check-ins every ~2h while awake) gets ~3 species in 5 minutes, a first
+   hybrid in ~4 hours, ~25 exhibits in ~2-3 days and the Dragon in ~7 days.
    ============================================================================ */
 const SP={
 /* base */
-buffalo:{n:'Water Buffalo',tier:'base',cost:500,pay:75,per:1,breed:5,art:()=>quadArt({c:'#6b5b4a',cd:'#4e4136',bw:52,bh:30,lg:18,lw:8,nl:9,na:20,nw:14,hr:8.5,sn:6.5,snh:5,ear:'round',earc:'#6b5b4a',tail:'rope',hornBuf:true})},
-sheep:{n:'Sheep',tier:'base',cost:650,pay:100,per:2,breed:15,art:()=>quadArt({c:'#ece7dd',cd:'#c9c2b2',bw:42,bh:26,lg:14,lw:5,nl:9,na:45,nw:8,hr:6,sn:4.5,snh:3.6,headc:'#4a443c',snc:'#4a443c',earc:'#4a443c',ear:'long',tail:'short',legc:'#4a443c',ex:g=>C(g.bcx-1,g.bcy-2,g.bw*0.44,'#f4f0e8')+C(g.bcx-g.bw*0.3,g.bcy-g.bh*0.3,g.bw*0.2,'#f4f0e8')+C(g.bcx+g.bw*0.28,g.bcy-g.bh*0.28,g.bw*0.2,'#f4f0e8')+C(g.hx+2,g.hy-6,5,'#f4f0e8')})},
-goat:{n:'Goat',tier:'base',cost:800,pay:180,per:3,breed:20,art:()=>quadArt({c:'#cfc4b0',cd:'#a89d87',bw:42,bh:24,lg:18,lw:5,nl:12,na:52,nw:8,hr:6,sn:5,snh:3.8,ear:'long',tail:'short',goatHorn:true,beard:true,hoof:'#5f574a'})},
-donkey:{n:'Donkey',tier:'base',cost:1150,pay:250,per:3,breed:30,art:()=>quadArt({c:'#9d9489',cd:'#736c63',bw:48,bh:24,lg:22,lw:5.5,nl:14,na:58,nw:8.5,hr:7,sn:5.5,snh:4,ear:'long',tail:'rope',snc:'#c9c2b6',hoof:'#5c564e'})},
-llama:{n:'Llama',tier:'base',cost:1900,pay:320,per:3,breed:35,art:()=>quadArt({c:'#e8d9c0',cd:'#c3b193',bw:44,bh:26,lg:22,lw:6,nl:22,na:78,nw:10,hr:6.5,sn:4.5,snh:3.6,ear:'long',tail:'fluff'})},
-wildhorse:{n:'Wild Horse',tier:'base',cost:2250,pay:360,per:3,breed:45,art:()=>quadArt({c:'#8a5a34',cd:'#6a4326',bw:50,bh:24,lg:24,lw:5.5,nl:16,na:60,nw:9,hr:7,sn:6,snh:4.2,ear:'horse',tail:'rope',tailc:'#3f2a18',tailtuft:'#3f2a18',snc:'#5c3a22',hoof:'#3a2a1a',ex:g=>LN(g.sx+2,g.sy-3,g.hx+2,g.hy-4,'#3f2a18',4.4)+LN(g.sx+3,g.sy-1,g.hx+3,g.hy-2,'#3f2a18',3)})},
+buffalo:{n:'Water Buffalo',tier:'base',lv:1,cost:300,pay:75,per:1,breed:5,art:()=>quadArt({c:'#6b5b4a',cd:'#4e4136',bw:52,bh:30,lg:18,lw:8,nl:9,na:20,nw:14,hr:8.5,sn:6.5,snh:5,ear:'round',earc:'#6b5b4a',tail:'rope',hornBuf:true})},
+sheep:{n:'Sheep',tier:'base',lv:3,cost:500,pay:300,per:3,breed:12,art:()=>quadArt({c:'#ece7dd',cd:'#c9c2b2',bw:42,bh:26,lg:14,lw:5,nl:9,na:45,nw:8,hr:6,sn:4.5,snh:3.6,headc:'#4a443c',snc:'#4a443c',earc:'#4a443c',ear:'long',tail:'short',legc:'#4a443c',ex:g=>C(g.bcx-1,g.bcy-2,g.bw*0.44,'#f4f0e8')+C(g.bcx-g.bw*0.3,g.bcy-g.bh*0.3,g.bw*0.2,'#f4f0e8')+C(g.bcx+g.bw*0.28,g.bcy-g.bh*0.28,g.bw*0.2,'#f4f0e8')+C(g.hx+2,g.hy-6,5,'#f4f0e8')})},
+goat:{n:'Goat',tier:'base',lv:5,cost:1000,pay:750,per:5,breed:20,art:()=>quadArt({c:'#cfc4b0',cd:'#a89d87',bw:42,bh:24,lg:18,lw:5,nl:12,na:52,nw:8,hr:6,sn:5,snh:3.8,ear:'long',tail:'short',goatHorn:true,beard:true,hoof:'#5f574a'})},
+donkey:{n:'Donkey',tier:'base',lv:7,cost:1500,pay:1500,per:8,breed:30,art:()=>quadArt({c:'#9d9489',cd:'#736c63',bw:48,bh:24,lg:22,lw:5.5,nl:14,na:58,nw:8.5,hr:7,sn:5.5,snh:4,ear:'long',tail:'rope',snc:'#c9c2b6',hoof:'#5c564e'})},
+llama:{n:'Llama',tier:'base',lv:8,cost:2000,pay:2000,per:10,breed:40,art:()=>quadArt({c:'#e8d9c0',cd:'#c3b193',bw:44,bh:26,lg:22,lw:6,nl:22,na:78,nw:10,hr:6.5,sn:4.5,snh:3.6,ear:'long',tail:'fluff'})},
+wildhorse:{n:'Wild Horse',tier:'base',lv:11,cost:3000,pay:3600,per:12,breed:45,art:()=>quadArt({c:'#8a5a34',cd:'#6a4326',bw:50,bh:24,lg:24,lw:5.5,nl:16,na:60,nw:9,hr:7,sn:6,snh:4.2,ear:'horse',tail:'rope',tailc:'#3f2a18',tailtuft:'#3f2a18',snc:'#5c3a22',hoof:'#3a2a1a',ex:g=>LN(g.sx+2,g.sy-3,g.hx+2,g.hy-4,'#3f2a18',4.4)+LN(g.sx+3,g.sy-1,g.hx+3,g.hy-2,'#3f2a18',3)})},
 /* birds */
-duck:{n:'Duck',tier:'bird',cost:500,pay:250,per:4,breed:15,art:()=>birdArt({c:'#b9b3a4',c2:'#d9d4c6',cd:'#8f897a',bw:28,bh:18,lg:8,nl:10,na:75,nw:5,hr:5.5,headc:'#2e7d4f',bill:true,beakL:6,beakH:2.8,headRing:true,tailUp:true,legc:'#d98a2e'})},
-chicken:{n:'Chicken',tier:'bird',cost:1250,pay:400,per:4,breed:20,art:()=>birdArt({c:'#f0ead8',c2:'#fbf7ec',cd:'#c9c0a6',bw:26,bh:19,lg:9,nl:9,na:80,nw:6,hr:5.5,comb:true,wattle:true,beakL:4.5,tailUp:true})},
-flamingo:{n:'Flamingo',tier:'bird',cost:2600,pay:720,per:4,breed:45,art:()=>birdArt({c:'#f08ca4',c2:'#f7b3c2',cd:'#d16a86',bw:26,bh:16,lg:26,nl:22,na:85,nw:4.5,hr:4.8,sneck:true,legc:'#e2708c',legw:1.8,beakL:6,beakc:'#3a3a3a',hook:true})},
-owl:{n:'Owl',tier:'bird',cost:3600,pay:960,per:4,breed:60,art:()=>birdArt({c:'#8a7358',c2:'#d8cbb4',cd:'#66543e',bw:26,bh:24,lg:6,nl:4,na:88,nw:10,hr:7.5,tilt:-4,hook:true,beakL:3.5,beakc:'#c9a14e',eyeDisc:'#d8cbb4',eyeR:2.2,ex:g=>P(`M${g.hx-6} ${g.hy-6.5} l 3 -4 l 2 4 z`,'#8a7358')+P(`M${g.hx+2} ${g.hy-7} l 3 -4 l 2 4.5 z`,'#8a7358')})},
-peacock:{n:'Peacock',tier:'bird',cost:4800,pay:1200,per:4,breed:60,art:()=>birdArt({c:'#1f7a8c',c2:'#2a93a8',cd:'#14606f',bw:26,bh:17,lg:12,nl:14,na:82,nw:5,hr:5,fan:true,beakL:4.5,crest:'#f2c14e',legc:'#8a8a6a'})},
-eagle:{n:'Eagle',tier:'bird',cost:6500,pay:1600,per:4,breed:60,art:()=>birdArt({c:'#5a4632',c2:'#6e563c',cd:'#3f3022',bw:30,bh:22,lg:9,nl:9,na:72,nw:7,hr:6.2,headc:'#f5f2ea',neckc:'#f5f2ea',hook:true,beakL:5.5,legc:'#e0a428',tailc:'#f5f2ea'})},
+duck:{n:'Duck',tier:'bird',lv:2,cost:400,pay:200,per:2,breed:8,art:()=>birdArt({c:'#b9b3a4',c2:'#d9d4c6',cd:'#8f897a',bw:28,bh:18,lg:8,nl:10,na:75,nw:5,hr:5.5,headc:'#2e7d4f',bill:true,beakL:6,beakH:2.8,headRing:true,tailUp:true,legc:'#d98a2e'})},
+chicken:{n:'Chicken',tier:'bird',lv:4,cost:750,pay:500,per:4,breed:16,art:()=>birdArt({c:'#f0ead8',c2:'#fbf7ec',cd:'#c9c0a6',bw:26,bh:19,lg:9,nl:9,na:80,nw:6,hr:5.5,comb:true,wattle:true,beakL:4.5,tailUp:true})},
+flamingo:{n:'Flamingo',tier:'bird',lv:12,cost:4000,pay:4200,per:12,breed:50,art:()=>birdArt({c:'#f08ca4',c2:'#f7b3c2',cd:'#d16a86',bw:26,bh:16,lg:26,nl:22,na:85,nw:4.5,hr:4.8,sneck:true,legc:'#e2708c',legw:1.8,beakL:6,beakc:'#3a3a3a',hook:true})},
+owl:{n:'Owl',tier:'bird',lv:15,cost:10000,pay:11000,per:20,breed:80,art:()=>birdArt({c:'#8a7358',c2:'#d8cbb4',cd:'#66543e',bw:26,bh:24,lg:6,nl:4,na:88,nw:10,hr:7.5,tilt:-4,hook:true,beakL:3.5,beakc:'#c9a14e',eyeDisc:'#d8cbb4',eyeR:2.2,ex:g=>P(`M${g.hx-6} ${g.hy-6.5} l 3 -4 l 2 4 z`,'#8a7358')+P(`M${g.hx+2} ${g.hy-7} l 3 -4 l 2 4.5 z`,'#8a7358')})},
+peacock:{n:'Peacock',tier:'bird',lv:21,cost:25000,pay:30000,per:30,breed:120,art:()=>birdArt({c:'#1f7a8c',c2:'#2a93a8',cd:'#14606f',bw:26,bh:17,lg:12,nl:14,na:82,nw:5,hr:5,fan:true,beakL:4.5,crest:'#f2c14e',legc:'#8a8a6a'})},
+eagle:{n:'Eagle',tier:'bird',lv:26,cost:100000,pay:130000,per:60,breed:240,art:()=>birdArt({c:'#5a4632',c2:'#6e563c',cd:'#3f3022',bw:30,bh:22,lg:9,nl:9,na:72,nw:7,hr:6.2,headc:'#f5f2ea',neckc:'#f5f2ea',hook:true,beakL:5.5,legc:'#e0a428',tailc:'#f5f2ea'})},
 /* water */
-otter:{n:'Otter',tier:'water',cost:3200,pay:1200,per:6,breed:80,water:true,art:()=>quadArt({c:'#7a5c44',cd:'#5b4330',bw:46,bh:16,lg:8,lw:5,nl:9,na:40,nw:8,hr:6,sn:4,snh:3.2,ear:'round',earc:'#7a5c44',tail:'thin',snc:'#a88a6c',c2:'#a88a6c'})},
-beaver:{n:'Beaver',tier:'water',cost:4200,pay:1560,per:6,breed:80,water:true,art:()=>quadArt({c:'#6e4f38',cd:'#513826',bw:42,bh:22,lg:8,lw:5.5,nl:6,na:35,nw:10,hr:6.5,sn:4.2,snh:3.6,ear:'round',earc:'#6e4f38',tail:'paddle',tailc:'#463228',ex:g=>R(g.hx-g.hr*0.9-3,g.hy+g.hr*0.55,3,4,1,'#f3ead6')})},
-seal:{n:'Seal',tier:'water',cost:6500,pay:2280,per:6,breed:90,water:true,art:()=>sealArt('#8d94a0','#b9bec7',false,1)},
-penguin:{n:'Penguin',tier:'water',cost:9000,pay:3120,per:6,breed:95,water:true,art:()=>penguinArt('#23272e','#f5f5f0','#e0912e')},
-seaturtle:{n:'Sea Turtle',tier:'water',cost:12500,pay:4080,per:6,breed:110,water:true,art:()=>seaTurtleArt('#5c7d4f','#8fae86')},
-dolphin:{n:'Dolphin',tier:'water',cost:16000,pay:5040,per:6,breed:120,water:true,art:()=>dolphinArt('#7d9db4','#d5e2ea')},
-narwhal:{n:'Narwhal',tier:'water',cost:14500,pay:4560,per:6,breed:115,water:true,art:()=>narwhalArt('#8494a0','#c3ccd2')},
-shark:{n:'Shark',tier:'water',cost:19000,pay:5760,per:6,breed:125,water:true,art:()=>sharkArt('#8d99a0','#dfe6e8')},
+otter:{n:'Otter',tier:'water',lv:13,cost:6000,pay:6000,per:15,breed:60,water:true,art:()=>quadArt({c:'#7a5c44',cd:'#5b4330',bw:46,bh:16,lg:8,lw:5,nl:9,na:40,nw:8,hr:6,sn:4,snh:3.2,ear:'round',earc:'#7a5c44',tail:'thin',snc:'#a88a6c',c2:'#a88a6c'})},
+beaver:{n:'Beaver',tier:'water',lv:16,cost:12000,pay:13000,per:20,breed:80,water:true,art:()=>quadArt({c:'#6e4f38',cd:'#513826',bw:42,bh:22,lg:8,lw:5.5,nl:6,na:35,nw:10,hr:6.5,sn:4.2,snh:3.6,ear:'round',earc:'#6e4f38',tail:'paddle',tailc:'#463228',ex:g=>R(g.hx-g.hr*0.9-3,g.hy+g.hr*0.55,3,4,1,'#f3ead6')})},
+seal:{n:'Seal',tier:'water',lv:19,cost:20000,pay:26000,per:30,breed:120,water:true,art:()=>sealArt('#8d94a0','#b9bec7',false,1)},
+penguin:{n:'Penguin',tier:'water',lv:23,cost:50000,pay:55000,per:40,breed:160,water:true,art:()=>penguinArt('#23272e','#f5f5f0','#e0912e')},
+seaturtle:{n:'Sea Turtle',tier:'water',lv:27,cost:120000,pay:150000,per:60,breed:240,water:true,art:()=>seaTurtleArt('#5c7d4f','#8fae86')},
+dolphin:{n:'Dolphin',tier:'water',lv:31,cost:400000,pay:420000,per:90,breed:360,water:true,art:()=>dolphinArt('#7d9db4','#d5e2ea')},
+narwhal:{n:'Narwhal',tier:'water',lv:30,cost:300000,pay:300000,per:75,breed:300,water:true,art:()=>narwhalArt('#8494a0','#c3ccd2')},
+shark:{n:'Shark',tier:'water',lv:35,cost:1000000,pay:960000,per:110,breed:440,water:true,art:()=>sharkArt('#8d99a0','#dfe6e8')},
 /* reptiles */
-turtle:{n:'Tortoise',tier:'rept',cost:3000,pay:1440,per:8,breed:100,art:()=>turtleArt('#6f8450','#9aa06a')},
-iguana:{n:'Iguana',tier:'rept',cost:5200,pay:2400,per:8,breed:105,art:()=>lizArt({c:'#7fa05a',cd:'#5f7a40',c2:'#b4c98a',bw:44,bh:15,lg:7,hh:9,snl:8,tlen:38,tdip:2,ridge:'#5f7a40',ridgeH:4,dewlap:true})},
-snake:{n:'Snake',tier:'rept',cost:8500,pay:3840,per:8,breed:110,art:()=>snakeArt('#6f9e57','#4a7238')},
-crocodile:{n:'Crocodile',tier:'rept',cost:14000,pay:5920,per:8,breed:130,art:()=>lizArt({c:'#5d7a4a',cd:'#455c36',c2:'#a3b483',bw:56,bh:17,lg:8,hh:10,snl:16,tlen:34,tdip:5,ridge:'#455c36',ridgeH:4,teeth:true})},
-komodo:{n:'Komodo Dragon',tier:'rept',cost:21000,pay:8320,per:8,breed:140,art:()=>lizArt({c:'#7d7463',cd:'#5d5648',c2:'#a39a86',bw:54,bh:18,lg:9,hh:11,snl:13,tlen:36,tdip:4,tongue:true})},
+turtle:{n:'Tortoise',tier:'rept',lv:14,cost:7500,pay:7000,per:15,breed:60,art:()=>turtleArt('#6f8450','#9aa06a')},
+iguana:{n:'Iguana',tier:'rept',lv:18,cost:15000,pay:19000,per:25,breed:100,art:()=>lizArt({c:'#7fa05a',cd:'#5f7a40',c2:'#b4c98a',bw:44,bh:15,lg:7,hh:9,snl:8,tlen:38,tdip:2,ridge:'#5f7a40',ridgeH:4,dewlap:true})},
+snake:{n:'Snake',tier:'rept',lv:22,cost:40000,pay:36000,per:30,breed:120,art:()=>snakeArt('#6f9e57','#4a7238')},
+crocodile:{n:'Crocodile',tier:'rept',lv:28,cost:150000,pay:180000,per:60,breed:240,art:()=>lizArt({c:'#5d7a4a',cd:'#455c36',c2:'#a3b483',bw:56,bh:17,lg:8,hh:10,snl:16,tlen:34,tdip:5,ridge:'#455c36',ridgeH:4,teeth:true})},
+komodo:{n:'Komodo Dragon',tier:'rept',lv:33,cost:600000,pay:580000,per:90,breed:360,art:()=>lizArt({c:'#7d7463',cd:'#5d5648',c2:'#a39a86',bw:54,bh:18,lg:9,hh:11,snl:13,tlen:36,tdip:4,tongue:true})},
 /* big mammals */
-gorilla:{n:'Gorilla',tier:'big',cost:950,pay:240,per:3,breed:35,art:()=>gorillaArt('#3d3a41','#565159')},
-zebra:{n:'Zebra',tier:'big',cost:1600,pay:360,per:3,breed:40,art:()=>quadArt({c:'#f4f4f2',cd:'#c9c9c4',bw:50,bh:24,lg:24,lw:5.5,nl:16,na:60,nw:9,hr:7,sn:6,snh:4.2,ear:'horse',tail:'rope',tailtuft:'#2a2a2a',stripes:'#2b2b2b',neckStripes:'#2b2b2b',snc:'#3a3a3a',hoof:'#3a3a3a'})},
-panda:{n:'Giant Panda',tier:'big',cost:11000,pay:7200,per:12,breed:180,art:()=>quadArt({c:'#f2f0eb',cd:'#d4d1c8',bw:50,bh:30,lg:14,lw:8,nl:7,na:38,nw:12,hr:8.5,sn:5.5,snh:4.2,ear:'round',earc:'#2c2c2c',patch:'#2c2c2c',legc:'#2c2c2c',tail:'short',ex:g=>E(g.hx-2.6,g.hy-1.8,2.6,3.2,'#2c2c2c')})},
-kangaroo:{n:'Kangaroo',tier:'big',cost:13000,pay:8400,per:12,breed:190,art:()=>kangarooArt('#b0774f')},
-giraffe:{n:'Giraffe',tier:'big',cost:19000,pay:11520,per:12,breed:210,art:()=>quadArt({c:'#e8c07a',cd:'#c39a55',bw:44,bh:24,lg:30,lw:5.5,nl:30,na:80,nw:8,hr:6,sn:5,snh:3.8,ear:'long',tail:'rope',spots:'#a3702f',spr:4.6,hoof:'#8a6a3a',ex:g=>LN(g.hx-1,g.hy-g.hr,g.hx-1,g.hy-g.hr-4,'#a3702f',2)+C(g.hx-1,g.hy-g.hr-5,1.8,'#a3702f')+LN(g.hx+3,g.hy-g.hr,g.hx+3,g.hy-g.hr-4,'#a3702f',2)+C(g.hx+3,g.hy-g.hr-5,1.8,'#a3702f')})},
-hippo:{n:'Hippo',tier:'big',cost:26000,pay:14880,per:15,breed:230,art:()=>quadArt({c:'#8f7f8d',cd:'#6d5f6c',bw:60,bh:34,lg:14,lw:10,nl:6,na:20,nw:16,hr:9.5,sn:9,snh:7,ear:'round',earc:'#8f7f8d',tail:'thin',c2:'#b3a2b1',ex:g=>C(g.hx-g.hr*0.8-9*0.8,g.hy+g.hr*0.3-6,1.3,'rgba(0,0,0,.3)')})},
-lion:{n:'Lion',tier:'big',cost:32000,pay:18000,per:15,breed:240,art:()=>quadArt({c:'#cfa156',cd:'#a37a38',bw:50,bh:24,lg:20,lw:6.5,nl:10,na:45,nw:10,hr:7.5,sn:5.5,snh:4.4,ear:'round',earc:'#8a5a24',mane:'#8a5a24',tail:'rope',tailtuft:'#8a5a24',snc:'#e0bc80'})},
-tiger:{n:'Tiger',tier:'big',cost:38000,pay:21120,per:20,breed:250,art:()=>quadArt({c:'#d98a3d',cd:'#a86426',bw:52,bh:24,lg:20,lw:6.5,nl:10,na:45,nw:10,hr:7.5,sn:5.5,snh:4.4,ear:'round',earc:'#d98a3d',stripes:'#33241a',strw:3,tail:'thin',tailc:'#33241a',snc:'#f2e3cc',c2:'#f2e3cc'})},
-rhino:{n:'Rhino',tier:'big',cost:45000,pay:24000,per:20,breed:260,art:()=>quadArt({c:'#9aa0a3',cd:'#75797c',bw:58,bh:32,lg:16,lw:9,nl:7,na:25,nw:15,hr:9,sn:8,snh:6,ear:'point',earc:'#9aa0a3',tail:'thin',hornR:true})},
-polar:{n:'Polar Bear',tier:'big',cost:52000,pay:26880,per:25,breed:270,art:()=>quadArt({c:'#eef0f2',cd:'#c6ced6',bw:56,bh:30,lg:18,lw:8.5,nl:12,na:30,nw:12,hr:7.5,sn:5.5,snh:4.2,ear:'round',earc:'#eef0f2',tail:'short',snc:'#eef0f2',nost:true})},
-elephant:{n:'Elephant',tier:'big',cost:65000,pay:32400,per:25,breed:280,art:()=>quadArt({c:'#a8a5ab',cd:'#828087',bw:60,bh:36,lg:22,lw:11,nl:8,na:30,nw:17,hr:10.5,sn:7,snh:6,ear:'fan',earc:'#918e94',tail:'thin',trunk:true,
+gorilla:{n:'Gorilla',tier:'big',lv:6,cost:1200,pay:1000,per:6,breed:25,art:()=>gorillaArt('#3d3a41','#565159')},
+zebra:{n:'Zebra',tier:'big',lv:9,cost:2500,pay:2500,per:10,breed:40,art:()=>quadArt({c:'#f4f4f2',cd:'#c9c9c4',bw:50,bh:24,lg:24,lw:5.5,nl:16,na:60,nw:9,hr:7,sn:6,snh:4.2,ear:'horse',tail:'rope',tailtuft:'#2a2a2a',stripes:'#2b2b2b',neckStripes:'#2b2b2b',snc:'#3a3a3a',hoof:'#3a3a3a'})},
+panda:{n:'Giant Panda',tier:'big',lv:24,cost:60000,pay:72000,per:45,breed:180,art:()=>quadArt({c:'#f2f0eb',cd:'#d4d1c8',bw:50,bh:30,lg:14,lw:8,nl:7,na:38,nw:12,hr:8.5,sn:5.5,snh:4.2,ear:'round',earc:'#2c2c2c',patch:'#2c2c2c',legc:'#2c2c2c',tail:'short',ex:g=>E(g.hx-2.6,g.hy-1.8,2.6,3.2,'#2c2c2c')})},
+kangaroo:{n:'Kangaroo',tier:'big',lv:25,cost:75000,pay:85000,per:45,breed:180,art:()=>kangarooArt('#b0774f')},
+giraffe:{n:'Giraffe',tier:'big',lv:29,cost:200000,pay:260000,per:75,breed:300,art:()=>quadArt({c:'#e8c07a',cd:'#c39a55',bw:44,bh:24,lg:30,lw:5.5,nl:30,na:80,nw:8,hr:6,sn:5,snh:3.8,ear:'long',tail:'rope',spots:'#a3702f',spr:4.6,hoof:'#8a6a3a',ex:g=>LN(g.hx-1,g.hy-g.hr,g.hx-1,g.hy-g.hr-4,'#a3702f',2)+C(g.hx-1,g.hy-g.hr-5,1.8,'#a3702f')+LN(g.hx+3,g.hy-g.hr,g.hx+3,g.hy-g.hr-4,'#a3702f',2)+C(g.hx+3,g.hy-g.hr-5,1.8,'#a3702f')})},
+hippo:{n:'Hippo',tier:'big',lv:32,cost:500000,pay:500000,per:90,breed:360,art:()=>quadArt({c:'#8f7f8d',cd:'#6d5f6c',bw:60,bh:34,lg:14,lw:10,nl:6,na:20,nw:16,hr:9.5,sn:9,snh:7,ear:'round',earc:'#8f7f8d',tail:'thin',c2:'#b3a2b1',ex:g=>C(g.hx-g.hr*0.8-9*0.8,g.hy+g.hr*0.3-6,1.3,'rgba(0,0,0,.3)')})},
+lion:{n:'Lion',tier:'big',lv:34,cost:750000,pay:750000,per:100,breed:400,art:()=>quadArt({c:'#cfa156',cd:'#a37a38',bw:50,bh:24,lg:20,lw:6.5,nl:10,na:45,nw:10,hr:7.5,sn:5.5,snh:4.4,ear:'round',earc:'#8a5a24',mane:'#8a5a24',tail:'rope',tailtuft:'#8a5a24',snc:'#e0bc80'})},
+tiger:{n:'Tiger',tier:'big',lv:36,cost:1500000,pay:1200000,per:120,breed:480,art:()=>quadArt({c:'#d98a3d',cd:'#a86426',bw:52,bh:24,lg:20,lw:6.5,nl:10,na:45,nw:10,hr:7.5,sn:5.5,snh:4.4,ear:'round',earc:'#d98a3d',stripes:'#33241a',strw:3,tail:'thin',tailc:'#33241a',snc:'#f2e3cc',c2:'#f2e3cc'})},
+rhino:{n:'Rhino',tier:'big',lv:38,cost:2000000,pay:1440000,per:120,breed:480,art:()=>quadArt({c:'#9aa0a3',cd:'#75797c',bw:58,bh:32,lg:16,lw:9,nl:7,na:25,nw:15,hr:9,sn:8,snh:6,ear:'point',earc:'#9aa0a3',tail:'thin',hornR:true})},
+polar:{n:'Polar Bear',tier:'big',lv:39,cost:2500000,pay:2100000,per:150,breed:600,art:()=>quadArt({c:'#eef0f2',cd:'#c6ced6',bw:56,bh:30,lg:18,lw:8.5,nl:12,na:30,nw:12,hr:7.5,sn:5.5,snh:4.2,ear:'round',earc:'#eef0f2',tail:'short',snc:'#eef0f2',nost:true})},
+elephant:{n:'Elephant',tier:'big',lv:41,cost:3000000,pay:2900000,per:180,breed:720,art:()=>quadArt({c:'#a8a5ab',cd:'#828087',bw:60,bh:36,lg:22,lw:11,nl:8,na:30,nw:17,hr:10.5,sn:7,snh:6,ear:'fan',earc:'#918e94',tail:'thin',trunk:true,
   exBack:g=>tuskShape(g.hx-10.5*0.1,g.hy+10.5*0.5, g.hx-10.5*1.3,g.hy+10.5*1.7, 10.5*0.28, '#d3c6a8', '#b8a888'),
   ex:g=>tuskShape(g.hx-10.5*0.4,g.hy+10.5*0.55, g.hx-10.5*1.6,g.hy+10.5*1.9, 10.5*0.34, '#efe6d2', '#d3c6a8')
 })},
 /* hybrids */
-liger:{n:'Liger',tier:'hybrid',parents:['lion','tiger'],pay:39200,per:18,breed:360,art:()=>quadArt({c:'#dfb977',cd:'#b18d4a',bw:54,bh:26,lg:21,lw:7,nl:10,na:45,nw:10.5,hr:7.8,sn:5.6,snh:4.5,ear:'round',earc:'#a3702f',mane:'#b8863c',stripes:'#8a6a3a',strw:2.4,tail:'rope',tailtuft:'#8a5a24',snc:'#f2e3cc'})},
-alpaca:{n:'Alpaca',tier:'hybrid',parents:['sheep','llama'],pay:28800,per:18,breed:300,art:()=>quadArt({c:'#f0e4d2',cd:'#cbbaa0',bw:42,bh:26,lg:20,lw:6,nl:20,na:80,nw:11,hr:6.5,sn:4,snh:3.4,ear:'long',tail:'fluff',ex:g=>C(g.hx+1,g.hy-7,6,'#f6ecdd')+C(g.bcx-g.bw*0.25,g.bcy-g.bh*0.3,7,'#f6ecdd')+C(g.bcx+g.bw*0.25,g.bcy-g.bh*0.3,7,'#f6ecdd')})},
-platypus:{n:'Platypus',tier:'hybrid',parents:['duck','beaver'],pay:43200,per:18,breed:330,water:true,art:()=>platypusArt()},
-sealion:{n:'Sea Lion',tier:'hybrid',parents:['otter','seal'],pay:54000,per:18,breed:330,water:true,art:()=>sealArt('#a3774d','#c9a67e',true,1.05,true)},
-megalodon:{n:'Megalodon',tier:'hybrid',parents:['shark','crocodile'],pay:100800,per:18,breed:390,water:true,art:()=>megalodonArt()},
+liger:{n:'Liger',tier:'hybrid',lv:37,parents:['lion','tiger'],pay:1700000,per:120,breed:360,art:()=>quadArt({c:'#dfb977',cd:'#b18d4a',bw:54,bh:26,lg:21,lw:7,nl:10,na:45,nw:10.5,hr:7.8,sn:5.6,snh:4.5,ear:'round',earc:'#a3702f',mane:'#b8863c',stripes:'#8a6a3a',strw:2.4,tail:'rope',tailtuft:'#8a5a24',snc:'#f2e3cc'})},
+alpaca:{n:'Alpaca',tier:'hybrid',lv:10,parents:['sheep','llama'],pay:12000,per:30,breed:120,art:()=>quadArt({c:'#f0e4d2',cd:'#cbbaa0',bw:42,bh:26,lg:20,lw:6,nl:20,na:80,nw:11,hr:6.5,sn:4,snh:3.4,ear:'long',tail:'fluff',ex:g=>C(g.hx+1,g.hy-7,6,'#f6ecdd')+C(g.bcx-g.bw*0.25,g.bcy-g.bh*0.3,7,'#f6ecdd')+C(g.bcx+g.bw*0.25,g.bcy-g.bh*0.3,7,'#f6ecdd')})},
+platypus:{n:'Platypus',tier:'hybrid',lv:17,parents:['duck','beaver'],pay:36000,per:40,breed:180,water:true,art:()=>platypusArt()},
+sealion:{n:'Sea Lion',tier:'hybrid',lv:20,parents:['otter','seal'],pay:72000,per:60,breed:240,water:true,art:()=>sealArt('#a3774d','#c9a67e',true,1.05,true)},
+megalodon:{n:'Megalodon',tier:'hybrid',lv:40,parents:['shark','crocodile'],pay:2900000,per:150,breed:480,water:true,art:()=>megalodonArt()},
 /* mythicals */
-unicorn:{n:'Unicorn',tier:'myth',parents:['narwhal','wildhorse'],pay:210000,per:30,breed:720,art:()=>pegasusUnicornArt(true)},
-pegasus:{n:'Pegasus',tier:'myth',parents:['wildhorse','eagle'],pay:198000,per:30,breed:720,art:()=>pegasusUnicornArt(false)},
-griffin:{n:'Griffin',tier:'myth',parents:['lion','eagle'],pay:228000,per:30,breed:780,art:()=>griffinArt()},
-yeti:{n:'Yeti',tier:'myth',parents:['polar','gorilla'],pay:252000,per:30,breed:800,art:()=>yetiArt()},
-kraken:{n:'Kraken',tier:'myth',parents:['seaturtle','dolphin'],pay:270000,per:30,breed:840,water:true,art:()=>krakenArt('#7a4f7d')},
-mammoth:{n:'Mammoth',tier:'myth',parents:['elephant','hippo'],pay:282000,per:30,breed:860,art:()=>mammothArt()},
-phoenix:{n:'Phoenix',tier:'myth',parents:['eagle','flamingo'],pay:240000,per:30,breed:800,art:()=>phoenixArt()},
-basilisk:{n:'Basilisk',tier:'myth',parents:['crocodile','komodo'],pay:264000,per:30,breed:840,art:()=>basiliskArt()},
-dinosaur:{n:'Dinosaur',tier:'myth',parents:['megalodon','komodo'],pay:276000,per:30,breed:1080,art:()=>dinosaurArt()},
+unicorn:{n:'Unicorn',tier:'myth',lv:42,parents:['narwhal','wildhorse'],pay:5000000,per:180,breed:600,art:()=>pegasusUnicornArt(true)},
+pegasus:{n:'Pegasus',tier:'myth',lv:43,parents:['wildhorse','eagle'],pay:5000000,per:180,breed:600,art:()=>pegasusUnicornArt(false)},
+griffin:{n:'Griffin',tier:'myth',lv:44,parents:['lion','eagle'],pay:6000000,per:200,breed:720,art:()=>griffinArt()},
+yeti:{n:'Yeti',tier:'myth',lv:45,parents:['polar','gorilla'],pay:6000000,per:200,breed:720,art:()=>yetiArt()},
+kraken:{n:'Kraken',tier:'myth',lv:47,parents:['seaturtle','dolphin'],pay:7000000,per:240,breed:840,water:true,art:()=>krakenArt('#7a4f7d')},
+mammoth:{n:'Mammoth',tier:'myth',lv:48,parents:['elephant','hippo'],pay:7000000,per:240,breed:960,art:()=>mammothArt()},
+phoenix:{n:'Phoenix',tier:'myth',lv:46,parents:['eagle','flamingo'],pay:7000000,per:240,breed:840,art:()=>phoenixArt()},
+basilisk:{n:'Basilisk',tier:'myth',lv:49,parents:['crocodile','komodo'],pay:7000000,per:240,breed:960,art:()=>basiliskArt()},
+dinosaur:{n:'Dinosaur',tier:'myth',lv:50,parents:['megalodon','komodo'],pay:9000000,per:300,breed:1200,art:()=>dinosaurArt()},
 /* capstone */
-dragon:{n:'Dragon',tier:'cap',parents:['basilisk','phoenix'],pay:1000000,per:60,breed:1440,art:()=>dragonArt()}
+dragon:{n:'Dragon',tier:'cap',lv:51,parents:['basilisk','phoenix'],pay:25000000,per:360,breed:1440,art:()=>dragonArt()}
 };
-const RECIPES=Object.keys(SP).filter(k=>SP[k].parents).map(k=>({a:SP[k].parents[0],b:SP[k].parents[1],res:k}));
+const RECIPES=Object.keys(SP).filter(k=>SP[k].parents).map(k=>({a:SP[k].parents[0],b:SP[k].parents[1],res:k})).sort((p,q)=>SP[p.res].lv-SP[q.res].lv);
 const TIERS=[['base','Farm & Field'],['bird','Birds'],['water','Water Animals'],['rept','Reptiles'],['big','Big Mammals']];
 
-/* Same idea as SP above: cost to build, pay per collection, per = minutes between collections. */
+/* Same idea as SP above: lv to unlock, cost to build, pay per collection, per = minutes between
+   collections, max = how many of that store the island can hold. */
 const STORES={
-icecream:{n:'Ice Cream Stand',cost:12000,pay:6000,per:10,cap:120,art:c=>storeArt('#f2b7c6','#fff','🍦')},
-balloon:{n:'Balloon Cart',cost:40000,pay:20000,per:15,cap:120,art:c=>storeArt('#f2c14e','#fff','🎈')},
-popcorn:{n:'Popcorn Stand',cost:150000,pay:75000,per:25,cap:120,art:c=>storeArt('#d9432f','#fff','🍿')},
-gift:{n:'Gift Shop',cost:750000,pay:500000,per:40,cap:120,art:c=>storeArt('#5b8dd9','#fff','🎁')}
+icecream:{n:'Ice Cream Stand',lv:5,cost:2500,pay:1500,per:10,max:2,art:c=>storeArt('#f28fb0','🍦')},
+balloon:{n:'Balloon Cart',lv:14,cost:15000,pay:9000,per:20,max:2,art:c=>storeArt('#f2b52e','🎈')},
+popcorn:{n:'Popcorn Stand',lv:24,cost:150000,pay:90000,per:60,max:2,art:c=>storeArt('#e0483a','🍿')},
+gift:{n:'Gift Shop',lv:34,cost:1500000,pay:900000,per:120,max:2,art:c=>storeArt('#4f86d9','🎁')}
 };
-function storeArt(c1,c2,emo){
+function storeArt(c1,emo){
   let s='';
-  s+=P('M20 60 l 40 -20 l 40 20 l 0 34 l -80 0 z',shade(c1,-30));
-  s+=P('M24 62 l 36 -18 l 36 18 l 0 30 l -72 0 z','#f7f1e2');
-  s+=P('M14 60 l 46 -24 l 46 24 l -6 7 l -40 -21 l -40 21 z',c1); // roof
-  for(let i=0;i<4;i++)s+=P(`M${22+i*22} ${57-i*0} l 0 0`,'none','');
-  s+=R(50,72,20,20,3,shade(c1,-18));
-  s+=`<text x="60" y="58" font-size="17" text-anchor="middle">${emo}</text>`;
+  s+=E(60,93,40,5,'rgba(0,0,0,.18)');
+  s+=R(28,58,64,34,3,'#f7f1e2');                       // booth
+  s+=R(84,58,8,34,2,'#e2d8c0');                        // side shade
+  s+=R(48,70,24,22,3,shade(c1,-35));                    // doorway
+  s+=R(24,74,72,7,2,'#a8743e')+R(24,79,72,2,1,'#7f5428'); // counter
+  for(let i=0;i<6;i++)s+=R(22+i*12.7,48,12.7,12,0,i%2?'#fff':c1); // striped awning
+  for(let i=0;i<6;i++)s+=C(28.3+i*12.7,60,6.35,i%2?'#fff':c1);
+  s+=R(22,46,76,4,2,shade(c1,-25));
+  s+=R(40,28,40,17,7,'#fffdf4','stroke="'+shade(c1,-20)+'" stroke-width="2"'); // sign
+  s+=`<text x="60" y="42" font-size="13" text-anchor="middle">${emo}</text>`;
   return s;
 }
+/* lv = unlock level; boost = % payout bonus (all decor together caps at DECO_CAP) */
+const DECO_CAP=20;
 const DECOS={
-bush:{n:'Bush',cost:250,boost:1,art:()=>C(60,84,14,'#5f8f4a')+C(48,88,10,'#6f9e57')+C(72,88,10,'#557f40')},
-flowers:{n:'Flower Bed',cost:400,boost:1,art:()=>E(60,90,22,7,'#7a5c40')+C(50,84,4,'#e26a8d')+C(60,81,4,'#f2c14e')+C(70,84,4,'#c46ad9')+LN(50,88,50,84,'#4a7238',2)+LN(60,88,60,82,'#4a7238',2)+LN(70,88,70,84,'#4a7238',2)},
-bench:{n:'Park Bench',cost:600,boost:1,art:()=>R(40,78,40,5,2,'#8a5a2e')+R(40,64,40,5,2,'#8a5a2e')+R(42,68,4,22,1,'#5c3d20')+R(74,68,4,22,1,'#5c3d20')},
-tree:{n:'Shade Tree',cost:800,boost:1,art:()=>R(56,66,8,26,3,'#6e4a2a')+C(60,52,20,'#4d7a3a')+C(46,60,13,'#5f8f4a')+C(74,60,13,'#456e34')},
-pond:{n:'Duck Pond',cost:1200,boost:2,art:()=>E(60,84,30,12,'#4fa3b8')+E(60,84,24,9,'#6fc0d3')+E(48,80,4,1.6,'#e8f4f6')},
-lamp:{n:'Path Lamp',cost:900,boost:1,art:()=>R(58,58,4,34,1.5,'#3a4a44')+C(60,54,6,'#f2d98a')+P('M52 60 q 8 6 16 0 l -2 4 q -6 4 -12 0 z','#3a4a44')},
-topiary:{n:'Peacock Topiary',cost:4,star:true,boost:2,art:()=>R(56,80,8,12,2,'#7a5c40')+C(60,66,13,'#3f7a4f')+P('M70 60 q 12 -8 16 -2 q -6 8 -14 8 z','#3f7a4f')+C(52,60,5,'#4d9e5f')},
-fountain:{n:'Grand Fountain',cost:6,star:true,boost:3,art:()=>E(60,88,26,9,'#9db4c9')+E(60,86,20,6,'#5ba8c9')+R(56,64,8,22,3,'#c9d4dd')+E(60,64,12,4,'#9db4c9')+P('M60 62 q -8 -14 0 -18 q 8 4 0 18','#8fd0e8')+C(60,44,3,'#bce4f2')},
-statue:{n:'Golden Dragon Statue',cost:10,star:true,boost:4,art:()=>E(60,90,20,6,'#b3a06a')+R(48,76,24,14,2,'#c9b67e')+P('M52 76 q -4 -18 12 -22 q 14 -4 16 8 q 1 8 -8 8 q 6 2 4 6 z','#f2c14e')+C(68,58,2,'#8a6a1e')},
+bush:{n:'Bush',lv:1,cost:500,boost:1,art:()=>C(60,84,14,'#5f8f4a')+C(48,88,10,'#6f9e57')+C(72,88,10,'#557f40')+C(56,78,5,'#7fb065')},
+flowers:{n:'Flower Bed',lv:3,cost:800,boost:1,art:()=>E(60,90,22,7,'#7a5c40')+C(50,84,4,'#e26a8d')+C(60,81,4,'#f2c14e')+C(70,84,4,'#c46ad9')+LN(50,88,50,84,'#4a7238',2)+LN(60,88,60,82,'#4a7238',2)+LN(70,88,70,84,'#4a7238',2)},
+bench:{n:'Park Bench',lv:5,cost:1500,boost:1,art:()=>R(40,78,40,5,2,'#8a5a2e')+R(40,64,40,5,2,'#8a5a2e')+R(42,68,4,22,1,'#5c3d20')+R(74,68,4,22,1,'#5c3d20')},
+tree:{n:'Shade Tree',lv:8,cost:2500,boost:1,art:()=>E(60,92,18,4,'rgba(0,0,0,.15)')+R(56,66,8,26,3,'#6e4a2a')+C(60,52,20,'#4d7a3a')+C(46,60,13,'#5f8f4a')+C(74,60,13,'#456e34')+C(54,46,7,'#5f9a48')},
+palm:{n:'Palm Tree',lv:10,cost:4000,boost:1,art:()=>E(62,92,14,3.5,'rgba(0,0,0,.15)')+P('M58 92 q -2 -24 6 -44 l 4 1 q -7 20 -5 43 z','#9a7244')+P('M64 48 q -18 -8 -28 4 q 14 -4 28 -2 z','#4f9a3e')+P('M64 48 q 18 -10 28 2 q -14 -4 -28 0 z','#5fae4a')+P('M64 48 q -6 -16 -20 -16 q 12 6 18 16 z','#5fae4a')+P('M64 48 q 8 -16 22 -14 q -14 4 -20 14 z','#4f9a3e')+C(62,51,3,'#7a5228')+C(67,51,3,'#7a5228')},
+lamp:{n:'Path Lamp',lv:12,cost:3000,boost:1,art:()=>R(58,58,4,34,1.5,'#3a4a44')+C(60,54,9,'rgba(255,230,140,.35)')+C(60,54,6,'#f2d98a')+P('M52 60 q 8 6 16 0 l -2 4 q -6 4 -12 0 z','#3a4a44')},
+pond:{n:'Duck Pond',lv:16,cost:6000,boost:2,art:()=>E(60,84,30,12,'#4fa3b8')+E(60,84,24,9,'#6fc0d3')+E(48,80,4,1.6,'#e8f4f6')+E(70,86,5,2.4,'#4d8f3f')},
+topiary:{n:'Peacock Topiary',cost:5,star:true,boost:2,art:()=>R(56,80,8,12,2,'#7a5c40')+C(60,66,13,'#3f7a4f')+P('M70 60 q 12 -8 16 -2 q -6 8 -14 8 z','#3f7a4f')+C(52,60,5,'#4d9e5f')},
+fountain:{n:'Grand Fountain',cost:10,star:true,boost:3,art:()=>E(60,88,26,9,'#9db4c9')+E(60,86,20,6,'#5ba8c9')+R(56,64,8,22,3,'#c9d4dd')+E(60,64,12,4,'#9db4c9')+P('M60 62 q -8 -14 0 -18 q 8 4 0 18','#8fd0e8')+C(60,44,3,'#bce4f2')},
+statue:{n:'Golden Dragon Statue',cost:20,star:true,boost:4,art:()=>E(60,90,20,6,'#b3a06a')+R(48,76,24,14,2,'#c9b67e')+P('M52 76 q -4 -18 12 -22 q 14 -4 16 8 q 1 8 -8 8 q 6 2 4 6 z','#f2c14e')+C(68,58,2,'#8a6a1e')},
 stonepath:{n:'Stone Path',cost:150,boost:0,path:true,
   art:()=>E(60,80,30,10,'#cdb98f')+E(48,78,6,4,'#b8a67e')+E(65,83,5.4,3.6,'#b3a078')+E(76,77,5.6,3.8,'#ac9976')+E(56,87,4.8,3.2,'#b8a67e'),
   groundArt:(px,py)=>{
@@ -794,10 +853,34 @@ boardwalk:{n:'Boardwalk',cost:220,boost:0,path:true,
     return s;
   }}
 };
-const EXP_SIZES=[8,10,12,14,16];
-const EXP_COST=[0,8000,40000,150000,500000];
-const GRID_MAX=16;
-const SLOT_COST=[0,50000,250000];
+const EXP_SIZES=[8,10,12,14,16,18,20];
+const EXP_COST=[0,5000,40000,250000,1200000,5000000,20000000];
+const EXP_LV=[0,6,12,18,24,30,36];      // level needed for each expansion
+const GRID_MAX=20;
+const SLOT_COST=[0,20000,400000];
+const SLOT_LV=[0,10,25];                // level needed for nest 2 and 3
+
+/* ---- levels & XP (Tap Zoo style: XP from collecting, buying and hatching) ---- */
+const TIER_XP={base:1,bird:1,big:1.2,water:1.2,rept:1.2,hybrid:1.5,myth:2,cap:3};
+function xpFor(it){
+  if(it.kind==='exhibit')return Math.max(1,Math.round(SP[it.sp].per*0.6*TIER_XP[SP[it.sp].tier]));
+  if(it.kind==='store')return Math.max(1,Math.round(STORES[it.sp].per*0.6));
+  return 0;
+}
+const buyXp=cost=>Math.max(1,Math.round(Math.sqrt(cost)*0.6));
+const xpNeed=L=>Math.round(12+Math.pow(L,2.1));    // xp to go from level L to L+1
+const levelGold=L=>10*L*L;                          // gold gift on reaching level L
+const MAX_LV=51;
+function unlocksAt(L){
+  const out=[];
+  for(const k of Object.keys(SP))if(SP[k].lv===L)out.push({kind:'animal',k});
+  for(const k of Object.keys(STORES))if(STORES[k].lv===L)out.push({kind:'store',k});
+  for(const k of Object.keys(DECOS))if((DECOS[k].lv||0)===L&&L>1)out.push({kind:'deco',k});
+  EXP_LV.forEach((l,i)=>{if(i>0&&l===L)out.push({kind:'exp',i});});
+  SLOT_LV.forEach((l,i)=>{if(i>0&&l===L)out.push({kind:'slot',i});});
+  return out;
+}
+const rushCost=remMs=>Math.max(1,Math.ceil(remMs/60000/30)); // 1 star per 30 min left
 
 /* ---- exhibit footprints, habitats & payout cycles ---- */
 const FP={duck:1,chicken:1,owl:1,otter:1,beaver:1,snake:1,turtle:1,platypus:1,iguana:1, 
@@ -829,13 +912,27 @@ const HABS={
 /* ================= state & persistence ================= */
 let state=null;
 function freshState(){
-  return {v:2,gold:500,stars:0,exp:0,
+  return {v:3,gold:800,stars:3,exp:0,lv:1,xp:0,
     items:[],inv:[{sp:'buffalo'}],
     hatch:{slots:1,breeds:[]},
-    trash:[],disc:[],claimed:{},
-    stats:{gold:0,trash:0,breeds:0},
-    musicOn:true,
+    trash:[],disc:[],claimed:{},seen:{},
+    stats:{gold:0,trash:0,breeds:0,collects:0},
+    musicOn:true,sfxOn:true,won:false,
+    started:nowMs(),
     seenHelp:false,last:nowMs()};
+}
+function migrateV2(s){
+  // grid grew from 16 to 20: shift everything so it stays anchored to the entrance corner
+  const d=20-16;
+  for(const it of (s.items||[])){it.x+=d;it.y+=d;}
+  for(const t of (s.trash||[])){t.x+=d;t.y+=d;}
+  // give a level that covers everything the player already owns
+  let lv=1;
+  const own=new Set([...(s.items||[]).filter(i=>i.kind==='exhibit').map(i=>i.sp),...(s.disc||[])]);
+  for(const k of own)if(SP[k])lv=Math.max(lv,SP[k].lv);
+  lv=Math.max(lv,EXP_LV[s.exp||0]||1);
+  s.lv=lv;s.xp=0;s.v=3;
+  s.stats=Object.assign({collects:0},s.stats||{});
 }
 let saveT=null,dirty=false,resettingGame=false;
 function save(){if(resettingGame)return;dirty=true;clearTimeout(saveT);saveT=setTimeout(doSave,1200);}
@@ -848,17 +945,21 @@ async function doSave(){
 async function loadState(){
   try{const r=await window.storage.get('wild-isle-save');
     if(r&&r.value){const s=JSON.parse(r.value);
-      if(s&&(s.v===1||s.v===2)){
+      if(s&&(s.v===1||s.v===2||s.v===3)){
         if(s.v===1)migrateV1(s);
-        state=Object.assign(freshState(),s);state.v=2;return true;}}
+        if(s.v===2)migrateV2(s);
+        state=Object.assign(freshState(),s);state.v=3;
+        if(!state.seen)state.seen={};
+        return true;}}
   }catch(e){/* no save yet */}
   state=freshState();return false;
 }
 async function resetGame(){
-  if(!confirm('This will permanently erase ALL progress on this island (gold, animals, everything) and start over from scratch.\n\nThis cannot be undone. Reset anyway?'))return;
+  // window.confirm() is silently blocked inside sandboxed iframes, which made this button look dead
+  if(!await askConfirm('Start over?','This permanently erases ALL progress on this island: gold, animals, everything. This cannot be undone.','Erase & restart',true))return;
   resettingGame=true;
   clearTimeout(saveT);
-  try{stopMusic();}catch(e){}
+  try{musStop();}catch(e){}
   try{await window.storage.delete('wild-isle-save');}catch(e){}
   await new Promise(r=>setTimeout(r,300)); // let any save that was already mid-flight resolve
   try{await window.storage.delete('wild-isle-save');}catch(e){} // then sweep it away for good
@@ -866,7 +967,7 @@ async function resetGame(){
 }
 function migrateV1(s){
   const items=s.items||[];const exp=s.exp||0;
-  const sz=EXP_SIZES[exp],off=(GRID_MAX-sz)/2;
+  const sz=EXP_SIZES[exp],off=(16-sz)/2; // v1 saves predate the 20x20 grid
   const placed=[];
   const fit=(x,y,f)=>{
     if(x<off||y<off||x+f>off+sz||y+f>off+sz)return false;
@@ -890,9 +991,27 @@ function migrateV1(s){
 function decoBoost(){
   let b=0;
   for(const it of state.items)if(it.kind==='deco')b+=(DECOS[it.sp].boost||0);
-  return Math.min(b,30)/100;
+  return Math.min(b,DECO_CAP)/100;
 }
-const MULT=[0,1,2,3,5]; // payout multiplier by animal count (boosts at 2 and 4)
+const MULT=[0,1,2.5,3.5,5]; // payout multiplier by animal count (matches the help text: x2.5 pair, x5 full)
+const unlocked=lv=>state.lv>=(lv||1);
+function storeCount(k){return state.items.filter(i=>i.kind==='store'&&i.sp===k).length;}
+
+/* ---- XP & levels ---- */
+let pendingLevelUps=[];
+function gainXp(n,e){
+  n=Math.max(0,Math.round(n));if(!n)return;
+  state.xp+=n;
+  if(e)setTimeout(()=>flyText('<span style="color:#c9f7b0">+'+n+' XP</span>',e.clientX+18,e.clientY+14),120);
+  while(state.xp>=xpNeed(state.lv)){
+    state.xp-=xpNeed(state.lv);state.lv++;
+    const g=levelGold(state.lv);
+    state.gold+=g;state.stars+=1;
+    pendingLevelUps.push(state.lv);
+  }
+  save();updateHUD();
+  if(pendingLevelUps.length&&!$('#dlgWrap').classList.contains('open'))setTimeout(showLevelUp,450);
+}
 function cycleMs(it){
   if(it.kind==='exhibit')return SP[it.sp].per*60000;
   if(it.kind==='store')return STORES[it.sp].per*60000;
@@ -923,26 +1042,39 @@ function speciesOwned(){
 function ownsSp(k){for(const it of state.items)if(it.kind==='exhibit'&&it.sp===k)return true;return false;}
 
 /* ================= missions ================= */
+/* r = star reward, g = gold reward. Only the first few unfinished goals are shown at once. */
 const MISSIONS=[
-{id:'m1',t:'Place your first exhibit',r:1,c:s=>s.items.some(i=>i.kind==='exhibit')},
-{id:'m2',t:'Collect 1,000 gold (lifetime)',r:1,c:s=>s.stats.gold>=1000},
-{id:'m3',t:'Pick up 5 pieces of trash',r:1,c:s=>s.stats.trash>=5},
-{id:'m4',t:'Keep 4 different species',r:2,c:s=>speciesOwned().size>=4},
-{id:'m5',t:'Start your first breeding',r:1,c:s=>s.stats.breeds>=1},
-{id:'m6',t:'Raise an exhibit to 3 animals',r:2,c:s=>s.items.some(i=>i.kind==='exhibit'&&i.count>=3)},
-{id:'m7',t:'Discover a hybrid species',r:3,c:s=>s.disc.some(k=>SP[k].tier==='hybrid')},
-{id:'m8',t:'Open a visitor stand or shop',r:2,c:s=>s.items.some(i=>i.kind==='store')},
-{id:'m9',t:'Place 3 decorations',r:1,c:s=>s.items.filter(i=>i.kind==='deco').length>=3},
-{id:'m10',t:'Expand the island',r:2,c:s=>s.exp>=1},
-{id:'m11',t:'Keep 10 different species',r:3,c:s=>speciesOwned().size>=10},
-{id:'m12',t:'Collect 100,000 gold (lifetime)',r:3,c:s=>s.stats.gold>=100000},
-{id:'m13',t:'A full house: 4 animals in one exhibit',r:2,c:s=>s.items.some(i=>i.kind==='exhibit'&&i.count>=4)},
-{id:'m14',t:'Discover a mythical creature',r:5,c:s=>s.disc.some(k=>SP[k].tier==='myth')},
-{id:'m15',t:'Hatch the Dragon',r:10,c:s=>s.disc.includes('dragon')},
-{id:'m16',t:'Pick up 200 pieces of trash',r:12,c:s=>s.stats.trash>=200},
-{id:'m17',t:'Collect 50,000,000 gold (lifetime)',r:15,c:s=>s.stats.gold>=5e7},
-{id:'m18',t:'Own the max every species in the zoo',r:25,c:s=>speciesOwned().size>=Object.keys(SP).length*4}
+{id:'m1',t:'Place your first exhibit',r:1,g:200,c:s=>s.items.some(i=>i.kind==='exhibit')},
+{id:'m2',t:'Collect 1,000 gold (lifetime)',r:1,g:300,c:s=>s.stats.gold>=1000},
+{id:'m4',t:'Keep 4 different species',r:2,g:800,c:s=>speciesOwned().size>=4},
+{id:'m3',t:'Pick up 5 pieces of trash',r:1,g:500,c:s=>s.stats.trash>=5},
+{id:'m9',t:'Place 3 decorations',r:1,g:1000,c:s=>s.items.filter(i=>i.kind==='deco').length>=3},
+{id:'m8',t:'Open a visitor stand',r:2,g:2000,c:s=>s.items.some(i=>i.kind==='store')},
+{id:'m10',t:'Expand the island',r:2,g:4000,c:s=>s.exp>=1},
+{id:'m5',t:'Start your first breeding',r:1,g:2000,c:s=>s.stats.breeds>=1},
+{id:'m19',t:'Reach level 10',r:3,g:10000,c:s=>s.lv>=10},
+{id:'m6',t:'Raise an exhibit to 3 animals',r:2,g:5000,c:s=>s.items.some(i=>i.kind==='exhibit'&&i.count>=3)},
+{id:'m7',t:'Discover a hybrid species',r:3,g:15000,c:s=>s.disc.some(k=>SP[k].tier==='hybrid')},
+{id:'m11',t:'Keep 10 different species',r:3,g:20000,c:s=>speciesOwned().size>=10},
+{id:'m13',t:'A full house: 4 animals in one exhibit',r:2,g:20000,c:s=>s.items.some(i=>i.kind==='exhibit'&&i.count>=4)},
+{id:'m12',t:'Collect 1,000,000 gold (lifetime)',r:3,g:50000,c:s=>s.stats.gold>=1e6},
+{id:'m20',t:'Reach level 20',r:4,g:150000,c:s=>s.lv>=20},
+{id:'m23',t:'Discover all 5 hybrids',r:5,g:2000000,c:s=>Object.keys(SP).filter(k=>SP[k].tier==='hybrid').every(k=>s.disc.includes(k))},
+{id:'m21',t:'Keep 25 different species',r:5,g:500000,c:s=>speciesOwned().size>=25},
+{id:'m16',t:'Pick up 200 pieces of trash',r:6,g:500000,c:s=>s.stats.trash>=200},
+{id:'m14',t:'Discover a mythical creature',r:5,g:3000000,c:s=>s.disc.some(k=>SP[k].tier==='myth')},
+{id:'m22',t:'Reach level 40',r:6,g:5000000,c:s=>s.lv>=40},
+{id:'m17',t:'Collect 1 billion gold (lifetime)',r:10,g:0,c:s=>s.stats.gold>=1e9},
+{id:'m15',t:'Hatch the Dragon',r:10,g:0,c:s=>s.disc.includes('dragon')},
+{id:'m18',t:'Every species with a full family of 4',r:25,g:0,c:s=>Object.keys(SP).every(k=>s.items.some(i=>i.kind==='exhibit'&&i.sp===k&&i.count>=4))}
 ];
+const MIS_SHOWN=4;
+function visibleMissions(){
+  const open=MISSIONS.filter(m=>!state.claimed[m.id]);
+  const done=open.filter(m=>m.c(state));
+  const todo=open.filter(m=>!m.c(state)).slice(0,MIS_SHOWN);
+  return MISSIONS.filter(m=>done.includes(m)||todo.includes(m));
+}
 function claimableMissions(){return MISSIONS.filter(m=>!state.claimed[m.id]&&m.c(state)).length;}
 
 /* ================= iso world ================= */
@@ -1002,8 +1134,11 @@ function cancelGhost(silent){
   setMode('normal');
 }
 
-function animalGroup(sp,px,py,sc,flip){
-  return `<g transform="translate(${px} ${py}) scale(${flip?-sc:sc} ${sc}) translate(-60 -95)">${SP[sp].art()}</g>`;
+const artCache={};
+function spArt(k){return artCache[k]||(artCache[k]=SP[k].art());}
+function animalGroup(sp,px,py,sc,flip,seed){
+  const d=((seed||0)*0.73)%2.6;
+  return `<g transform="translate(${px} ${py}) scale(${flip?-sc:sc} ${sc}) translate(-60 -95)">${E(62,95,30,5,'rgba(0,0,0,.16)')}<g class="bob" style="animation-delay:-${d.toFixed(2)}s">${spArt(sp)}</g></g>`;
 }
 const SPOTS={1:[[0,0.15]],2:[[-0.30,-0.02],[0.26,0.2]],3:[[-0.34,-0.04],[0.24,-0.16],[0.04,0.26]],4:[[-0.36,-0.06],[0.26,-0.18],[-0.08,0.24],[0.36,0.12]]};
 
@@ -1032,21 +1167,115 @@ function propArt(name,px,py,sc){
 }
 const PROP_POS=[[-0.55,0.16],[0.52,0.3],[0.04,-0.6]];
 
+function hash2(x,y){let h=(x*374761393+y*668265263)|0;h=Math.imul(h^(h>>>13),1274126177);return ((h^(h>>>16))>>>0)/4294967295;}
+function palmArt(px,py,sc,lean){
+  const a=P(`M-3 0 q ${-2+lean} -26 ${6+lean*2} -48 l 4 1 q ${-7-lean} 22 -4 47 z`,'#9a7244')+
+    LN(-1,-10,3,-10,'#7f5c34',1.2)+LN(1,-22,5,-22,'#7f5c34',1.2)+LN(4,-34,8,-34,'#7f5c34',1.2);
+  const tx=8+lean*2,ty=-48;
+  const fr=(dx,dy,c)=>P(`M${tx} ${ty} q ${dx*0.5} ${dy-10} ${dx} ${dy} q ${-dx*0.4} ${-dy*0.2-6} ${-dx} ${-dy+2} z`,c);
+  const fronds=fr(-26,8,'#4f9a3e')+fr(26,8,'#5fae4a')+fr(-18,-10,'#5fae4a')+fr(20,-12,'#4f9a3e')+fr(-4,-18,'#6abb52');
+  return `<g transform="translate(${px} ${py}) scale(${sc})">${E(4,1,14,4,'rgba(0,0,0,.16)')}${a}${fronds}${C(tx-2,ty+3,3.2,'#7a5228')}${C(tx+3,ty+3,3.2,'#6a4620')}</g>`;
+}
+let seaKey='';
+function renderSea(){
+  const o=gridOff(),sz=EXP_SIZES[state.exp];
+  const key=o+':'+sz;if(key===seaKey)return;seaKey=key;
+  const ring=m=>[isoPt(o-m,o-m),isoPt(o+sz+m,o-m),isoPt(o+sz+m,o+sz+m),isoPt(o-m,o+sz+m)];
+  const poly=pts=>'M'+pts.map(p=>p.x+' '+p.y).join(' L')+' Z';
+  const down=(p,d)=>({x:p.x,y:p.y+d});
+  let s=`<defs>
+    <pattern id="wvPat" width="180" height="90" patternUnits="userSpaceOnUse">
+      <path d="M12 24 q 12 -9 24 0 q 12 9 24 0" stroke="rgba(255,255,255,.16)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M100 66 q 10 -7 20 0 q 10 7 20 0" stroke="rgba(255,255,255,.12)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      <path d="M70 46 q 6 -4 12 0" stroke="rgba(10,70,90,.12)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    </pattern>
+    <radialGradient id="coinG" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fff2a8"/><stop offset=".55" stop-color="#f7cf45"/><stop offset="1" stop-color="#d49a12"/></radialGradient>
+  </defs>`;
+  s+=`<g class="waves"><rect x="-8000" y="-6000" width="16000" height="12000" fill="url(#wvPat)"/></g>`;
+  // lagoon glow
+  s+=`<path d="${poly(ring(2.6))}" fill="rgba(110,215,215,.25)" stroke="rgba(110,215,215,.25)" stroke-width="90" stroke-linejoin="round"/>`;
+  s+=`<path d="${poly(ring(1.5))}" fill="rgba(140,232,220,.4)" stroke="rgba(140,232,220,.4)" stroke-width="50" stroke-linejoin="round"/>`;
+  // pier + boat at the entrance corner
+  const pb=isoPt(GRID_MAX+0.6,GRID_MAX+0.6);
+  s+=`<g pointer-events="none">`;
+  for(let i=0;i<4;i++){const q=isoPt(GRID_MAX+0.7+i*0.45,GRID_MAX+0.7+i*0.45);s+=R(q.x-26,q.y-2,4,16,1.5,'#6e4a2a')+R(q.x+22,q.y-2,4,16,1.5,'#6e4a2a');}
+  const pe=isoPt(GRID_MAX+2.4,GRID_MAX+2.4);
+  s+=P(`M${pb.x-28} ${pb.y-4} L${pb.x+28} ${pb.y-4} L${pe.x+28} ${pe.y-4} L${pe.x-28} ${pe.y-4} Z`,'#c9a06a','stroke="#a87c48" stroke-width="1.5"');
+  for(let i=1;i<9;i++){const t=i/9;s+=LN(pb.x-28,pb.y-4+(pe.y-pb.y)*t,pb.x+28,pb.y-4+(pe.y-pb.y)*t,'#a87c48',1.2);}
+  const bt={x:pe.x+64,y:pe.y-8};
+  s+=E(bt.x,bt.y+12,40,7,'rgba(10,60,80,.25)');
+  s+=P(`M${bt.x-38} ${bt.y} L${bt.x+38} ${bt.y} L${bt.x+28} ${bt.y+12} L${bt.x-30} ${bt.y+12} Z`,'#e9e4d6','stroke="#b9b2a0" stroke-width="1.5"');
+  s+=R(bt.x-38,bt.y-1,76,4,2,'#d9432f');
+  s+=R(bt.x-16,bt.y-16,30,15,3,'#fffdf4','stroke="#c9c2b0" stroke-width="1.2"')+R(bt.x-12,bt.y-12,8,6,1.5,'#7fc6e0')+R(bt.x,bt.y-12,8,6,1.5,'#7fc6e0');
+  s+=R(bt.x+3,bt.y-30,3,15,1,'#8a6238')+P(`M${bt.x+6} ${bt.y-30} l 12 4 l -12 4 z`,'#f2c14e');
+  s+=`</g>`;
+  // foam + beach + cliffs
+  s+=`<path class="foam" d="${poly(ring(1.0))}" fill="none" stroke="#f4fffd" stroke-width="7" stroke-linejoin="round"/>`;
+  const B=ring(0.8);
+  s+=`<path d="${poly([B[3],B[2],down(B[2],12),down(B[3],12)])}" fill="#cfae6a"/>`;
+  s+=`<path d="${poly([B[2],B[1],down(B[1],12),down(B[2],12)])}" fill="#bf9d5c"/>`;
+  s+=`<path d="${poly(B)}" fill="#f1dca2"/>`;
+  s+=`<path d="${poly(ring(0.55))}" fill="#ead19a"/>`;
+  const G=ring(0);
+  s+=`<path d="${poly([G[3],G[2],down(G[2],14),down(G[3],14)])}" fill="#8a6a3e"/>`;
+  s+=`<path d="${poly([G[2],G[1],down(G[1],14),down(G[2],14)])}" fill="#a07a48"/>`;
+  s+=`<path d="M${G[3].x} ${G[3].y} L${G[2].x} ${G[2].y} L${G[1].x} ${G[1].y}" fill="none" stroke="#5f9a48" stroke-width="5" stroke-linejoin="round"/>`;
+  // shells & pebbles on the sand
+  for(let i=0;i<sz*4;i++){
+    const side=i%4,t=hash2(i,sz)*sz,m=0.25+hash2(sz,i)*0.45;
+    const g2=side===0?[o+t,o-m]:side===1?[o-m,o+t]:side===2?[o+sz+m,o+t]:[o+t,o+sz+m];
+    const p=isoPt(g2[0],g2[1]);
+    const r=hash2(i,i+7);
+    if(r<0.35)s+=E(p.x,p.y,3.6,2.2,'#d8c08a');
+    else if(r<0.5)s+=E(p.x,p.y,2.4,1.6,'#fff4e0');
+    else if(r<0.56)s+=P(`M${p.x} ${p.y-5} l1.4 3.4 3.6 .3 -2.8 2.3 1 3.5 -3.2 -2 -3.2 2 1 -3.5 -2.8 -2.3 3.6 -.3 z`,'#f08a5d');
+  }
+  // back-edge palms (behind the zoo) and corner palms
+  for(let i=1;i<sz;i+=2){
+    if(hash2(i,sz*3)<0.75){const p=isoPt(o+i+0.3,o-0.5);s+=palmArt(p.x,p.y,0.9+hash2(i,1)*0.3,hash2(i,2)*4-2);}
+    if(hash2(sz*5,i)<0.75){const p=isoPt(o-0.5,o+i+0.3);s+=palmArt(p.x,p.y,0.9+hash2(2,i)*0.3,hash2(3,i)*4-2);}
+  }
+  const lc=isoPt(o-0.35,o+sz+0.35),rc=isoPt(o+sz+0.35,o-0.35);
+  s+=palmArt(lc.x-10,lc.y,1.1,-3)+palmArt(rc.x+10,rc.y,1.1,3);
+  // water sparkles
+  for(let i=0;i<14;i++){
+    const ang=hash2(i,99)*Math.PI*2,rad=sz*0.75+2+hash2(99,i)*4;
+    const p=isoPt(o+sz/2+Math.cos(ang)*rad,o+sz/2+Math.sin(ang)*rad);
+    s+=`<path class="sparkleT" style="animation-delay:-${(hash2(i,5)*2.2).toFixed(2)}s" d="M${p.x} ${p.y-7} l1.6 5.4 5.4 1.6 -5.4 1.6 -1.6 5.4 -1.6 -5.4 -5.4 -1.6 5.4 -1.6 z" fill="#fff" opacity=".8"/>`;
+  }
+  $('#gSea').innerHTML=s;
+  // a couple of front-of-beach details, drawn above the zoo but short enough not to cover it
+  let f='';
+  for(let i=2;i<sz;i+=4){
+    if(hash2(i,77)<0.6){const p=isoPt(o+sz+0.55,o+i);f+=E(p.x,p.y,6,3.6,'#a8a49a')+E(p.x-4,p.y+1,3.6,2.4,'#948f84');}
+    if(hash2(77,i)<0.6){const p=isoPt(o+i,o+sz+0.55);f+=E(p.x,p.y,5,3,'#b0aa9c')+E(p.x+5,p.y+1,3,2,'#9a9488');}
+  }
+  $('#gFront').innerHTML=`<g pointer-events="none">${f}</g>`;
+}
+function tileDetail(x,y,px,py){
+  const r=hash2(x,y);
+  if(r<0.18)return P(`M${px-6} ${py+2} q -1 -6 -3 -8 M${px-3} ${py+2} q 0 -7 -1 -9 M${px} ${py+2} q 1 -6 3 -7`,'none','stroke="#6faa52" stroke-width="1.8" stroke-linecap="round"');
+  if(r<0.24)return C(px+8,py-2,2.2,['#f7f4ea','#f2c14e','#e77fa0'][Math.floor(hash2(y,x)*3)])+C(px+13,py+3,2,'#f7f4ea');
+  if(r<0.27)return E(px-10,py+4,4,2.6,'#a8a49a');
+  return '';
+}
 function renderWorld(){
+  worldSig=readySig();
+  renderSea();
   const g=$('#gWorld');const o=gridOff(),sz=EXP_SIZES[state.exp];
   let s='';
   hotZones=[];
-  const c0=isoPt(o,o),c1=isoPt(o+sz,o),c2=isoPt(o+sz,o+sz),c3=isoPt(o,o+sz);
-  s+=`<path d="M${c0.x} ${c0.y+8} L${c1.x+10} ${c1.y+10} L${c2.x} ${c2.y+16} L${c3.x-10} ${c3.y+10} Z" fill="rgba(15,60,66,.35)"/>`;
-  s+=`<path d="M${c0.x} ${c0.y} L${c1.x} ${c1.y} L${c2.x} ${c2.y} L${c3.x} ${c3.y} Z" fill="#c9b57e"/>`;
-  s+=`<path d="M${c0.x} ${c0.y+4} L${c1.x} ${c1.y+4} L${c2.x} ${c2.y+10} L${c3.x} ${c3.y+4} Z" fill="#a8925c"/>`;
   const placing=mode.type==='place'||(mode.type==='move'&&mode.payload&&mode.payload.moving);
+  let det='';
   for(let x=o;x<o+sz;x++)for(let y=o;y<o+sz;y++){
     const p=isoPt(x+0.5,y+0.5);
-    let fill=(x+y)%2===0?'#8fc26a':'#86b961';
-    if(placing&&!itemAtTile(x,y))fill=(x+y)%2===0?'#a7d886':'#9ed07b';
+    let fill=(x+y)%2===0?'#93c86c':'#8bbf64';
+    const occ=itemAtTile(x,y);
+    if(placing&&!occ)fill=(x+y)%2===0?'#a9dc88':'#a0d27e';
     s+=`<path d="${diamond(p.x,p.y,TW,TH)}" fill="${fill}" data-tx="${x}" data-ty="${y}" data-act="tile"/>`;
+    if(!occ&&!placing)det+=tileDetail(x,y,p.x,p.y);
   }
+  s+=`<g pointer-events="none">${det}</g>`;
   const movingId=(mode.type==='move'&&mode.payload)?mode.payload.moving:null;
   const drawables=[...state.items.filter(i=>i.id!==movingId).map(i=>({z:i.x+i.y+footOf(i)*2,it:i})),...state.trash.map(t=>({z:t.x+t.y,tr:t}))];
   drawables.sort((a,b)=>a.z-b.z);
@@ -1118,7 +1347,8 @@ function drawItem(it,alpha){
     const sc=f===1?0.34:(f===2?0.47:0.58);
     const spots=SPOTS[clamp(it.count,1,4)]||SPOTS[1];
     const anims=spots.map((sp2,i)=>({ax:c.x+sp2[0]*f*TW*0.4,ay:c.y+sp2[1]*f*TH*0.4+f*TH*0.16,i:i})).sort((a,b)=>a.ay-b.ay);
-    for(const a of anims)s+=animalGroup(it.sp,a.ax,a.ay,sc,a.i%2===1);
+    const seed=it.id==='ghost'?0:hash2(it.x,it.y)*10;
+    for(const a of anims)s+=animalGroup(it.sp,a.ax,a.ay,sc,a.i%2===1,seed+a.i*1.7);
     if(it.id!=='ghost'&&ready(it)){hotZones.push({type:'collect',id:it.id,x:c.x,y:c.y-f*TH*0.5-42,r:32});s+=coinBubble(c.x,c.y-f*TH*0.5-42,it.id);}
   } else if(it.kind==='store'){
     s+=`<path d="${diamond(c.x,c.y,f*TW*0.94,f*TH*0.94)}" fill="#d9c99a"/>`;
@@ -1136,9 +1366,12 @@ function drawItem(it,alpha){
 function coinBubble(bx,by,id){
   return `<g class="coinPulse" data-act="collect" data-id="${id}" style="cursor:pointer">`+
     C(bx,by,32,'rgba(0,0,0,0.001)')+
+    E(bx,by+38,14,4,'rgba(0,0,0,.15)')+
     P(`M${bx-22} ${by-19} h 44 a 9 9 0 0 1 9 9 v 18 a 9 9 0 0 1 -9 9 h -13 l -9 13 l -9 -13 h -13 a 9 9 0 0 1 -9 -9 v -18 a 9 9 0 0 1 9 -9 z`,'#fffdf4','stroke="#d8cfae" stroke-width="2.2"')+
-    C(bx,by-1,13,'#f5c542')+C(bx,by-1,8.6,'#ffdd7a')+
-    `<text x="${bx}" y="${by+4.5}" text-anchor="middle" font-size="13" font-weight="800" fill="#a67c14" font-family="Fredoka">G</text></g>`;
+    C(bx,by-1,14,'#c98a12')+C(bx,by-2,13,'url(#coinG)')+C(bx,by-2,9,'none')+
+    `<circle cx="${bx}" cy="${by-2}" r="9" fill="none" stroke="#e0a91e" stroke-width="1.6"/>`+
+    `<text x="${bx}" y="${by+3}" text-anchor="middle" font-size="13" font-weight="700" fill="#9a6a08" font-family="Fredoka">$</text>`+
+    P(`M${bx-7} ${by-9} q 3 -3 7 -3`,'none','stroke="#fff8d0" stroke-width="2" stroke-linecap="round"')+`</g>`;
 }
 function fenceFor(it){
   const f=footOf(it);let s='';
@@ -1172,6 +1405,9 @@ function centerView(){
   applyPan();
 }
 function applyPan(){$('#gRoot').setAttribute('transform',`translate(${pan.x} ${pan.y}) scale(${pan.s})`);}
+// keep toasts just under the HUD, which wraps onto two rows on narrow phones
+function placeToasts(){$('#toasts').style.top=Math.round($('#hud').getBoundingClientRect().bottom+8)+'px';}
+window.addEventListener('resize',placeToasts);
 $('#recenterBtn').onclick=centerView;
 $('#musicBtn').onclick=toggleMusic;
 let resizeT=null;
@@ -1314,23 +1550,43 @@ $('#noBtn').onclick=()=>cancelGhost(false);
 
 /* ================= actions ================= */
 function gainGold(n,e){
-  state.gold+=n;state.stats.gold+=n;save();updateHUD();
-  if(e)flyText('+'+fmt(n)+' '+coinIco,e.clientX,e.clientY);
-  coinBlip();
+  state.gold+=n;state.stats.gold+=n;save();
+  if(e){flyText('+'+fmt(n)+' '+coinIco,e.clientX,e.clientY);coinBurst(e.clientX,e.clientY,n);}
+  else updateHUD();
+  sfx('coin');
 }
+function coinBurst(x,y,n){
+  const target=$('#chipGold').getBoundingClientRect();
+  const tx=target.left+16,ty=target.top+target.height/2;
+  const k=clamp(Math.round(Math.log10(Math.max(10,n))),2,6);
+  let landed=0;
+  for(let i=0;i<k;i++){
+    const d=document.createElement('div');d.className='coinFly';d.innerHTML=coinIcoBig;
+    const sx=x-10+(Math.random()*36-18),sy=y-10+(Math.random()*24-12);
+    d.style.transform=`translate(${sx}px,${sy}px) scale(.6)`;
+    document.body.appendChild(d);
+    setTimeout(()=>{d.style.transform=`translate(${tx-10}px,${ty-10}px) scale(.9)`;},30+i*70);
+    setTimeout(()=>{d.remove();if(++landed===1){updateHUD();pulseChip('#chipGold');}},780+i*70);
+  }
+}
+function pulseChip(sel){const c=$(sel);c.classList.remove('pulse');void c.offsetWidth;c.classList.add('pulse');}
 function collectItem(id,e){
   const it=state.items.find(i=>i.id===id);if(!it||!ready(it))return;
   const amt=payout(it);
   it.next=nowMs()+cycleMs(it);
+  state.stats.collects=(state.stats.collects||0)+1;
   gainGold(amt,e);
-  renderWorld();updateHUD();
+  gainXp(xpFor(it),e);
+  renderWorld();
 }
 function collectFromSheet(it){
   if(!ready(it)){toast('The coin is still on its way');return;}
   const amt=payout(it);
   it.next=nowMs()+cycleMs(it);
+  state.stats.collects=(state.stats.collects||0)+1;
   gainGold(amt,null);
-  toast('+'+fmt(amt)+' gold collected');
+  gainXp(xpFor(it),null);
+  toast('+'+fmt(amt)+' gold · +'+xpFor(it)+' XP');
   renderWorld();closeModal();
 }
 function pickTrash(id,e){
@@ -1339,9 +1595,16 @@ function pickTrash(id,e){
   state.stats.trash++;
   const revPerMin=totalPerMinRevenue();
   const amt=Math.max(30,Math.round(revPerMin*(1+Math.random()*2))); // ~1-3 minutes' worth of current income
+  sfx('trash');
   gainGold(amt,e);
+  gainXp(1+Math.floor(state.lv/8),e);
+  // a lucky find, now and then
+  if(Math.random()<0.06){state.stars++;save();setTimeout(()=>{toast('⭐ You found a star in the trash!');pulseChip('#chipStar');updateHUD();},500);}
   renderWorld();updateBadges();
 }
+function needLevel(lv){toast('🔒 Unlocks at level '+lv);sfx('nope');}
+function needGold(c){toast('Not enough gold — you need '+fmt(c-state.gold)+' more');sfx('nope');}
+function needStars(c){toast('Not enough stars — earn them from missions & level-ups');sfx('nope');}
 function placePending(){
   const p=mode.payload,x=mode.at.x,y=mode.at.y;
   if(p.kind==='exhibit'){
@@ -1356,7 +1619,9 @@ function placePending(){
     state.items.push({id:uid(),kind:'deco',sp:p.sp,x,y,f:1});
     toast(DECOS[p.sp].n+' placed!');
   }
-  save();
+  save();sfx('place');
+  if(p.paid&&p.kind!=='deco')gainXp(buyXp(p.paid),null);
+  if(p.kind==='deco'&&!p.paidStars)gainXp(Math.max(1,Math.round(p.paid/500)),null);
   if(p.kind==='exhibit'&&state.inv.length>0){
     const nx=state.inv[0];
     setMode('place',{kind:'exhibit',sp:nx.sp,f:SP[nx.sp].f,fromInv:0});
@@ -1367,86 +1632,116 @@ function placePending(){
 function discover(sp){
   if(!state.disc.includes(sp)){state.disc.push(sp);
     const t=SP[sp].tier;
-    if(t==='hybrid')toast('\u2728 New hybrid discovered: '+SP[sp].n+'!');
-    if(t==='myth')toast('\ud83c\udf1f Mythical discovered: '+SP[sp].n+'!');
-    if(t==='cap')toast('\ud83d\udc09 THE DRAGON HAS HATCHED!');
+    if(t==='hybrid'){toast('✨ New hybrid discovered: '+SP[sp].n+'!');sfx('fanfare');}
+    if(t==='myth'){toast('🌟 Mythical discovered: '+SP[sp].n+'!');sfx('fanfare');}
+    if(t==='cap'&&!state.won){state.won=true;setTimeout(showWin,900);}
+    // newly possible crossbreeds get announced
+    for(const r of RECIPES)if((r.a===sp||r.b===sp)&&state.disc.includes(r.a)&&state.disc.includes(r.b)&&!state.disc.includes(r.res))
+      setTimeout(()=>toast('🥚 New crossbreed recipe revealed in the Hatchery!'),1400);
     save();}
 }
+function hasSpaceFor(f){
+  const o=gridOff(),sz=EXP_SIZES[state.exp];
+  for(let x=o;x<=o+sz-f;x++)for(let y=o;y<=o+sz-f;y++)if(canPlaceAt(x,y,f,null))return true;
+  return false;
+}
+function noSpace(f){toast('No room for a '+f+'×'+f+' plot — expand the island or move things around');sfx('nope');}
 function buySpecies(k){
   const sp=SP[k];
-  if(state.gold<sp.cost){toast('Not enough gold');return;}
-  state.gold-=sp.cost;save();updateHUD();
+  if(!unlocked(sp.lv))return needLevel(sp.lv);
+  if(state.gold<sp.cost)return needGold(sp.cost);
+  if(!hasSpaceFor(sp.f))return noSpace(sp.f);
+  state.gold-=sp.cost;save();updateHUD();sfx('buy');
   closeModal();
   setMode('place',{kind:'exhibit',sp:k,f:sp.f,paid:sp.cost});
-  toast('Tap a spot for the '+sp.n+"'s "+sp.f+'\u00d7'+sp.f+' habitat');
+  toast('Tap a spot for the '+sp.n+"'s "+sp.f+'×'+sp.f+' habitat, then ✓');
 }
 function buySecond(it){
   const sp=SP[it.sp];
   if(!sp.cost){toast('This species can only be bred');return;}
-  if(state.gold<sp.cost){toast('Not enough gold');return;}
-  state.gold-=sp.cost;it.count=2;save();
-  toast('A second '+sp.n+' arrives \u2014 payouts \u00d72.5!');
+  if(state.gold<sp.cost)return needGold(sp.cost);
+  state.gold-=sp.cost;it.count=2;save();sfx('fanfare');
+  toast('A second '+sp.n+' arrives — payouts ×2.5!');
+  gainXp(buyXp(sp.cost),null);
   updateHUD();renderWorld();closeModal();
 }
 function buyStore(k){
   const st=STORES[k];
-  if(state.gold<st.cost){toast('Not enough gold');return;}
-  state.gold-=st.cost;save();updateHUD();closeModal();
+  if(!unlocked(st.lv))return needLevel(st.lv);
+  if(storeCount(k)>=st.max){toast('Your island already has '+st.max+' of these');sfx('nope');return;}
+  if(state.gold<st.cost)return needGold(st.cost);
+  if(!hasSpaceFor(st.f))return noSpace(st.f);
+  state.gold-=st.cost;save();updateHUD();closeModal();sfx('buy');
   setMode('place',{kind:'store',sp:k,f:st.f,paid:st.cost});
-  toast('Tap a spot for the '+st.n);
+  toast('Tap a spot for the '+st.n+', then ✓');
 }
 function buyDeco(k){
   const d=DECOS[k];
+  if(!unlocked(d.lv))return needLevel(d.lv);
+  if(!hasSpaceFor(1))return noSpace(1);
   let paid=0,paidStars=0;
-  if(d.star){if(state.stars<d.cost){toast('Not enough stars');return;}state.stars-=d.cost;paidStars=d.cost;}
-  else{if(state.gold<d.cost){toast('Not enough gold');return;}state.gold-=d.cost;paid=d.cost;}
-  save();updateHUD();closeModal();
+  if(d.star){if(state.stars<d.cost)return needStars(d.cost);state.stars-=d.cost;paidStars=d.cost;}
+  else{if(state.gold<d.cost)return needGold(d.cost);state.gold-=d.cost;paid=d.cost;}
+  save();updateHUD();closeModal();sfx('buy');
   setMode('place',{kind:'deco',sp:k,f:1,paid:paid,paidStars:paidStars});
-  toast('Tap a spot for the '+d.n);
+  toast('Tap a spot for the '+d.n+', then ✓');
+}
+function sellValue(it){
+  if(it.kind==='exhibit'){const sp=SP[it.sp];
+    // bred species are priceless to the player but must not be a gold exploit: refund half a payout per animal
+    return Math.floor(sp.cost?sp.cost*Math.min(it.count,2)*0.5:sp.pay*it.count*0.5);}
+  if(it.kind==='store')return Math.floor(STORES[it.sp].cost*0.5);
+  if(it.kind==='deco'&&!DECOS[it.sp].star)return Math.floor(DECOS[it.sp].cost*0.5);
+  return 0;
 }
 function sellItem(it){
-  let refund=0;
-  if(it.kind==='exhibit'){const sp=SP[it.sp];refund=Math.floor((sp.cost?sp.cost*it.count:sp.pay*20)*0.5);}
-  if(it.kind==='store')refund=Math.floor(STORES[it.sp].cost*0.5);
-  if(it.kind==='deco'&&!DECOS[it.sp].star)refund=Math.floor(DECOS[it.sp].cost*0.5);
+  const refund=sellValue(it);
   state.items=state.items.filter(i=>i.id!==it.id);
-  if(refund>0){state.gold+=refund;state.stats.gold+=refund;}
-  save();updateHUD();renderWorld();closeModal();
+  if(refund>0){state.gold+=refund;}
+  save();updateHUD();renderWorld();closeModal();sfx('trash');
   toast(refund>0?('Sold for '+fmt(refund)+' gold'):'Removed');
 }
 function buyExpansion(){
   if(state.exp>=EXP_SIZES.length-1){toast('The island is fully grown!');return;}
+  const lv=EXP_LV[state.exp+1];
+  if(!unlocked(lv))return needLevel(lv);
   const cost=EXP_COST[state.exp+1];
-  if(state.gold<cost){toast('Not enough gold');return;}
-  state.gold-=cost;state.exp++;save();
-  toast('\ud83c\udfdd\ufe0f The island grows!');
-  updateHUD();renderWorld();centerView();closeModal();
+  if(state.gold<cost)return needGold(cost);
+  state.gold-=cost;state.exp++;save();sfx('fanfare');
+  toast('🏝️ The island grows!');
+  gainXp(buyXp(cost),null);
+  updateHUD();renderWorld();centerView();closeModal();confetti(40);
 }
 function buySlot(){
   const n=state.hatch.slots;
   if(n>=3){toast('All hatchery slots built');return;}
+  if(!unlocked(SLOT_LV[n]))return needLevel(SLOT_LV[n]);
   const cost=SLOT_COST[n];
-  if(state.gold<cost){toast('Not enough gold');return;}
-  state.gold-=cost;state.hatch.slots++;save();updateHUD();openHatch(0);
+  if(state.gold<cost)return needGold(cost);
+  state.gold-=cost;state.hatch.slots++;save();updateHUD();sfx('buy');
+  gainXp(buyXp(cost),null);
+  openHatch(0);
   toast('New hatchery nest built!');
 }
 
 /* ---- breeding ---- */
+function pendingFor(itemId){return state.hatch.breeds.filter(b=>b.type==='same'&&b.exhibit===itemId).length;}
 function startSameBreed(itemId){
-  if(state.hatch.breeds.length>=state.hatch.slots){toast('No free hatchery nests');return;}
+  if(state.hatch.breeds.length>=state.hatch.slots){toast('No free hatchery nests');sfx('nope');return;}
   const it=state.items.find(i=>i.id===itemId);
-  if(!it||it.count<2||it.count>=4){toast('Needs a pair with room to grow');return;}
+  if(!it||it.count<2||it.count+pendingFor(itemId)>=4){toast('Needs a pair with room to grow');sfx('nope');return;}
   const mins=SP[it.sp].breed;
   state.hatch.breeds.push({id:uid(),type:'same',res:it.sp,exhibit:it.id,end:nowMs()+mins*60000,total:mins*60000});
-  state.stats.breeds++;save();updateBadges();openHatch(0);
+  state.stats.breeds++;save();updateBadges();openHatch(0);sfx('buy');
   toast('Breeding started: '+SP[it.sp].n);
 }
 function startCross(recipe){
-  if(state.hatch.breeds.length>=state.hatch.slots){toast('No free hatchery nests');return;}
-  if(!ownsSp(recipe.a)||!ownsSp(recipe.b)){toast('You need both parent species in your zoo');return;}
+  if(state.hatch.breeds.length>=state.hatch.slots){toast('No free hatchery nests');sfx('nope');return;}
+  if(!ownsSp(recipe.a)||!ownsSp(recipe.b)){toast('You need both parent species in your zoo');sfx('nope');return;}
+  if(!unlocked(SP[recipe.res].lv))return needLevel(SP[recipe.res].lv);
   const mins=SP[recipe.res].breed;
   state.hatch.breeds.push({id:uid(),type:'cross',res:recipe.res,end:nowMs()+mins*60000,total:mins*60000});
-  state.stats.breeds++;save();updateBadges();openHatch(0);
+  state.stats.breeds++;save();updateBadges();openHatch(0);sfx('buy');
   toast('The egg is warming…');
 }
 function hatchReady(b){return nowMs()>=b.end;}
@@ -1455,27 +1750,29 @@ function collectBreed(bid){
   const b=state.hatch.breeds[i];
   if(!hatchReady(b)){toast('Still incubating');return;}
   state.hatch.breeds.splice(i,1);
+  sfx('hatch');
+  gainXp(SP[b.res].breed/10,null);
   if(b.type==='same'){
     const it=state.items.find(x=>x.id===b.exhibit);
-    if(it&&it.count<4){it.count++;toast('A baby '+SP[b.res].n+' joins the exhibit!');}
+    if(it&&it.count<4){it.count++;toast('A baby '+SP[b.res].n+' joins the exhibit!');if(it.count===4)confetti(30);}
     else{state.inv.push({sp:b.res});toast('New '+SP[b.res].n+' sent to your inventory');}
   } else {
-    const ex=state.items.find(x=>x.kind==='exhibit'&&x.sp===b.res&&x.count<2);
+    const ex=state.items.find(x=>x.kind==='exhibit'&&x.sp===b.res&&x.count+pendingFor(x.id)<4);
     if(ex){ex.count++;discover(b.res);toast('The '+SP[b.res].n+' joins its exhibit!');}
     else{state.inv.push({sp:b.res});discover(b.res);
       closeModal();setMode('place',{kind:'exhibit',sp:b.res,f:SP[b.res].f,fromInv:state.inv.length-1});
       toast('Tap a spot for your new '+SP[b.res].n+'!');
+      if(SP[b.res].tier!=='base')confetti(50);
       save();updateBadges();updateHUD();renderWorld();return;}
   }
   save();updateBadges();updateHUD();renderWorld();openHatch(0);
 }
 function speedUp(bid){
   const b=state.hatch.breeds.find(x=>x.id===bid);if(!b)return;
-  const remMin=(b.end-nowMs())/60000;
-  const cost=Math.max(1,Math.ceil(remMin/120));
-  if(state.stars<cost){toast('Not enough stars');return;}
+  const cost=rushCost(b.end-nowMs());
+  if(state.stars<cost)return needStars(cost);
   state.stars-=cost;b.end=nowMs();
-  save();updateHUD();openHatch(0);
+  save();updateHUD();openHatch(0);sfx('buy');
   toast('⭐ The egg wiggles… it\'s ready!');
 }
 
@@ -1494,68 +1791,87 @@ function closeModal(){$('#modalWrap').classList.remove('open');}
 $('#modalClose').onclick=closeModal;
 $('#modalWrap').addEventListener('click',e=>{if(e.target.id==='modalWrap')closeModal();});
 
-function svgBox(sp,w,h){return `<svg viewBox="10 20 100 80" width="${w}" height="${h}">${SP[sp].art()}</svg>`;}
+function svgBox(sp,w,h){return `<svg viewBox="10 20 100 80" width="${w}" height="${h}">${spArt(sp)}</svg>`;}
 function svgBoxRaw(artStr,w,h){return `<svg viewBox="10 20 100 80" width="${w}" height="${h}">${artStr}</svg>`;}
-const coinIco='<svg width="15" height="15" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#f5c542"/><circle cx="10" cy="10" r="6" fill="#ffdd7a"/></svg>';
-const starIco='<svg width="15" height="15" viewBox="0 0 20 20"><path d="M10 1 l2.6 5.8 6.4 .6 -4.8 4.2 1.4 6.2 -5.6 -3.3 -5.6 3.3 1.4 -6.2 -4.8 -4.2 6.4 -.6 z" fill="#9a6bde"/></svg>';
+const coinIco='<svg width="15" height="15" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9.2" fill="#d49a12"/><circle cx="10" cy="9.4" r="8.2" fill="#f7cf45"/><circle cx="10" cy="9.4" r="5.4" fill="none" stroke="#e0a91e" stroke-width="1.4"/><path d="M6 6.4 q 2 -2 4.6 -2" stroke="#fff6c8" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>';
+const coinIcoBig=coinIco.replace('width="15" height="15"','width="20" height="20"');
+const coinIcoS=coinIco.replace('width="15" height="15"','width="11" height="11"');
+const STAR_D='M10 1.2 l2.6 5.6 6.2 .7 -4.6 4.2 1.3 6.1 -5.5 -3.1 -5.5 3.1 1.3 -6.1 -4.6 -4.2 6.2 -.7 z';
+const starIco=`<svg width="15" height="15" viewBox="0 0 20 20"><path d="${STAR_D}" fill="#a77bf0" stroke="#6f45c0" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+// for purple buttons: a light star with a white rim so it never vanishes into the button colour
+const starIcoL=`<svg width="15" height="15" viewBox="0 0 20 20"><path d="${STAR_D}" fill="#ffe27a" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
+function fmtMin(m){return m<60?m+'m':(m%60?Math.floor(m/60)+'h '+(m%60)+'m':(m/60)+'h');}
+function lockCard(artHtml,name,lv){
+  return `<div class="card locked"><div class="aw silh">${artHtml}</div><div class="nm">${name}</div><div class="lockTag">🔒 Level ${lv}</div></div>`;
+}
+function newTag(key){if(state.seen[key])return '';state.seen[key]=1;save();return '<span class="newTag">NEW</span>';}
+function priceBtn(attr,cost,label){
+  const short=state.gold<cost;
+  return `<button class="buyBtn${short?' short':''}" ${attr}>${label||''}${coinIco} ${fmt(cost)}</button>`;
+}
 
 /* ================= shop ================= */
+let shopTab=0;
 function openShop(tab){
-  openModal('Shop',['Animals','Stores','Decor','Expand','⭐ Star Shop'],openShopTab);
-  selectTab(tab||0);openShopTab(tab||0);
+  shopTab=tab===undefined?shopTab:tab;
+  openModal('Shop',['🐾 Animals','🏪 Stores','🌳 Decor','🏝️ Expand','⭐ Star Shop'],i=>{shopTab=i;openShopTab(i);});
+  selectTab(shopTab);openShopTab(shopTab);
 }
 function openShopTab(i){
   const b=$('#modalBody');
   if(i===0){
     let h='';
     for(const [tk,tn] of TIERS){
-      h+=`<div class="secH">${tn}</div><div class="grid2">`;
-      for(const k of Object.keys(SP)){
-        const sp=SP[k];if(sp.tier!==tk)continue;
+      const keys=Object.keys(SP).filter(k=>SP[k].tier===tk).sort((x,y)=>SP[x].lv-SP[y].lv);
+      let cards='',lockedShown=0,lockedHidden=0;
+      for(const k of keys){
+        const sp=SP[k];
+        if(!unlocked(sp.lv)){
+          if(lockedShown<2){cards+=lockCard(svgBox(k,80,66),sp.n,sp.lv);lockedShown++;}else lockedHidden++;
+          continue;
+        }
         const owned=state.items.find(it=>it.kind==='exhibit'&&it.sp===k);
         let btn;
-        if(!owned){
-          const can=state.gold>=sp.cost;
-          btn=`<button class="buyBtn" data-buy="${k}" ${can?'':'disabled'}>${coinIco} ${fmt(sp.cost)}</button>`;
-        } else if(owned.count===1){
-          const can=state.gold>=sp.cost;
-          btn=`<button class="buyBtn" data-second="${owned.id}" ${can?'':'disabled'}>2nd ${coinIco} ${fmt(sp.cost)}</button>`;
-        } else if(owned.count<4){
-          btn=`<button class="buyBtn" data-breedhint="${owned.id}">Breed for more 🥚</button>`;
-        } else {
-          btn=`<div class="meta" style="padding:6px 0">Habitat full 🎉</div>`;
-        }
-        h+=`<div class="card"><div class="aw">${svgBox(k,80,66)}</div>
+        if(!owned)btn=priceBtn(`data-buy="${k}"`,sp.cost);
+        else if(owned.count===1)btn=priceBtn(`data-second="${owned.id}"`,sp.cost,'2nd ');
+        else if(owned.count<4)btn=`<button class="buyBtn ghost" data-breedhint="${owned.id}">Breed for more 🥚</button>`;
+        else btn=`<div class="meta" style="padding:6px 0">Family complete 🎉</div>`;
+        cards+=`<div class="card">${owned?'':newTag('sp:'+k)}<div class="aw">${svgBox(k,80,66)}</div>
           <div class="nm">${sp.n}</div>
-          <div class="meta">${fmt(sp.pay)} \ud83e\ude99 / ${sp.per}m \u00b7 ${sp.f}\u00d7${sp.f} habitat</div>
+          <div class="meta">${coinIcoS} ${fmt(sp.pay)} / ${fmtMin(sp.per)} · ${sp.f}×${sp.f}</div>
           ${btn}</div>`;
       }
-      h+='</div>';
+      if(!cards)continue;
+      h+=`<div class="secH">${tn}</div><div class="grid2">${cards}</div>`;
+      if(lockedHidden)h+=`<div class="hint">+${lockedHidden} more at higher levels</div>`;
     }
-    h+=`<div class="hint">Hybrids & mythical creatures can't be bought; discover them in the Hatchery 🥚</div>`;
+    h+=`<div class="hint">Hybrids & mythical creatures can't be bought — discover them by crossbreeding in the Hatchery 🥚</div>`;
     b.innerHTML=h;
     b.querySelectorAll('[data-buy]').forEach(x=>x.onclick=()=>buySpecies(x.getAttribute('data-buy')));
-    b.querySelectorAll('[data-second]').forEach(x=>x.onclick=()=>{const it=state.items.find(i=>i.id===x.getAttribute('data-second'));if(it)buySecond(it);openShopTab(0);});
+    b.querySelectorAll('[data-second]').forEach(x=>x.onclick=()=>{const it=state.items.find(i=>i.id===x.getAttribute('data-second'));if(it)buySecond(it);});
     b.querySelectorAll('[data-breedhint]').forEach(x=>x.onclick=()=>{closeModal();openHatch(1);});
   }
   if(i===1){
     let h='<div class="hint">Stores earn gold from your visitors, no animals needed.</div><div class="grid2">';
-    for(const k of Object.keys(STORES)){const st=STORES[k];const can=state.gold>=st.cost;
-      h+=`<div class="card"><div class="aw">${svgBoxRaw(st.art(),80,66)}</div>
-        <div class="nm">${st.n}</div><div class="meta">${fmt(st.pay)} \ud83e\ude99 / ${st.per}m</div>
-        <button class="buyBtn" data-buy="${k}" ${can?'':'disabled'}>${coinIco} ${fmt(st.cost)}</button></div>`;}
+    for(const k of Object.keys(STORES)){const st=STORES[k];
+      if(!unlocked(st.lv)){h+=lockCard(svgBoxRaw(st.art(),80,66),st.n,st.lv);continue;}
+      const n=storeCount(k);
+      h+=`<div class="card">${newTag('st:'+k)}<div class="aw">${svgBoxRaw(st.art(),80,66)}</div>
+        <div class="nm">${st.n}</div><div class="meta">${coinIcoS} ${fmt(st.pay)} / ${fmtMin(st.per)} · ${n}/${st.max} built</div>
+        ${n>=st.max?'<div class="meta" style="padding:6px 0">Max built ✔</div>':priceBtn(`data-buy="${k}"`,st.cost)}</div>`;}
     h+='</div>';
     b.innerHTML=h;
     b.querySelectorAll('[data-buy]').forEach(x=>x.onclick=()=>buyStore(x.getAttribute('data-buy')));
   }
   if(i===2){
-    let h='<div class="hint">Decorations boost coin payouts a little (up to +30%). Paths don\u2019t boost payouts, but visitors love walking on them.</div><div class="grid2">';
+    const cur=Math.round(decoBoost()*100);
+    let h=`<div class="hint">Decorations boost every coin payout (now +${cur}%, max +${DECO_CAP}%). Paths don’t boost payouts, but visitors love walking on them.</div><div class="grid2">`;
     for(const k of Object.keys(DECOS)){const d=DECOS[k];if(d.star)continue;
-      const can=state.gold>=d.cost;
-      const meta=d.path?'Visitors walk here more \ud83d\udeb6':`+${d.boost}% payouts`;
-      h+=`<div class="card"><div class="aw">${svgBoxRaw(d.art(),80,66)}</div>
+      if(!unlocked(d.lv)){h+=lockCard(svgBoxRaw(d.art(),80,66),d.n,d.lv);continue;}
+      const meta=d.path?'Visitors walk here more 🚶':`+${d.boost}% payouts`;
+      h+=`<div class="card">${(d.lv||1)>1?newTag('dc:'+k):''}<div class="aw">${svgBoxRaw(d.art(),80,66)}</div>
         <div class="nm">${d.n}</div><div class="meta">${meta}</div>
-        <button class="buyBtn" data-buy="${k}" ${can?'':'disabled'}>${coinIco} ${fmt(d.cost)}</button></div>`;}
+        ${priceBtn(`data-buy="${k}"`,d.cost)}</div>`;}
     h+='</div>';
     b.innerHTML=h;
     b.querySelectorAll('[data-buy]').forEach(x=>x.onclick=()=>buyDeco(x.getAttribute('data-buy')));
@@ -1567,19 +1883,22 @@ function openShopTab(i){
       <div style="font-size:40px">🏝️</div>
       <div class="nm">Island size: ${cur} × ${cur}</div>`;
     if(maxed)h+=`<div class="meta">Your island is fully grown!</div>`;
-    else h+=`<div class="meta">Grow to ${EXP_SIZES[state.exp+1]} × ${EXP_SIZES[state.exp+1]}</div>
-      <button class="buyBtn" id="expBtn" ${state.gold>=EXP_COST[state.exp+1]?'':'disabled'}>${coinIco} ${fmt(EXP_COST[state.exp+1])}</button>`;
+    else{
+      const nx=state.exp+1;
+      h+=`<div class="meta">Grow to ${EXP_SIZES[nx]} × ${EXP_SIZES[nx]} (+${EXP_SIZES[nx]**2-cur*cur} tiles)</div>`;
+      h+=unlocked(EXP_LV[nx])?priceBtn('id="expBtn"',EXP_COST[nx]):`<div class="lockTag">🔒 Level ${EXP_LV[nx]}</div>`;
+    }
     h+='</div>';
     b.innerHTML=h;
     const eb=$('#expBtn');if(eb)eb.onclick=buyExpansion;
   }
   if(i===4){
-    let h='<div class="hint">Spend stars from missions on premium decor. Stars can also rush hatchery eggs.</div><div class="grid2">';
+    let h=`<div class="hint">Stars come from missions, level-ups and the odd lucky find in the trash. Spend them on premium decor, or to rush hatchery eggs.</div><div class="grid2">`;
     for(const k of Object.keys(DECOS)){const d=DECOS[k];if(!d.star)continue;
-      const can=state.stars>=d.cost;
+      const short=state.stars<d.cost;
       h+=`<div class="card"><div class="aw">${svgBoxRaw(d.art(),80,66)}</div>
         <div class="nm">${d.n}</div><div class="meta">+${d.boost}% payouts</div>
-        <button class="buyBtn star" data-buy="${k}" ${can?'':'disabled'}>${starIco} ${d.cost}</button></div>`;}
+        <button class="buyBtn star${short?' short':''}" data-buy="${k}">${starIcoL} ${d.cost}</button></div>`;}
     h+='</div>';
     b.innerHTML=h;
     b.querySelectorAll('[data-buy]').forEach(x=>x.onclick=()=>buyDeco(x.getAttribute('data-buy')));
@@ -1587,10 +1906,15 @@ function openShopTab(i){
 }
 
 /* ================= hatchery ================= */
+let hatchTab=0;
 function openHatch(tab){
-  openModal('Hatchery',['Nests','Breed','Crossbreed','Recipes'],openHatchTab);
-  selectTab(tab||0);openHatchTab(tab||0);
+  hatchTab=tab===undefined?hatchTab:tab;
+  openModal('Hatchery',['🪺 Nests','💕 Breed','🧬 Crossbreed','📖 Recipes'],i=>{hatchTab=i;openHatchTab(i);});
+  selectTab(hatchTab);openHatchTab(hatchTab);
 }
+// a recipe is revealed once the player has acquired (ever placed) both parent species
+const recipeKnown=r=>state.disc.includes(r.a)&&state.disc.includes(r.b);
+function nestBusy(res){return state.hatch.breeds.some(b=>b.type==='cross'&&b.res===res);}
 function openHatchTab(i){
   const b=$('#modalBody');
   if(i===0){
@@ -1599,22 +1923,24 @@ function openHatchTab(i){
       if(s2<state.hatch.slots){
         const br=state.hatch.breeds[s2];
         if(br){
-          const rem=br.end-nowMs(),ready=rem<=0;
+          const rem=br.end-nowMs(),rdy=rem<=0;
           const pct=clamp(100*(1-rem/br.total),0,100);
-          h+=`<div class="slot"><div class="hd">🥚 Nest ${s2+1}: ${state.disc.includes(br.res)?SP[br.res].n:'???'}</div>
-            <div class="eggWrap"><div class="miniA ${state.disc.includes(br.res)?'':'silh'}">${svgBox(br.res,48,42)}</div>
-            <div style="flex:1"><div class="barWrap"><div class="bar" style="width:${pct}%"></div></div>
-            <div class="meta" style="font-size:12px;font-weight:700;color:var(--ink2)">${ready?'Ready to hatch!':fmtTime(rem)+' left'}</div></div></div>
+          const known=state.disc.includes(br.res);
+          h+=`<div class="slot"><div class="hd">🥚 Nest ${s2+1}: ${known?SP[br.res].n:'Mystery egg'}</div>
+            <div class="eggWrap"><div class="miniA ${known?'':'silh'}">${svgBox(br.res,48,42)}</div>
+            <div style="flex:1"><div class="barWrap"><div class="bar" data-live-bar="${br.id}" style="width:${pct}%"></div></div>
+            <div class="meta" data-live-txt="${br.id}" style="font-size:12px;font-weight:700;color:var(--ink2)">${rdy?'Ready to hatch!':fmtTime(rem)+' left'}</div></div></div>
             <div class="rowBtns" style="margin-top:8px">`;
-          if(ready)h+=`<button class="buyBtn" data-hatch="${br.id}">Hatch!</button>`;
-          else h+=`<button class="buyBtn star" data-speed="${br.id}">${starIco} Rush (${Math.max(1,Math.ceil((rem/60000)/120))})</button>`;
+          if(rdy)h+=`<button class="buyBtn" data-hatch="${br.id}">Hatch! 🐣</button>`;
+          else h+=`<button class="buyBtn star" data-speed="${br.id}">${starIcoL} Rush (${rushCost(rem)})</button>`;
           h+='</div></div>';
         } else {
           h+=`<div class="slot"><div class="hd">🪺 Nest ${s2+1}: empty</div><div class="hint">Start a breeding from the Breed or Crossbreed tab.</div></div>`;
         }
       } else if(s2===state.hatch.slots){
+        const lv=SLOT_LV[s2];
         h+=`<div class="slot"><div class="hd">🔒 Nest ${s2+1}</div>
-          <div class="rowBtns" style="margin-top:6px"><button class="buyBtn" id="slotBtn" ${state.gold>=SLOT_COST[s2]?'':'disabled'}>${coinIco} ${fmt(SLOT_COST[s2])}</button></div></div>`;
+          <div class="rowBtns" style="margin-top:6px">${unlocked(lv)?priceBtn('id="slotBtn"',SLOT_COST[s2],'Build '):`<div class="lockTag">🔒 Level ${lv}</div>`}</div></div>`;
       } else {
         h+=`<div class="slot"><div class="hd">🔒 Nest ${s2+1}</div><div class="hint">Unlock the previous nest first.</div></div>`;
       }
@@ -1637,66 +1963,93 @@ function openHatchTab(i){
       toast('Tap a spot for your '+SP[state.inv[j].sp].n);});
   }
   if(i===1){
-    let h='<div class="hint">Pairs can breed a 3rd and 4th animal for their exhibit.</div>';
+    let h='<div class="hint">A pair can breed a 3rd and 4th animal for its exhibit. A full family of 4 pays ×5!</div>';
     const opts=state.items.filter(it=>it.kind==='exhibit'&&it.count>=2&&it.count<4);
     if(!opts.length)h+='<div class="hint" style="padding:20px">No exhibits with a pair and room to grow yet.<br>Buy a 2nd animal for an exhibit first!</div>';
     for(const it of opts){
+      const pend=pendingFor(it.id),full=it.count+pend>=4;
       h+=`<div class="recipeRow"><div class="miniA">${svgBox(it.sp,48,42)}</div>
-        <div style="flex:1"><b>${SP[it.sp].n}</b><div class="meta" style="font-size:11.5px">${it.count}/4 animals · ${fmtTime(SP[it.sp].breed*60000)}</div></div>
-        <button class="buyBtn" data-breed="${it.id}">Breed</button></div>`;
+        <div style="flex:1"><b>${SP[it.sp].n}</b><div class="meta" style="font-size:11.5px">${it.count}/4 animals${pend?' (+'+pend+' in nest)':''} · ${fmtTime(SP[it.sp].breed*60000)}</div></div>
+        ${full?'<div class="meta">In the nest 🥚</div>':`<button class="buyBtn" data-breed="${it.id}">Breed</button>`}</div>`;
     }
     b.innerHTML=h;
     b.querySelectorAll('[data-breed]').forEach(x=>x.onclick=()=>startSameBreed(x.getAttribute('data-breed')));
   }
   if(i===2){
-    let h='<div class="hint">Cross two species you keep to discover something new…</div>';
+    let h='<div class="hint">Cross two species living in your zoo to discover something new…</div>';
     const avail=RECIPES.filter(r=>ownsSp(r.a)&&ownsSp(r.b));
-    if(!avail.length)h+='<div class="hint" style="padding:20px">No compatible pairs yet. Collect more species, some combinations hide secrets!</div>';
+    if(!avail.length)h+='<div class="hint" style="padding:20px">No compatible pairs yet. Keep collecting species — some combinations hide secrets!</div>';
     for(const r of avail){
-      const disc=state.disc.includes(r.res);
+      const disc=state.disc.includes(r.res),lv=SP[r.res].lv;
+      let btn;
+      if(!unlocked(lv))btn=`<div class="lockTag">🔒 Lv ${lv}</div>`;
+      else if(nestBusy(r.res))btn='<div class="meta">In a nest 🥚</div>';
+      else btn=`<button class="buyBtn" data-cross="${r.res}">Try</button>`;
       h+=`<div class="recipeRow"><div class="miniA">${svgBox(r.a,48,42)}</div><span class="plus">+</span>
         <div class="miniA">${svgBox(r.b,48,42)}</div><span class="plus">→</span>
         <div class="miniA ${disc?'':'silh'}">${svgBox(r.res,48,42)}</div>
         <div style="flex:1;min-width:60px"><b style="font-size:13px">${disc?SP[r.res].n:'???'}</b><div class="meta" style="font-size:11px">${fmtTime(SP[r.res].breed*60000)}</div></div>
-        <button class="buyBtn" data-cross="${r.res}">Try</button></div>`;
+        ${btn}</div>`;
     }
     b.innerHTML=h;
     b.querySelectorAll('[data-cross]').forEach(x=>x.onclick=()=>{
       const r=RECIPES.find(q=>q.res===x.getAttribute('data-cross'));if(r)startCross(r);});
   }
   if(i===3){
-    let h='<div class="hint">Every secret combination in the wild isle.</div>';
-    for(const r of RECIPES){
+    const known=RECIPES.filter(recipeKnown),hidden=RECIPES.length-known.length;
+    let h=`<div class="hint">Recipes reveal themselves once you've kept both parent species. ${known.length}/${RECIPES.length} found.</div>`;
+    for(const r of known){
       const disc=state.disc.includes(r.res);
       h+=`<div class="recipeRow"><div class="miniA">${svgBox(r.a,48,42)}</div><span class="plus">+</span>
         <div class="miniA">${svgBox(r.b,48,42)}</div><span class="plus">→</span>
         <div class="miniA ${disc?'':'silh'}">${svgBox(r.res,48,42)}</div>
-        <div style="flex:1;font-weight:800;font-size:13px">${disc?SP[r.res].n:'???'}</div></div>`;
+        <div style="flex:1;font-weight:800;font-size:13px">${disc?SP[r.res].n:'???'}<div class="meta" style="font-size:11px">${unlocked(SP[r.res].lv)?'Ready to try':'🔒 Level '+SP[r.res].lv}</div></div></div>`;
     }
+    if(hidden)h+=`<div class="recipeRow" style="justify-content:center;opacity:.75"><div class="miniA" style="font-size:22px;align-items:center">❓</div><span class="plus">+</span><div class="miniA" style="font-size:22px;align-items:center">❓</div>
+      <div style="flex:1;font-weight:800;font-size:13px;padding-left:6px">${hidden} secret recipe${hidden>1?'s':''} still hidden</div></div>`;
     b.innerHTML=h;
   }
 }
+// keeps hatchery timers ticking while the panel is open, without rebuilding the buttons
+function updateLiveModal(){
+  if(!$('#modalWrap').classList.contains('open'))return;
+  let needRebuild=false;
+  for(const br of state.hatch.breeds){
+    const bar=document.querySelector(`[data-live-bar="${br.id}"]`);if(!bar)continue;
+    const rem=br.end-nowMs();
+    bar.style.width=clamp(100*(1-rem/br.total),0,100)+'%';
+    const t=document.querySelector(`[data-live-txt="${br.id}"]`);
+    if(rem<=0){if(document.querySelector(`[data-speed="${br.id}"]`))needRebuild=true;}
+    else if(t)t.textContent=fmtTime(rem)+' left';
+  }
+  if(needRebuild)openHatchTab(0);
+}
+
 
 /* ================= missions UI ================= */
 function openMissions(){
   openModal('Missions',null,null);
   const b=$('#modalBody');
   let h='';
-  for(const m of MISSIONS){
-    const done=m.c(state),claimed=state.claimed[m.id];
+  const nDone=MISSIONS.filter(m=>state.claimed[m.id]).length;
+  h+=`<div class="hint">${nDone}/${MISSIONS.length} goals complete — new goals appear as you finish these.</div>`;
+  const rew=m=>(m.g?`${coinIcoS} ${fmt(m.g)} `:'')+`${starIco} ${m.r}`;
+  for(const m of visibleMissions()){
+    const done=m.c(state);
     h+=`<div class="mis ${done?'done':''}"><div class="t">${m.t}</div>`;
-    if(claimed)h+=`<div class="claimed">✓ Claimed</div>`;
-    else if(done)h+=`<button class="buyBtn star" data-claim="${m.id}">${starIco} ${m.r}</button>`;
-    else h+=`<div class="meta">${starIco} ${m.r}</div>`;
+    if(done)h+=`<button class="buyBtn star" data-claim="${m.id}">Claim ${starIcoL} ${m.r}${m.g?' '+coinIcoS+' '+fmt(m.g):''}</button>`;
+    else h+=`<div class="meta" style="display:flex;align-items:center;gap:3px">${rew(m)}</div>`;
     h+='</div>';
   }
+  if(nDone===MISSIONS.length)h+='<div class="hint" style="padding:20px">Every goal complete. You are a legendary zookeeper! 🏆</div>';
   b.innerHTML=h;
-  b.querySelectorAll('[data-claim]').forEach(x=>x.onclick=()=>{
+  b.querySelectorAll('[data-claim]').forEach(x=>x.onclick=e=>{
     const m=MISSIONS.find(q=>q.id===x.getAttribute('data-claim'));
     if(m&&!state.claimed[m.id]&&m.c(state)){
       state.claimed[m.id]=true;state.stars+=m.r;
-      save();updateHUD();updateBadges();openMissions();
-      toast('⭐ +'+m.r+' star'+(m.r>1?'s':'')+'!');
+      if(m.g){state.gold+=m.g;coinBurst(e.clientX,e.clientY,m.g);}
+      save();updateHUD();updateBadges();openMissions();sfx('fanfare');pulseChip('#chipStar');
+      toast('⭐ +'+m.r+' star'+(m.r>1?'s':'')+(m.g?' and '+fmt(m.g)+' gold':'')+'!');
     }});
 }
 
@@ -1706,35 +2059,42 @@ function timerLine(it){
   const pct=clamp(100*(1-rem/cycleMs(it)),0,100);
   return {rem,rdy,pct};
 }
+const HAB_NAME={meadow:'Meadow',savanna:'Savanna',pond:'Pond',ice:'Ice floe',perch:'Aviary',bamboo:'Bamboo grove',desert:'Desert',magic:'Enchanted glade',volcano:'Volcano'};
+async function confirmSell(it,what){
+  const v=sellValue(it);
+  if(await askConfirm('Sell '+what+'?',v>0?'You will get '+fmt(v)+' gold back.':'It will be removed from your island.','Sell',true))sellItem(it);
+}
 function openItemSheet(it){
+  sfx('click');
   if(it.kind==='exhibit'){
     const sp=SP[it.sp];
     openModal(sp.n+' Exhibit',null,null);
     const {rem,rdy,pct}=timerLine(it);
-    const boostTxt=it.count>=4?'\u00d75 full-exhibit boost active!':(it.count>=2?'\u00d7'+MULT[it.count]+' boost \u2014 grows to \u00d75 with all 4':'Payouts boost \u00d72.5 with a pair, \u00d75 with all 4');
+    const pend=pendingFor(it.id);
+    const boostTxt=it.count>=4?'×5 full-family boost active!':(it.count>=2?'×'+MULT[it.count]+' boost — grows to ×5 with all 4':'Payouts boost ×2.5 with a pair, ×5 with all 4');
     let h=`<div class="sheetRow"><div class="aw" style="width:100px;height:80px">${svgBox(it.sp,92,74)}</div>
       <div style="flex:1">
-      <div class="statLine"><span>Animals</span><b>${it.count} / 4</b></div>
-      <div class="statLine"><span>Payout</span><b>${fmt(payout(it))} \ud83e\ude99 every ${sp.per}m</b></div>
-      <div class="statLine"><span>Habitat</span><b>${footOf(it)}\u00d7${footOf(it)} \u00b7 ${sp.hab}</b></div>
+      <div class="statLine"><span>Animals</span><b>${it.count} / 4${pend?' (+'+pend+' 🥚)':''}</b></div>
+      <div class="statLine"><span>Payout</span><b>${fmt(payout(it))} gold + ${xpFor(it)} XP every ${fmtMin(sp.per)}</b></div>
+      <div class="statLine"><span>Habitat</span><b>${footOf(it)}×${footOf(it)} · ${HAB_NAME[sp.hab]||sp.hab}</b></div>
       </div></div>
       <div class="barWrap"><div class="bar" style="width:${rdy?100:pct}%"></div></div>
-      <div class="hint" style="text-align:left">${rdy?'\ud83d\udcb0 A coin is ready!':'Next coin in '+fmtTime(rem)} \u00b7 ${boostTxt}</div>
+      <div class="hint" style="text-align:left">${rdy?'💰 A coin is ready!':'Next coin in '+fmtTime(rem)} · ${boostTxt}</div>
       <div class="rowBtns" style="margin-top:12px">
-      <button class="buyBtn" id="shCollect" ${rdy?'':'disabled'}>${rdy?'Collect '+fmt(payout(it)):'\u23f3 '+fmtTime(rem)}</button>`;
-    if(it.count===1&&sp.cost)h+=`<button class="buyBtn" id="shSecond" ${state.gold>=sp.cost?'':'disabled'}>2nd ${coinIco} ${fmt(sp.cost)}</button>`;
-    if(it.count===1&&!sp.cost)h+=`<button class="buyBtn" id="shCrossHint">2nd via Hatchery</button>`;
-    if(it.count>=2&&it.count<4)h+=`<button class="buyBtn" id="shBreed">Breed \ud83e\udd5a</button>`;
-    h+=`<button class="buyBtn" id="shMove">Move \u270b</button>
+      <button class="buyBtn" id="shCollect" ${rdy?'':'disabled'}>${rdy?'Collect '+fmt(payout(it)):'⏳ '+fmtTime(rem)}</button>`;
+    if(it.count===1&&sp.cost)h+=priceBtn('id="shSecond"',sp.cost,'2nd ');
+    if(it.count===1&&!sp.cost)h+=`<button class="buyBtn ghost" id="shCrossHint">2nd via Hatchery</button>`;
+    if(it.count>=2&&it.count+pend<4)h+=`<button class="buyBtn" id="shBreed">Breed 🥚</button>`;
+    h+=`<button class="buyBtn ghost" id="shMove">Move ✋</button>
       <button class="buyBtn warn" id="shSell">Sell</button></div>`;
-    if(it.count>=4)h+=`<div class="hint">A full, happy exhibit!</div>`;
+    if(it.count>=4)h+=`<div class="hint">A full, happy family!</div>`;
     $('#modalBody').innerHTML=h;
     $('#shCollect').onclick=()=>collectFromSheet(it);
     const s2=$('#shSecond');if(s2)s2.onclick=()=>buySecond(it);
     const ch=$('#shCrossHint');if(ch)ch.onclick=()=>{openHatch(2);};
-    const br=$('#shBreed');if(br)br.onclick=()=>{closeModal();startSameBreed(it.id);openHatch(0);};
+    const br=$('#shBreed');if(br)br.onclick=()=>startSameBreed(it.id);
     $('#shMove').onclick=()=>{closeModal();beginMove(it);};
-    $('#shSell').onclick=()=>{if(confirm('Sell this exhibit and its animals?'))sellItem(it);};
+    $('#shSell').onclick=()=>confirmSell(it,'this exhibit and its animals');
   }
   if(it.kind==='store'){
     const st2=STORES[it.sp];
@@ -1742,54 +2102,152 @@ function openItemSheet(it){
     const {rem,rdy,pct}=timerLine(it);
     $('#modalBody').innerHTML=`<div class="sheetRow"><div class="aw" style="width:100px;height:80px">${svgBoxRaw(st2.art(),92,74)}</div>
       <div style="flex:1">
-      <div class="statLine"><span>Payout</span><b>${fmt(payout(it))} \ud83e\ude99 every ${st2.per}m</b></div>
-      <div class="statLine"><span>Plot</span><b>${footOf(it)}\u00d7${footOf(it)}</b></div></div></div>
+      <div class="statLine"><span>Payout</span><b>${fmt(payout(it))} gold + ${xpFor(it)} XP every ${fmtMin(st2.per)}</b></div>
+      <div class="statLine"><span>Plot</span><b>${footOf(it)}×${footOf(it)}</b></div></div></div>
       <div class="barWrap"><div class="bar" style="width:${rdy?100:pct}%"></div></div>
-      <div class="hint" style="text-align:left">${rdy?'\ud83d\udcb0 A coin is ready!':'Next coin in '+fmtTime(rem)}</div>
+      <div class="hint" style="text-align:left">${rdy?'💰 A coin is ready!':'Next coin in '+fmtTime(rem)}</div>
       <div class="rowBtns" style="margin-top:12px">
-      <button class="buyBtn" id="shCollect" ${rdy?'':'disabled'}>${rdy?'Collect '+fmt(payout(it)):'\u23f3 '+fmtTime(rem)}</button>
-      <button class="buyBtn" id="shMove">Move \u270b</button>
+      <button class="buyBtn" id="shCollect" ${rdy?'':'disabled'}>${rdy?'Collect '+fmt(payout(it)):'⏳ '+fmtTime(rem)}</button>
+      <button class="buyBtn ghost" id="shMove">Move ✋</button>
       <button class="buyBtn warn" id="shSell">Sell</button></div>`;
     $('#shCollect').onclick=()=>collectFromSheet(it);
     $('#shMove').onclick=()=>{closeModal();beginMove(it);};
-    $('#shSell').onclick=()=>{if(confirm('Sell this store?'))sellItem(it);};
+    $('#shSell').onclick=()=>confirmSell(it,'this store');
   }
   if(it.kind==='deco'){
     const d=DECOS[it.sp];
     openModal(d.n,null,null);
     const statLine=d.path
-      ? `<div class="statLine"><span>Effect</span><b>Visitors walk here more \ud83d\udeb6</b></div>`
+      ? `<div class="statLine"><span>Effect</span><b>Visitors walk here more 🚶</b></div>`
       : `<div class="statLine"><span>Payout boost</span><b>+${d.boost}%</b></div>`;
     $('#modalBody').innerHTML=`<div class="sheetRow"><div class="aw" style="width:100px;height:80px">${svgBoxRaw(d.art(),92,74)}</div>
       <div style="flex:1">${statLine}</div></div>
       <div class="rowBtns" style="margin-top:12px">
-      <button class="buyBtn" id="shMove">Move \u270b</button>
+      <button class="buyBtn ghost" id="shMove">Move ✋</button>
       <button class="buyBtn warn" id="shSell">${d.star?'Remove':'Sell'}</button></div>`;
     $('#shMove').onclick=()=>{closeModal();beginMove(it);};
-    $('#shSell').onclick=()=>sellItem(it);
+    $('#shSell').onclick=()=>d.star?confirmSell(it,'this '+d.n):sellItem(it);
   }
 }
 
-/* ================= help ================= */
+/* ================= help & settings ================= */
 function openHelp(){
   openModal('Welcome to Wild Isle',null,null);
   $('#modalBody').innerHTML=`
-  <div class="secH">\ud83e\ude99 Earn gold</div>
-  <div class="hint" style="text-align:left">Every exhibit produces a gold coin on its own timer \u2014 a bubble pops up when it's ready, even while you're away. Tap it to collect and restart the timer. A pair of animals boosts payouts \u00d72.5, and a full exhibit of 4 pays \u00d75. Tap trash to tidy up for a bonus.</div>
-  <div class="secH">\ud83e\udd5a Breed animals</div>
-  <div class="hint" style="text-align:left">Buy your first two animals of a species in the Shop \u2014 they share one habitat, sized and themed for that species. The 3rd and 4th can only be <b>bred</b> in the Hatchery. Crossbreed different species to discover hybrids \u2014 and legends say mythical creatures hide in the family tree\u2026</div>
-  <div class="secH">\u2b50 Stars</div>
-  <div class="hint" style="text-align:left">Complete missions to earn stars. Spend them on premium decor or to rush an egg.</div>
-  <div class="secH">\ud83c\udfdd\ufe0f Build your isle</div>
-  <div class="hint" style="text-align:left">Drag to pan, pinch or use +/\u2212 to zoom. To place or move anything: tap a spot to preview, then \u2713 to confirm or \u2715 to cancel. Expand the island in the Shop when you need more room.</div>
-  <div class="rowBtns" style="margin-top:10px"><button class="buyBtn" onclick="closeModal()">Let's go!</button></div>`;
+  <div class="secH">🪙 Earn gold & XP</div>
+  <div class="hint" style="text-align:left">Every exhibit makes a coin on its own timer — a bubble pops up when it's ready, even while you're away. Tap it to collect gold <b>and XP</b>. A pair of animals pays ×2.5, a full family of 4 pays ×5. Animals with longer timers pay much more, so they're great while you're away. Tap trash for a bonus.</div>
+  <div class="secH">⬆️ Level up</div>
+  <div class="hint" style="text-align:left">XP comes from collecting, building and hatching. Every level unlocks something new: animals, stores, decor, island expansions and secret crossbreeds. Each level-up also gives gold and a star.</div>
+  <div class="secH">🥚 Breed animals</div>
+  <div class="hint" style="text-align:left">Buy the first two of a species in the Shop. The 3rd and 4th can only be <b>bred</b> in the Hatchery. Keep two compatible species and a secret crossbreed recipe will reveal itself — legends say a Dragon waits at the top of the family tree…</div>
+  <div class="secH">⭐ Stars</div>
+  <div class="hint" style="text-align:left">Earned from missions, level-ups and lucky trash. Spend them on premium decor or to rush an egg.</div>
+  <div class="secH">🏝️ Build your isle</div>
+  <div class="hint" style="text-align:left">Drag to pan, pinch, scroll or use +/− to zoom. To place something: tap a spot to preview, then ✓ to confirm or ✕ to cancel. Use ✋ Move to drag things around.</div>
+  <div class="rowBtns" style="margin-top:10px"><button class="buyBtn" id="helpGo">Let's go!</button></div>`;
+  $('#helpGo').onclick=closeModal;
+}
+function openSettings(){
+  openModal('Settings',null,null);
+  const days=Math.max(0,(nowMs()-(state.started||nowMs()))/86400000);
+  const animals=totalAnimalCount(),species=speciesOwned().size;
+  $('#modalBody').innerHTML=`
+    <div class="setRow"><span>🎵 Music</span><button class="buyBtn ${state.musicOn?'':'ghost'}" id="setMus">${state.musicOn?'On':'Off'}</button></div>
+    <div class="setRow"><span>🔊 Sound effects</span><button class="buyBtn ${state.sfxOn?'':'ghost'}" id="setSfx">${state.sfxOn?'On':'Off'}</button></div>
+    <div class="setRow"><span>❓ How to play</span><button class="buyBtn ghost" id="setHelp">Open</button></div>
+    <div class="secH">Your zoo</div>
+    <div class="statLine"><span>Level</span><b>${state.lv}</b></div>
+    <div class="statLine"><span>Species</span><b>${species} / ${Object.keys(SP).length}</b></div>
+    <div class="statLine"><span>Animals</span><b>${animals}</b></div>
+    <div class="statLine"><span>Lifetime gold</span><b>${fmt(state.stats.gold)}</b></div>
+    <div class="statLine"><span>Coins collected</span><b>${fmt(state.stats.collects||0)}</b></div>
+    <div class="statLine"><span>Days on the island</span><b>${days.toFixed(1)}</b></div>
+    <div class="rowBtns" style="margin-top:16px"><button class="buyBtn warn" id="setReset">🔄 Reset game</button></div>`;
+  $('#setMus').onclick=()=>{toggleMusic();openSettings();};
+  $('#setSfx').onclick=()=>{state.sfxOn=!state.sfxOn;save();sfx('click');openSettings();};
+  $('#setHelp').onclick=openHelp;
+  $('#setReset').onclick=()=>{closeModal();resetGame();};
+}
+
+/* ================= dialogs: confirm / level up / win ================= */
+function openDlg(html){$('#dlg').innerHTML=html;$('#dlgWrap').classList.add('open');}
+function closeDlg(){$('#dlgWrap').classList.remove('open');if(pendingLevelUps.length)setTimeout(showLevelUp,300);}
+function askConfirm(title,msg,okLabel,danger){
+  return new Promise(res=>{
+    openDlg(`<h2>${title}</h2><p>${msg}</p><div class="rowBtns"><button class="buyBtn ghost" id="dlgNo">Cancel</button><button class="buyBtn ${danger?'warn':''}" id="dlgYes">${okLabel||'OK'}</button></div>`);
+    $('#dlgNo').onclick=()=>{closeDlg();res(false);};
+    $('#dlgYes').onclick=()=>{closeDlg();res(true);};
+  });
+}
+function unlockCard(u){
+  if(u.kind==='animal'){const sp=SP[u.k];
+    if(!sp.cost){ // bred species: keep the surprise, show only a silhouette
+      const r=RECIPES.find(q=>q.res===u.k),known=r&&recipeKnown(r);
+      return `<div class="u"><div class="aw silh" style="width:80px;height:56px;margin:0 auto 3px">${svgBox(u.k,72,52)}</div>${known?sp.n+' crossbreed':'Secret crossbreed'}</div>`;}
+    return `<div class="u"><div class="aw" style="width:80px;height:56px;margin:0 auto 3px">${svgBox(u.k,72,52)}</div>${sp.n}</div>`;}
+  if(u.kind==='store')return `<div class="u"><div class="aw" style="width:80px;height:56px;margin:0 auto 3px">${svgBoxRaw(STORES[u.k].art(),72,52)}</div>${STORES[u.k].n}</div>`;
+  if(u.kind==='deco')return `<div class="u"><div class="aw" style="width:80px;height:56px;margin:0 auto 3px">${svgBoxRaw(DECOS[u.k].art(),72,52)}</div>${DECOS[u.k].n}</div>`;
+  if(u.kind==='exp')return `<div class="u"><div style="font-size:34px;line-height:56px">🏝️</div>Island expansion</div>`;
+  if(u.kind==='slot')return `<div class="u"><div style="font-size:34px;line-height:56px">🪺</div>Hatchery nest</div>`;
+  return '';
+}
+function showLevelUp(){
+  if(!pendingLevelUps.length||$('#dlgWrap').classList.contains('open'))return;
+  const L=pendingLevelUps.shift();
+  const un=unlocksAt(L);
+  const shoppable=un.some(u=>u.kind!=='slot'&&!(u.kind==='animal'&&!SP[u.k].cost));
+  openDlg(`<div class="big">🎉</div><h2>Level ${L}!</h2>
+    <div class="rewardRow"><span>${coinIco} +${fmt(levelGold(L))}</span><span>${starIco} +1</span></div>
+    ${un.length?`<p style="margin-bottom:4px">New unlocks:</p><div class="unlockRow">${un.map(unlockCard).join('')}</div>`:'<p>Keep growing your zoo!</p>'}
+    <div class="rowBtns">${shoppable?'<button class="buyBtn ghost" id="lvShop">Open Shop 🛒</button>':''}<button class="buyBtn" id="lvOk">Awesome!</button></div>`);
+  sfx('levelup');confetti(70);pulseChip('#chipLv');
+  $('#lvOk').onclick=closeDlg;
+  const ls=$('#lvShop');if(ls)ls.onclick=()=>{closeDlg();cancelGhost(true);
+    const u=un.find(q=>q.kind!=='slot');openShop(u.kind==='store'?1:u.kind==='deco'?2:u.kind==='exp'?3:0);};
+}
+function showWin(){
+  const days=((nowMs()-(state.started||nowMs()))/86400000).toFixed(1);
+  openDlg(`<div class="aw" style="width:180px;height:140px;margin:0 auto 8px">${svgBox('dragon',170,132)}</div>
+    <h2>You hatched the Dragon!</h2>
+    <p>The legend of Wild Isle is complete. It took you ${days} days of zookeeping. Your island is yours to keep growing — can you give every species a full family of four?</p>
+    <div class="rowBtns"><button class="buyBtn" id="winOk">Keep playing 🐉</button></div>`);
+  sfx('levelup');setTimeout(()=>sfx('fanfare'),700);confetti(160);
+  $('#winOk').onclick=closeDlg;
+}
+function confetti(n){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const cols=['#f5c542','#e0574a','#4a90c9','#5cc46e','#a77bf0','#f28fb0'];
+  for(let i=0;i<n;i++){
+    const d=document.createElement('div');d.className='confetti';
+    d.style.left=(Math.random()*100)+'vw';d.style.background=cols[i%cols.length];
+    d.style.setProperty('--dx',(Math.random()*160-80)+'px');d.style.setProperty('--rot',(Math.random()*900-450)+'deg');
+    const dur=1.8+Math.random()*1.8;d.style.animationDuration=dur+'s';d.style.animationDelay=(Math.random()*0.4)+'s';
+    document.body.appendChild(d);setTimeout(()=>d.remove(),(dur+0.5)*1000);
+  }
 }
 
 /* ================= HUD / badges / toast / fx ================= */
+function buildHUD(){
+  $('#chipLv').innerHTML='<div class="lvBadge" id="hLv"></div><div><div class="xpWrap"><div class="xpFill" id="hXp"></div></div><div class="xpTxt" id="hXpT"></div></div>';
+  $('#chipGold').innerHTML=coinIco+' <span id="hGold"></span>';
+  $('#chipStar').innerHTML=starIco+' <span id="hStar"></span>';
+  $('#chipRate').innerHTML='<span style="font-size:13px">💰</span> <span id="hReady"></span><span class="sub"> ready</span>';
+  $('#chipLv').onclick=()=>{
+    const nx=[];for(let L=state.lv+1;L<=MAX_LV&&nx.length<1;L++)if(unlocksAt(L).length)nx.push(L);
+    if(!nx.length){toast('Level '+state.lv+' — everything is unlocked!');return;}
+    const u=unlocksAt(nx[0]).map(q=>q.kind==='animal'?(SP[q.k].cost?SP[q.k].n:'a secret crossbreed'):q.kind==='store'?STORES[q.k].n:q.kind==='deco'?DECOS[q.k].n:q.kind==='exp'?'island expansion':'a new nest');
+    toast('Level '+nx[0]+' unlocks: '+u.join(', '));
+  };
+}
+let hudGold=null;
 function updateHUD(){
-  $('#chipGold').innerHTML=coinIco+' <span>'+fmt(state.gold)+'</span>';
-  $('#chipStar').innerHTML=starIco+' <span>'+state.stars+'</span>';
-  $('#chipRate').innerHTML='<span style="font-size:13px">💰</span> <span>'+readyCount()+'</span><span class="sub"> ready</span>';
+  const need=xpNeed(state.lv);
+  $('#hLv').textContent=state.lv;
+  $('#hXp').style.width=clamp(100*state.xp/need,0,100)+'%';
+  $('#hXpT').textContent=fmt(state.xp)+' / '+fmt(need)+' XP';
+  $('#hGold').textContent=fmt(state.gold);
+  $('#hStar').textContent=state.stars;
+  $('#hReady').textContent=readyCount();
 }
 function updateBadges(){
   const ready=state.hatch.breeds.filter(hatchReady).length+state.inv.length;
@@ -1798,123 +2256,137 @@ function updateBadges(){
   const bm=$('#bMis');bm.style.display=cm?'flex':'none';bm.textContent=cm;
 }
 function toast(msg){
+  const box=$('#toasts');
+  while(box.children.length>=3)box.firstChild.remove(); // never let toasts pile up over the island
   const t=document.createElement('div');t.className='toast';t.textContent=msg;
-  $('#toasts').appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';},2400);
-  setTimeout(()=>t.remove(),2800);
+  box.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';},2600);
+  setTimeout(()=>t.remove(),3000);
 }
 function flyText(html,x,y){
   const d=document.createElement('div');d.className='fly';d.innerHTML=html;
   d.style.left=(x-20)+'px';d.style.top=(y-24)+'px';
   document.body.appendChild(d);setTimeout(()=>d.remove(),950);
 }
-let audioCtx=null;
-function coinBlip(){
-  if(!state.musicOn)return;
-  try{
-    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type='sine';o.frequency.setValueAtTime(880,audioCtx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(1320,audioCtx.currentTime+0.08);
-    g.gain.setValueAtTime(0.08,audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.18);
-    o.connect(g);g.connect(audioCtx.destination);
-    o.start();o.stop(audioCtx.currentTime+0.2);
-  }catch(e){}
-}
 
-/* ================= background music ================= */
-const MUS_NOTES={
-  C3:130.81,E3:164.81,F3:174.61,G3:196.00,A3:220.00,
-  C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392.00,A4:440.00,B4:493.88,
-  C5:523.25,D5:587.33,E5:659.25,F5:698.46
-};
-const musMelA=['C4','E4','G4','E4','C4','D4','E4','G4','E4','G4','C5','G4','E4','D4','C4',null];
-const musBasA=['C3',null,null,null,'G3',null,null,null,'C3',null,null,null,'G3',null,null,null];
-const musMelB=['E4','G4','A4','G4','F4','A4','G4','E4','D4','F4','E4','D4','C4','E4','D4',null];
-const musBasB=['F3',null,null,null,'C3',null,null,null,'G3',null,null,null,'C3',null,null,null];
-const musMelC=['F4','A4','C5','A4','F4','G4','A4','C5','A4','C5','F5','C5','A4','G4','F4',null];
-const musBasC=['F3',null,null,null,'C3',null,null,null,'F3',null,null,null,'C3',null,null,null];
-const musMelD=[null,'C4',null,'E4',null,'G4',null,'E4',null,'C4',null,'D4',null,'E4','D4','C4'];
-const musBasD=['C3',null,null,null,'C3',null,null,null,'G3',null,null,null,'G3',null,null,null];
-const MUS_SECTIONS=[
-  {mel:musMelA,bas:musBasA,melType:'triangle',melGain:0.16},
-  {mel:musMelB,bas:musBasB,melType:'triangle',melGain:0.15},
-  {mel:musMelC,bas:musBasC,melType:'triangle',melGain:0.17},
-  {mel:musMelD,bas:musBasD,melType:'triangle',melGain:0.12}
+/* ================= audio: music + sound effects =================
+   One AudioContext, created and resumed from inside real user gestures (browsers keep it
+   suspended otherwise, which is why music never started before: the old code created it on
+   'pointerdown', which does not count as a user activation for touch input, and never retried).
+   Music uses a look-ahead scheduler so nothing piles up while the context is suspended. */
+let AC=null,musBus=null,sfxBus=null,noiseBuf=null;
+function audioInit(){
+  if(AC)return AC;
+  const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return null;
+  try{AC=new Ctx();}catch(e){return null;}
+  const master=AC.createGain();master.gain.value=0.9;master.connect(AC.destination);
+  const comp=AC.createDynamicsCompressor();comp.connect(master);
+  musBus=AC.createGain();musBus.gain.value=0;musBus.connect(comp);
+  sfxBus=AC.createGain();sfxBus.gain.value=0.7;sfxBus.connect(master);
+  noiseBuf=AC.createBuffer(1,AC.sampleRate*0.5,AC.sampleRate);
+  const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  AC.onstatechange=updateMusicBtn;
+  return AC;
+}
+function audioUnlock(e){
+  const ac=audioInit();if(!ac)return;
+  if(ac.state!=='running')ac.resume().then(updateMusicBtn).catch(()=>{});
+  if(!audioUnlock.done){audioUnlock.done=true;
+    try{const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);}catch(err){}}
+  // the music button handles itself, so its first tap doesn't start-then-stop the music
+  if(state&&state.musicOn&&!musOn&&!(e&&e.target&&e.target.closest&&e.target.closest('#musicBtn,#setMus')))musStart();
+}
+['pointerdown','pointerup','touchend','click','keydown'].forEach(ev=>window.addEventListener(ev,audioUnlock,{capture:true,passive:true}));
+document.addEventListener('visibilitychange',()=>{
+  if(!AC)return;
+  if(document.hidden)AC.suspend().catch(()=>{});else AC.resume().catch(()=>{});
+});
+const NOTE_SEMI={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+function nf(n){const m=/^([A-G])(#?)(\d)$/.exec(n);return 440*Math.pow(2,((+m[3]+1)*12+NOTE_SEMI[m[1]]+(m[2]?1:0)-69)/12);}
+function env(g,t,peak,att,dec){g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+att);g.gain.exponentialRampToValueAtTime(0.0001,t+att+dec);}
+function tone(bus,type,freq,t,peak,att,dec,freqEnd){
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.type=type;o.frequency.setValueAtTime(freq,t);if(freqEnd)o.frequency.exponentialRampToValueAtTime(freqEnd,t+att+dec);
+  env(g,t,peak,att,dec);o.connect(g).connect(bus);o.start(t);o.stop(t+att+dec+0.05);
+}
+function marimba(bus,freq,t,v){tone(bus,'sine',freq,t,0.22*v,0.004,0.45);tone(bus,'sine',freq*4,t,0.05*v,0.002,0.08);}
+function noise(bus,t,peak,dec,ftype,f0,f1){
+  const s=AC.createBufferSource();s.buffer=noiseBuf;
+  const f=AC.createBiquadFilter();f.type=ftype;f.frequency.setValueAtTime(f0,t);if(f1)f.frequency.exponentialRampToValueAtTime(f1,t+dec);
+  const g=AC.createGain();env(g,t,peak,0.003,dec);
+  s.connect(f).connect(g).connect(bus);s.start(t);s.stop(t+dec+0.05);
+}
+/* a breezy island tune: 8 bars of eighth notes over C G Am F | F C Dm G */
+const MUS_BPM=100,MUS_STEP=60/MUS_BPM/2;
+const MUS_BARS=[
+ {b:'C3',f:'G3',ch:['C4','E4','G4'],m:['E5',null,'G5',null,'E5','D5','C5',null]},
+ {b:'G2',f:'D3',ch:['B3','D4','G4'],m:['D5',null,'B4',null,'D5',null,'G4',null]},
+ {b:'A2',f:'E3',ch:['C4','E4','A4'],m:['C5',null,'E5',null,'A5','G5','E5',null]},
+ {b:'F2',f:'C3',ch:['C4','F4','A4'],m:['F5',null,'E5','D5','C5',null,null,null]},
+ {b:'F2',f:'C3',ch:['C4','F4','A4'],m:['A4','C5','F5',null,'E5',null,'C5',null]},
+ {b:'C3',f:'G3',ch:['C4','E4','G4'],m:['G4','C5','E5',null,'D5','C5',null,null]},
+ {b:'D3',f:'A3',ch:['D4','F4','A4'],m:['D5','F5','A5',null,'G5','F5','E5','D5']},
+ {b:'G2',f:'D3',ch:['B3','D4','G4'],m:['G5',null,null,'D5','B4',null,'G4',null]}
 ];
-const MUS_STEP=0.22, MUS_SEC_STEPS=16, MUS_SEC_DUR=MUS_STEP*MUS_SEC_STEPS, MUS_LOOP_DUR=MUS_SEC_DUR*MUS_SECTIONS.length;
-let musicPlaying=false, musicTimer=null;
-let musActiveNodes=[]; // tracks every scheduled node so stop() can silence them immediately instead of letting already-scheduled audio play out
-function musPlayNote(freq,startTime,dur,type,peak){
-  if(!freq)return;
-  const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
-  osc.type=type;osc.frequency.setValueAtTime(freq,startTime);
-  gain.gain.setValueAtTime(0,startTime);
-  gain.gain.linearRampToValueAtTime(peak,startTime+0.015);
-  gain.gain.exponentialRampToValueAtTime(0.001,startTime+dur);
-  osc.connect(gain).connect(audioCtx.destination);
-  osc.start(startTime);osc.stop(startTime+dur+0.05);
-  musActiveNodes.push({node:osc,gain,until:startTime+dur+0.1});
-}
-function musPlayClick(startTime){
-  const bufferSize=Math.floor(audioCtx.sampleRate*0.03);
-  const buffer=audioCtx.createBuffer(1,bufferSize,audioCtx.sampleRate);
-  const data=buffer.getChannelData(0);
-  for(let i=0;i<bufferSize;i++)data[i]=(Math.random()*2-1)*(1-i/bufferSize);
-  const src=audioCtx.createBufferSource();src.buffer=buffer;
-  const g=audioCtx.createGain();g.gain.setValueAtTime(0.05,startTime);
-  src.connect(g).connect(audioCtx.destination);src.start(startTime);
-  musActiveNodes.push({node:src,gain:g,until:startTime+0.1});
-}
-function musScheduleSection(sec,startTime){
-  sec.mel.forEach((n,i)=>musPlayNote(MUS_NOTES[n],startTime+i*MUS_STEP,MUS_STEP*0.85,sec.melType,sec.melGain));
-  sec.bas.forEach((n,i)=>musPlayNote(MUS_NOTES[n],startTime+i*MUS_STEP,MUS_STEP*3.2,'sine',0.11));
-  for(let i=0;i<MUS_SEC_STEPS;i+=2)musPlayClick(startTime+i*MUS_STEP);
-}
-function musScheduleLoop(startTime){
-  MUS_SECTIONS.forEach((sec,i)=>musScheduleSection(sec,startTime+i*MUS_SEC_DUR));
-}
-function startMusic(){
-  if(musicPlaying)return;
-  try{
-    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==='suspended')audioCtx.resume();
-    musicPlaying=true;
-    (function loop(){
-      if(!musicPlaying)return;
-      const now=audioCtx.currentTime;
-      musActiveNodes=musActiveNodes.filter(n=>n.until>now-1); // trim nodes that have already finished
-      musScheduleLoop(now+0.05);
-      musicTimer=setTimeout(loop,MUS_LOOP_DUR*1000);
-    })();
-  }catch(e){}
-}
-function stopMusic(){
-  musicPlaying=false;
-  clearTimeout(musicTimer);
-  if(audioCtx){
-    const now=audioCtx.currentTime;
-    musActiveNodes.forEach(({node,gain})=>{
-      try{
-        gain.gain.cancelScheduledValues(now);
-        gain.gain.setValueAtTime(gain.gain.value,now);
-        gain.gain.linearRampToValueAtTime(0,now+0.03); // quick fade avoids a click
-      }catch(e){}
-      try{node.stop(now+0.04);}catch(e){}
-    });
-  }
-  musActiveNodes=[];
-}
-function updateMusicBtn(){
-  $('#musicBtn').classList.toggle('toggled',!musicPlaying);
-  $('#musicBtn').textContent=musicPlaying?'🎵':'🔇';
-}
-function toggleMusic(){
-  if(musicPlaying)stopMusic();else startMusic();
-  state.musicOn=musicPlaying;save();
+let musOn=false,musNext=0,musStepN=0,musTimer=null;
+function musStart(){
+  if(!audioInit())return;
+  if(!musOn){musOn=true;musNext=AC.currentTime+0.12;musStepN=0;clearInterval(musTimer);musTimer=setInterval(musTick,50);}
+  musBus.gain.cancelScheduledValues(AC.currentTime);musBus.gain.setTargetAtTime(0.5,AC.currentTime,0.4);
   updateMusicBtn();
 }
+function musStop(){
+  musOn=false;clearInterval(musTimer);
+  if(AC){musBus.gain.cancelScheduledValues(AC.currentTime);musBus.gain.setTargetAtTime(0,AC.currentTime,0.06);}
+  updateMusicBtn();
+}
+function musTick(){
+  if(!AC||AC.state!=='running')return;
+  if(musNext<AC.currentTime-0.2)musNext=AC.currentTime+0.05; // woke from a throttled tab: skip ahead, never burst
+  while(musNext<AC.currentTime+0.3){musPlayStep(musStepN,musNext);musNext+=MUS_STEP;musStepN++;}
+}
+function musPlayStep(n,t){
+  const loop=Math.floor(n/64),bar=MUS_BARS[Math.floor(n/8)%8],st=n%8;
+  const alt=loop%2===1;
+  const m=bar.m[st];
+  if(m){const f=nf(m)*(alt&&st%2===0?0.5:1);marimba(musBus,f,t,alt?0.8:1);}
+  if(alt&&st===3)marimba(musBus,nf(bar.ch[2])*2,t,0.45);              // little echo on the second pass
+  if(st===0)tone(musBus,'triangle',nf(bar.b),t,0.2,0.01,0.5);
+  if(st===4)tone(musBus,'triangle',nf(bar.f),t,0.16,0.01,0.4);
+  if(st===2||st===6)bar.ch.forEach(c=>tone(musBus,'sine',nf(c),t,0.035,0.01,0.25));
+  if(st===0)bar.ch.forEach(c=>tone(musBus,'sine',nf(c)/2,t,0.025,0.25,1.4)); // soft pad
+  noise(musBus,t,st%2?0.035:0.018,0.045,'highpass',7000);                  // shaker
+}
+function updateMusicBtn(){
+  const b=$('#musicBtn');if(!b||!state)return;
+  const playing=state.musicOn&&musOn&&AC&&AC.state==='running';
+  b.classList.toggle('toggled',!playing);
+  b.textContent=playing?'🎵':'🔇';
+  b.title=playing?'Music on (tap to mute)':'Music off (tap to play)';
+}
+function toggleMusic(){
+  audioUnlock();
+  // tap means "make it play" when it isn't audibly playing, even if the saved setting says on
+  if(state.musicOn&&musOn){state.musicOn=false;musStop();}
+  else{state.musicOn=true;musStart();if(AC&&AC.state!=='running')AC.resume().then(updateMusicBtn).catch(()=>{});}
+  save();updateMusicBtn();
+}
+function sfx(name){
+  if(!state||!state.sfxOn||!AC||AC.state!=='running')return;
+  const t=AC.currentTime+0.01,B=sfxBus;
+  try{switch(name){
+    case 'coin':tone(B,'sine',nf('B5'),t,0.16,0.003,0.09);tone(B,'sine',nf('E6'),t+0.07,0.16,0.003,0.22);tone(B,'triangle',nf('E7'),t+0.07,0.03,0.002,0.12);break;
+    case 'click':tone(B,'sine',1800,t,0.05,0.002,0.03,1200);break;
+    case 'buy':tone(B,'triangle',nf('G5'),t,0.12,0.004,0.08);tone(B,'triangle',nf('C6'),t+0.06,0.12,0.004,0.16);break;
+    case 'place':tone(B,'sine',190,t,0.3,0.005,0.16,80);noise(B,t,0.08,0.08,'lowpass',900);marimba(B,nf('G5'),t+0.08,0.5);break;
+    case 'trash':noise(B,t,0.12,0.16,'bandpass',2600,500);tone(B,'sine',nf('A5'),t+0.08,0.08,0.003,0.12);break;
+    case 'nope':tone(B,'square',220,t,0.04,0.005,0.12,170);break;
+    case 'hatch':['C5','E5','G5','C6'].forEach((n,i)=>marimba(B,nf(n),t+i*0.08,0.9));noise(B,t,0.05,0.06,'highpass',3000);break;
+    case 'fanfare':['G4','C5','E5','G5'].forEach((n,i)=>tone(B,'triangle',nf(n),t+i*0.09,0.12,0.005,0.25));['C5','E5','G5'].forEach(n=>tone(B,'triangle',nf(n),t+0.4,0.07,0.01,0.6));break;
+    case 'levelup':['C5','E5','G5','C6','E6','G6'].forEach((n,i)=>marimba(B,nf(n),t+i*0.07,1));['C5','E5','G5','C6'].forEach(n=>tone(B,'triangle',nf(n),t+0.45,0.06,0.02,0.9));break;
+  }}catch(e){}
+}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('button'))sfx('click');});
 
 
 /* ================= visitors ================= */
@@ -2016,52 +2488,59 @@ function maybeSpawnTrash(n){
 }
 
 /* ================= main loop ================= */
-let lastWorld=0;
+// The world is only re-rendered when something visible changes (a coin becomes ready, trash
+// appears...). Re-rendering every second used to restart every CSS animation each tick.
+let worldSig='';
+function readySig(){return state.items.map(i=>ready(i)?1:0).join('')+'|'+state.trash.length;}
 function tick(){
-  updateHUD();updateBadges();
-  renderWorld();
+  updateHUD();updateBadges();updateLiveModal();
+  const sig=readySig();
+  if(sig!==worldSig&&!(mode.type==='move'&&mode.payload)){worldSig=sig;renderWorld();}
 }
-setInterval(tick,1000);
-setInterval(()=>{if(Math.random()<0.5)maybeSpawnTrash(1);},60000);
-setInterval(doSave,15000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){dirty=true;doSave();}});
 
 /* ================= nav wiring ================= */
-$('#nShop').onclick=()=>{cancelGhost(true);openShop(0);};
+$('#nShop').onclick=()=>{cancelGhost(true);openShop();};
 $('#nHatch').onclick=()=>{cancelGhost(true);openHatch(0);};
 $('#nMis').onclick=()=>{cancelGhost(true);openMissions();};
 $('#nMove').onclick=()=>{
   if(mode.type==='move'||mode.type==='place'){cancelGhost(true);}
-  else{setMode('move');toast('Tap the thing you want to move');}
+  else{setMode('move');toast('Move mode: drag anything to reposition it. Tap ✋ again to finish');}
 };
-$('#helpBtn').onclick=openHelp;
-$('#resetBtn').onclick=resetGame;
+$('#setBtn').onclick=openSettings;
+$('#worldSvg').addEventListener('wheel',e=>{
+  e.preventDefault();
+  const ns=clamp(pan.s*Math.exp(-e.deltaY*0.0015),ZOOM_MIN,ZOOM_MAX);
+  const r=$('#worldSvg').getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
+  pan.x=cx-(cx-pan.x)*ns/pan.s;pan.y=cy-(cy-pan.y)*ns/pan.s;pan.s=ns;applyPan();
+},{passive:false});
 
 /* ================= init ================= */
 (async function init(){
   const had=await loadState();
   const away=nowMs()-(state.last||nowMs());
+  buildHUD();updateHUD();placeToasts();
   centerView();
-  renderWorld();updateHUD();updateBadges();
+  renderWorld();updateHUD();updateBadges();updateMusicBtn();
   syncVisitors();requestAnimationFrame(visitorFrame);
   setInterval(syncVisitors,8000);
-  $('#musicBtn').textContent=state.musicOn?'🎵':'🔇';
-  $('#musicBtn').classList.toggle('toggled',!state.musicOn);
-  if(state.musicOn){
-    document.addEventListener('pointerdown',function kickstart(){
-      startMusic();updateMusicBtn();
-    },{once:true});
-  }
+  setInterval(tick,1000);
+  setInterval(()=>{if(Math.random()<0.5)maybeSpawnTrash(1);},60000);
+  setInterval(doSave,15000);
   if(!had){
     openHelp();
     setMode('place',{kind:'exhibit',sp:'buffalo',f:SP.buffalo.f,fromInv:0});
-    toast('Tap a spot for your Water Buffalo, then \u2713');
+    toast('Tap a spot for your Water Buffalo, then ✓');
   } else {
     if(away>5*60000){
-      const rc=readyCount();
-      toast(rc?('Welcome back! '+rc+' coin'+(rc>1?'s are':' is')+' waiting for you 🪙'):'Welcome back!');
+      const rc=readyCount(),eggs=state.hatch.breeds.filter(hatchReady).length;
+      let msg='Welcome back!';
+      if(rc)msg+=' '+rc+' coin'+(rc>1?'s are':' is')+' waiting';
+      if(eggs)msg+=(rc?' and ':' ')+eggs+' egg'+(eggs>1?'s are':' is')+' ready to hatch';
+      toast(msg+(rc||eggs?' 🪙':''));
       maybeSpawnTrash(2);
     }
+    if(state.won===false&&state.disc.includes('dragon'))state.won=true;
   }
 })();
 </script>
