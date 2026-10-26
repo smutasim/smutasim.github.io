@@ -726,72 +726,75 @@ function basiliskArt(){
              or a crossbreed producing this species)
    XP per coin collected is derived from `per` and the tier (see xpFor()).
    Pacing was tuned with a player simulation: a typical player (6-minute
-   check-ins every ~2h while awake) gets ~3 species in 5 minutes, a first
-   hybrid in ~4 hours, ~25 exhibits in ~2-3 days and the Dragon in ~7 days.
+   check-ins every ~2h while awake) gets ~3 species in a few minutes, ~15
+   exhibits in ~8 hours, ~25 exhibits in ~1-2 days and the Dragon in ~7 days.
+   Gold is the main gate: an animal's cost grows faster than its payout, and
+   its unlock level sits a little below where a player can first afford it,
+   so there is (almost) always something worth saving for.
    ============================================================================ */
 const SP={
 /* base */
 buffalo:{n:'Water Buffalo',tier:'base',lv:1,cost:300,pay:75,per:1,breed:5,art:()=>quadArt({c:'#6b5b4a',cd:'#4e4136',bw:52,bh:30,lg:18,lw:8,nl:9,na:20,nw:14,hr:8.5,sn:6.5,snh:5,ear:'round',earc:'#6b5b4a',tail:'rope',hornBuf:true})},
-sheep:{n:'Sheep',tier:'base',lv:3,cost:500,pay:300,per:3,breed:12,art:()=>quadArt({c:'#ece7dd',cd:'#c9c2b2',bw:42,bh:26,lg:14,lw:5,nl:9,na:45,nw:8,hr:6,sn:4.5,snh:3.6,headc:'#4a443c',snc:'#4a443c',earc:'#4a443c',ear:'long',tail:'short',legc:'#4a443c',ex:g=>C(g.bcx-1,g.bcy-2,g.bw*0.44,'#f4f0e8')+C(g.bcx-g.bw*0.3,g.bcy-g.bh*0.3,g.bw*0.2,'#f4f0e8')+C(g.bcx+g.bw*0.28,g.bcy-g.bh*0.28,g.bw*0.2,'#f4f0e8')+C(g.hx+2,g.hy-6,5,'#f4f0e8')})},
-goat:{n:'Goat',tier:'base',lv:5,cost:1000,pay:750,per:5,breed:20,art:()=>quadArt({c:'#cfc4b0',cd:'#a89d87',bw:42,bh:24,lg:18,lw:5,nl:12,na:52,nw:8,hr:6,sn:5,snh:3.8,ear:'long',tail:'short',goatHorn:true,beard:true,hoof:'#5f574a'})},
-donkey:{n:'Donkey',tier:'base',lv:7,cost:1500,pay:1500,per:8,breed:30,art:()=>quadArt({c:'#9d9489',cd:'#736c63',bw:48,bh:24,lg:22,lw:5.5,nl:14,na:58,nw:8.5,hr:7,sn:5.5,snh:4,ear:'long',tail:'rope',snc:'#c9c2b6',hoof:'#5c564e'})},
-llama:{n:'Llama',tier:'base',lv:8,cost:2000,pay:2000,per:10,breed:40,art:()=>quadArt({c:'#e8d9c0',cd:'#c3b193',bw:44,bh:26,lg:22,lw:6,nl:22,na:78,nw:10,hr:6.5,sn:4.5,snh:3.6,ear:'long',tail:'fluff'})},
-wildhorse:{n:'Wild Horse',tier:'base',lv:11,cost:3000,pay:3600,per:12,breed:45,art:()=>quadArt({c:'#8a5a34',cd:'#6a4326',bw:50,bh:24,lg:24,lw:5.5,nl:16,na:60,nw:9,hr:7,sn:6,snh:4.2,ear:'horse',tail:'rope',tailc:'#3f2a18',tailtuft:'#3f2a18',snc:'#5c3a22',hoof:'#3a2a1a',ex:g=>LN(g.sx+2,g.sy-3,g.hx+2,g.hy-4,'#3f2a18',4.4)+LN(g.sx+3,g.sy-1,g.hx+3,g.hy-2,'#3f2a18',3)})},
+sheep:{n:'Sheep',tier:'base',lv:2,cost:550,pay:300,per:3,breed:12,art:()=>quadArt({c:'#ece7dd',cd:'#c9c2b2',bw:42,bh:26,lg:14,lw:5,nl:9,na:45,nw:8,hr:6,sn:4.5,snh:3.6,headc:'#4a443c',snc:'#4a443c',earc:'#4a443c',ear:'long',tail:'short',legc:'#4a443c',ex:g=>C(g.bcx-1,g.bcy-2,g.bw*0.44,'#f4f0e8')+C(g.bcx-g.bw*0.3,g.bcy-g.bh*0.3,g.bw*0.2,'#f4f0e8')+C(g.bcx+g.bw*0.28,g.bcy-g.bh*0.28,g.bw*0.2,'#f4f0e8')+C(g.hx+2,g.hy-6,5,'#f4f0e8')})},
+goat:{n:'Goat',tier:'base',lv:4,cost:1600,pay:750,per:5,breed:20,art:()=>quadArt({c:'#cfc4b0',cd:'#a89d87',bw:42,bh:24,lg:18,lw:5,nl:12,na:52,nw:8,hr:6,sn:5,snh:3.8,ear:'long',tail:'short',goatHorn:true,beard:true,hoof:'#5f574a'})},
+donkey:{n:'Donkey',tier:'base',lv:5,cost:3800,pay:1500,per:8,breed:30,art:()=>quadArt({c:'#9d9489',cd:'#736c63',bw:48,bh:24,lg:22,lw:5.5,nl:14,na:58,nw:8.5,hr:7,sn:5.5,snh:4,ear:'long',tail:'rope',snc:'#c9c2b6',hoof:'#5c564e'})},
+llama:{n:'Llama',tier:'base',lv:6,cost:5500,pay:2000,per:10,breed:40,art:()=>quadArt({c:'#e8d9c0',cd:'#c3b193',bw:44,bh:26,lg:22,lw:6,nl:22,na:78,nw:10,hr:6.5,sn:4.5,snh:3.6,ear:'long',tail:'fluff'})},
+wildhorse:{n:'Wild Horse',tier:'base',lv:6,cost:13000,pay:3600,per:12,breed:45,art:()=>quadArt({c:'#8a5a34',cd:'#6a4326',bw:50,bh:24,lg:24,lw:5.5,nl:16,na:60,nw:9,hr:7,sn:6,snh:4.2,ear:'horse',tail:'rope',tailc:'#3f2a18',tailtuft:'#3f2a18',snc:'#5c3a22',hoof:'#3a2a1a',ex:g=>LN(g.sx+2,g.sy-3,g.hx+2,g.hy-4,'#3f2a18',4.4)+LN(g.sx+3,g.sy-1,g.hx+3,g.hy-2,'#3f2a18',3)})},
 /* birds */
-duck:{n:'Duck',tier:'bird',lv:2,cost:400,pay:200,per:2,breed:8,art:()=>birdArt({c:'#b9b3a4',c2:'#d9d4c6',cd:'#8f897a',bw:28,bh:18,lg:8,nl:10,na:75,nw:5,hr:5.5,headc:'#2e7d4f',bill:true,beakL:6,beakH:2.8,headRing:true,tailUp:true,legc:'#d98a2e'})},
-chicken:{n:'Chicken',tier:'bird',lv:4,cost:750,pay:500,per:4,breed:16,art:()=>birdArt({c:'#f0ead8',c2:'#fbf7ec',cd:'#c9c0a6',bw:26,bh:19,lg:9,nl:9,na:80,nw:6,hr:5.5,comb:true,wattle:true,beakL:4.5,tailUp:true})},
-flamingo:{n:'Flamingo',tier:'bird',lv:12,cost:4000,pay:4200,per:12,breed:50,art:()=>birdArt({c:'#f08ca4',c2:'#f7b3c2',cd:'#d16a86',bw:26,bh:16,lg:26,nl:22,na:85,nw:4.5,hr:4.8,sneck:true,legc:'#e2708c',legw:1.8,beakL:6,beakc:'#3a3a3a',hook:true})},
-owl:{n:'Owl',tier:'bird',lv:15,cost:10000,pay:11000,per:20,breed:80,art:()=>birdArt({c:'#8a7358',c2:'#d8cbb4',cd:'#66543e',bw:26,bh:24,lg:6,nl:4,na:88,nw:10,hr:7.5,tilt:-4,hook:true,beakL:3.5,beakc:'#c9a14e',eyeDisc:'#d8cbb4',eyeR:2.2,ex:g=>P(`M${g.hx-6} ${g.hy-6.5} l 3 -4 l 2 4 z`,'#8a7358')+P(`M${g.hx+2} ${g.hy-7} l 3 -4 l 2 4.5 z`,'#8a7358')})},
-peacock:{n:'Peacock',tier:'bird',lv:21,cost:25000,pay:30000,per:30,breed:120,art:()=>birdArt({c:'#1f7a8c',c2:'#2a93a8',cd:'#14606f',bw:26,bh:17,lg:12,nl:14,na:82,nw:5,hr:5,fan:true,beakL:4.5,crest:'#f2c14e',legc:'#8a8a6a'})},
-eagle:{n:'Eagle',tier:'bird',lv:26,cost:100000,pay:130000,per:60,breed:240,art:()=>birdArt({c:'#5a4632',c2:'#6e563c',cd:'#3f3022',bw:30,bh:22,lg:9,nl:9,na:72,nw:7,hr:6.2,headc:'#f5f2ea',neckc:'#f5f2ea',hook:true,beakL:5.5,legc:'#e0a428',tailc:'#f5f2ea'})},
+duck:{n:'Duck',tier:'bird',lv:1,cost:350,pay:200,per:2,breed:8,art:()=>birdArt({c:'#b9b3a4',c2:'#d9d4c6',cd:'#8f897a',bw:28,bh:18,lg:8,nl:10,na:75,nw:5,hr:5.5,headc:'#2e7d4f',bill:true,beakL:6,beakH:2.8,headRing:true,tailUp:true,legc:'#d98a2e'})},
+chicken:{n:'Chicken',tier:'bird',lv:3,cost:1000,pay:500,per:4,breed:16,art:()=>birdArt({c:'#f0ead8',c2:'#fbf7ec',cd:'#c9c0a6',bw:26,bh:19,lg:9,nl:9,na:80,nw:6,hr:5.5,comb:true,wattle:true,beakL:4.5,tailUp:true})},
+flamingo:{n:'Flamingo',tier:'bird',lv:6,cost:16000,pay:4200,per:12,breed:50,art:()=>birdArt({c:'#f08ca4',c2:'#f7b3c2',cd:'#d16a86',bw:26,bh:16,lg:26,nl:22,na:85,nw:4.5,hr:4.8,sneck:true,legc:'#e2708c',legw:1.8,beakL:6,beakc:'#3a3a3a',hook:true})},
+owl:{n:'Owl',tier:'bird',lv:8,cost:55000,pay:11000,per:20,breed:80,art:()=>birdArt({c:'#8a7358',c2:'#d8cbb4',cd:'#66543e',bw:26,bh:24,lg:6,nl:4,na:88,nw:10,hr:7.5,tilt:-4,hook:true,beakL:3.5,beakc:'#c9a14e',eyeDisc:'#d8cbb4',eyeR:2.2,ex:g=>P(`M${g.hx-6} ${g.hy-6.5} l 3 -4 l 2 4 z`,'#8a7358')+P(`M${g.hx+2} ${g.hy-7} l 3 -4 l 2 4.5 z`,'#8a7358')})},
+peacock:{n:'Peacock',tier:'bird',lv:11,cost:250000,pay:30000,per:30,breed:120,art:()=>birdArt({c:'#1f7a8c',c2:'#2a93a8',cd:'#14606f',bw:26,bh:17,lg:12,nl:14,na:82,nw:5,hr:5,fan:true,beakL:4.5,crest:'#f2c14e',legc:'#8a8a6a'})},
+eagle:{n:'Eagle',tier:'bird',lv:14,cost:1700000,pay:130000,per:60,breed:240,art:()=>birdArt({c:'#5a4632',c2:'#6e563c',cd:'#3f3022',bw:30,bh:22,lg:9,nl:9,na:72,nw:7,hr:6.2,headc:'#f5f2ea',neckc:'#f5f2ea',hook:true,beakL:5.5,legc:'#e0a428',tailc:'#f5f2ea'})},
 /* water */
-otter:{n:'Otter',tier:'water',lv:13,cost:6000,pay:6000,per:15,breed:60,water:true,art:()=>quadArt({c:'#7a5c44',cd:'#5b4330',bw:46,bh:16,lg:8,lw:5,nl:9,na:40,nw:8,hr:6,sn:4,snh:3.2,ear:'round',earc:'#7a5c44',tail:'thin',snc:'#a88a6c',c2:'#a88a6c'})},
-beaver:{n:'Beaver',tier:'water',lv:16,cost:12000,pay:13000,per:20,breed:80,water:true,art:()=>quadArt({c:'#6e4f38',cd:'#513826',bw:42,bh:22,lg:8,lw:5.5,nl:6,na:35,nw:10,hr:6.5,sn:4.2,snh:3.6,ear:'round',earc:'#6e4f38',tail:'paddle',tailc:'#463228',ex:g=>R(g.hx-g.hr*0.9-3,g.hy+g.hr*0.55,3,4,1,'#f3ead6')})},
-seal:{n:'Seal',tier:'water',lv:19,cost:20000,pay:26000,per:30,breed:120,water:true,art:()=>sealArt('#8d94a0','#b9bec7',false,1)},
-penguin:{n:'Penguin',tier:'water',lv:23,cost:50000,pay:55000,per:40,breed:160,water:true,art:()=>penguinArt('#23272e','#f5f5f0','#e0912e')},
-seaturtle:{n:'Sea Turtle',tier:'water',lv:27,cost:120000,pay:150000,per:60,breed:240,water:true,art:()=>seaTurtleArt('#5c7d4f','#8fae86')},
-dolphin:{n:'Dolphin',tier:'water',lv:31,cost:400000,pay:420000,per:90,breed:360,water:true,art:()=>dolphinArt('#7d9db4','#d5e2ea')},
-narwhal:{n:'Narwhal',tier:'water',lv:30,cost:300000,pay:300000,per:75,breed:300,water:true,art:()=>narwhalArt('#8494a0','#c3ccd2')},
-shark:{n:'Shark',tier:'water',lv:35,cost:1000000,pay:960000,per:110,breed:440,water:true,art:()=>sharkArt('#8d99a0','#dfe6e8')},
+otter:{n:'Otter',tier:'water',lv:7,cost:25000,pay:6000,per:15,breed:60,water:true,art:()=>quadArt({c:'#7a5c44',cd:'#5b4330',bw:46,bh:16,lg:8,lw:5,nl:9,na:40,nw:8,hr:6,sn:4,snh:3.2,ear:'round',earc:'#7a5c44',tail:'thin',snc:'#a88a6c',c2:'#a88a6c'})},
+beaver:{n:'Beaver',tier:'water',lv:8,cost:71000,pay:13000,per:20,breed:80,water:true,art:()=>quadArt({c:'#6e4f38',cd:'#513826',bw:42,bh:22,lg:8,lw:5.5,nl:6,na:35,nw:10,hr:6.5,sn:4.2,snh:3.6,ear:'round',earc:'#6e4f38',tail:'paddle',tailc:'#463228',ex:g=>R(g.hx-g.hr*0.9-3,g.hy+g.hr*0.55,3,4,1,'#f3ead6')})},
+seal:{n:'Seal',tier:'water',lv:11,cost:180000,pay:26000,per:30,breed:120,water:true,art:()=>sealArt('#8d94a0','#b9bec7',false,1)},
+penguin:{n:'Penguin',tier:'water',lv:12,cost:550000,pay:55000,per:40,breed:160,water:true,art:()=>penguinArt('#23272e','#f5f5f0','#e0912e')},
+seaturtle:{n:'Sea Turtle',tier:'water',lv:15,cost:2100000,pay:150000,per:60,breed:240,water:true,art:()=>seaTurtleArt('#5c7d4f','#8fae86')},
+dolphin:{n:'Dolphin',tier:'water',lv:18,cost:8400000,pay:420000,per:90,breed:360,water:true,art:()=>dolphinArt('#7d9db4','#d5e2ea')},
+narwhal:{n:'Narwhal',tier:'water',lv:17,cost:5500000,pay:300000,per:75,breed:300,water:true,art:()=>narwhalArt('#8494a0','#c3ccd2')},
+shark:{n:'Shark',tier:'water',lv:20,cost:27000000,pay:960000,per:110,breed:440,water:true,art:()=>sharkArt('#8d99a0','#dfe6e8')},
 /* reptiles */
-turtle:{n:'Tortoise',tier:'rept',lv:14,cost:7500,pay:7000,per:15,breed:60,art:()=>turtleArt('#6f8450','#9aa06a')},
-iguana:{n:'Iguana',tier:'rept',lv:18,cost:15000,pay:19000,per:25,breed:100,art:()=>lizArt({c:'#7fa05a',cd:'#5f7a40',c2:'#b4c98a',bw:44,bh:15,lg:7,hh:9,snl:8,tlen:38,tdip:2,ridge:'#5f7a40',ridgeH:4,dewlap:true})},
-snake:{n:'Snake',tier:'rept',lv:22,cost:40000,pay:36000,per:30,breed:120,art:()=>snakeArt('#6f9e57','#4a7238')},
-crocodile:{n:'Crocodile',tier:'rept',lv:28,cost:150000,pay:180000,per:60,breed:240,art:()=>lizArt({c:'#5d7a4a',cd:'#455c36',c2:'#a3b483',bw:56,bh:17,lg:8,hh:10,snl:16,tlen:34,tdip:5,ridge:'#455c36',ridgeH:4,teeth:true})},
-komodo:{n:'Komodo Dragon',tier:'rept',lv:33,cost:600000,pay:580000,per:90,breed:360,art:()=>lizArt({c:'#7d7463',cd:'#5d5648',c2:'#a39a86',bw:54,bh:18,lg:9,hh:11,snl:13,tlen:36,tdip:4,tongue:true})},
+turtle:{n:'Tortoise',tier:'rept',lv:7,cost:32000,pay:7000,per:15,breed:60,art:()=>turtleArt('#6f8450','#9aa06a')},
+iguana:{n:'Iguana',tier:'rept',lv:11,cost:120000,pay:19000,per:25,breed:100,art:()=>lizArt({c:'#7fa05a',cd:'#5f7a40',c2:'#b4c98a',bw:44,bh:15,lg:7,hh:9,snl:8,tlen:38,tdip:2,ridge:'#5f7a40',ridgeH:4,dewlap:true})},
+snake:{n:'Snake',tier:'rept',lv:12,cost:330000,pay:36000,per:30,breed:120,art:()=>snakeArt('#6f9e57','#4a7238')},
+crocodile:{n:'Crocodile',tier:'rept',lv:16,cost:2800000,pay:180000,per:60,breed:240,art:()=>lizArt({c:'#5d7a4a',cd:'#455c36',c2:'#a3b483',bw:56,bh:17,lg:8,hh:10,snl:16,tlen:34,tdip:5,ridge:'#455c36',ridgeH:4,teeth:true})},
+komodo:{n:'Komodo Dragon',tier:'rept',lv:19,cost:14000000,pay:580000,per:90,breed:360,art:()=>lizArt({c:'#7d7463',cd:'#5d5648',c2:'#a39a86',bw:54,bh:18,lg:9,hh:11,snl:13,tlen:36,tdip:4,tongue:true})},
 /* big mammals */
-gorilla:{n:'Gorilla',tier:'big',lv:6,cost:1200,pay:1000,per:6,breed:25,art:()=>gorillaArt('#3d3a41','#565159')},
-zebra:{n:'Zebra',tier:'big',lv:9,cost:2500,pay:2500,per:10,breed:40,art:()=>quadArt({c:'#f4f4f2',cd:'#c9c9c4',bw:50,bh:24,lg:24,lw:5.5,nl:16,na:60,nw:9,hr:7,sn:6,snh:4.2,ear:'horse',tail:'rope',tailtuft:'#2a2a2a',stripes:'#2b2b2b',neckStripes:'#2b2b2b',snc:'#3a3a3a',hoof:'#3a3a3a'})},
-panda:{n:'Giant Panda',tier:'big',lv:24,cost:60000,pay:72000,per:45,breed:180,art:()=>quadArt({c:'#f2f0eb',cd:'#d4d1c8',bw:50,bh:30,lg:14,lw:8,nl:7,na:38,nw:12,hr:8.5,sn:5.5,snh:4.2,ear:'round',earc:'#2c2c2c',patch:'#2c2c2c',legc:'#2c2c2c',tail:'short',ex:g=>E(g.hx-2.6,g.hy-1.8,2.6,3.2,'#2c2c2c')})},
-kangaroo:{n:'Kangaroo',tier:'big',lv:25,cost:75000,pay:85000,per:45,breed:180,art:()=>kangarooArt('#b0774f')},
-giraffe:{n:'Giraffe',tier:'big',lv:29,cost:200000,pay:260000,per:75,breed:300,art:()=>quadArt({c:'#e8c07a',cd:'#c39a55',bw:44,bh:24,lg:30,lw:5.5,nl:30,na:80,nw:8,hr:6,sn:5,snh:3.8,ear:'long',tail:'rope',spots:'#a3702f',spr:4.6,hoof:'#8a6a3a',ex:g=>LN(g.hx-1,g.hy-g.hr,g.hx-1,g.hy-g.hr-4,'#a3702f',2)+C(g.hx-1,g.hy-g.hr-5,1.8,'#a3702f')+LN(g.hx+3,g.hy-g.hr,g.hx+3,g.hy-g.hr-4,'#a3702f',2)+C(g.hx+3,g.hy-g.hr-5,1.8,'#a3702f')})},
-hippo:{n:'Hippo',tier:'big',lv:32,cost:500000,pay:500000,per:90,breed:360,art:()=>quadArt({c:'#8f7f8d',cd:'#6d5f6c',bw:60,bh:34,lg:14,lw:10,nl:6,na:20,nw:16,hr:9.5,sn:9,snh:7,ear:'round',earc:'#8f7f8d',tail:'thin',c2:'#b3a2b1',ex:g=>C(g.hx-g.hr*0.8-9*0.8,g.hy+g.hr*0.3-6,1.3,'rgba(0,0,0,.3)')})},
-lion:{n:'Lion',tier:'big',lv:34,cost:750000,pay:750000,per:100,breed:400,art:()=>quadArt({c:'#cfa156',cd:'#a37a38',bw:50,bh:24,lg:20,lw:6.5,nl:10,na:45,nw:10,hr:7.5,sn:5.5,snh:4.4,ear:'round',earc:'#8a5a24',mane:'#8a5a24',tail:'rope',tailtuft:'#8a5a24',snc:'#e0bc80'})},
-tiger:{n:'Tiger',tier:'big',lv:36,cost:1500000,pay:1200000,per:120,breed:480,art:()=>quadArt({c:'#d98a3d',cd:'#a86426',bw:52,bh:24,lg:20,lw:6.5,nl:10,na:45,nw:10,hr:7.5,sn:5.5,snh:4.4,ear:'round',earc:'#d98a3d',stripes:'#33241a',strw:3,tail:'thin',tailc:'#33241a',snc:'#f2e3cc',c2:'#f2e3cc'})},
-rhino:{n:'Rhino',tier:'big',lv:38,cost:2000000,pay:1440000,per:120,breed:480,art:()=>quadArt({c:'#9aa0a3',cd:'#75797c',bw:58,bh:32,lg:16,lw:9,nl:7,na:25,nw:15,hr:9,sn:8,snh:6,ear:'point',earc:'#9aa0a3',tail:'thin',hornR:true})},
-polar:{n:'Polar Bear',tier:'big',lv:39,cost:2500000,pay:2100000,per:150,breed:600,art:()=>quadArt({c:'#eef0f2',cd:'#c6ced6',bw:56,bh:30,lg:18,lw:8.5,nl:12,na:30,nw:12,hr:7.5,sn:5.5,snh:4.2,ear:'round',earc:'#eef0f2',tail:'short',snc:'#eef0f2',nost:true})},
-elephant:{n:'Elephant',tier:'big',lv:41,cost:3000000,pay:2900000,per:180,breed:720,art:()=>quadArt({c:'#a8a5ab',cd:'#828087',bw:60,bh:36,lg:22,lw:11,nl:8,na:30,nw:17,hr:10.5,sn:7,snh:6,ear:'fan',earc:'#918e94',tail:'thin',trunk:true,
+gorilla:{n:'Gorilla',tier:'big',lv:5,cost:2300,pay:1000,per:6,breed:25,art:()=>gorillaArt('#3d3a41','#565159')},
+zebra:{n:'Zebra',tier:'big',lv:6,cost:7500,pay:2500,per:10,breed:40,art:()=>quadArt({c:'#f4f4f2',cd:'#c9c9c4',bw:50,bh:24,lg:24,lw:5.5,nl:16,na:60,nw:9,hr:7,sn:6,snh:4.2,ear:'horse',tail:'rope',tailtuft:'#2a2a2a',stripes:'#2b2b2b',neckStripes:'#2b2b2b',snc:'#3a3a3a',hoof:'#3a3a3a'})},
+panda:{n:'Giant Panda',tier:'big',lv:12,cost:780000,pay:72000,per:45,breed:180,art:()=>quadArt({c:'#f2f0eb',cd:'#d4d1c8',bw:50,bh:30,lg:14,lw:8,nl:7,na:38,nw:12,hr:8.5,sn:5.5,snh:4.2,ear:'round',earc:'#2c2c2c',patch:'#2c2c2c',legc:'#2c2c2c',tail:'short',ex:g=>E(g.hx-2.6,g.hy-1.8,2.6,3.2,'#2c2c2c')})},
+kangaroo:{n:'Kangaroo',tier:'big',lv:12,cost:1000000,pay:85000,per:45,breed:180,art:()=>kangarooArt('#b0774f')},
+giraffe:{n:'Giraffe',tier:'big',lv:17,cost:4400000,pay:260000,per:75,breed:300,art:()=>quadArt({c:'#e8c07a',cd:'#c39a55',bw:44,bh:24,lg:30,lw:5.5,nl:30,na:80,nw:8,hr:6,sn:5,snh:3.8,ear:'long',tail:'rope',spots:'#a3702f',spr:4.6,hoof:'#8a6a3a',ex:g=>LN(g.hx-1,g.hy-g.hr,g.hx-1,g.hy-g.hr-4,'#a3702f',2)+C(g.hx-1,g.hy-g.hr-5,1.8,'#a3702f')+LN(g.hx+3,g.hy-g.hr,g.hx+3,g.hy-g.hr-4,'#a3702f',2)+C(g.hx+3,g.hy-g.hr-5,1.8,'#a3702f')})},
+hippo:{n:'Hippo',tier:'big',lv:18,cost:11000000,pay:500000,per:90,breed:360,art:()=>quadArt({c:'#8f7f8d',cd:'#6d5f6c',bw:60,bh:34,lg:14,lw:10,nl:6,na:20,nw:16,hr:9.5,sn:9,snh:7,ear:'round',earc:'#8f7f8d',tail:'thin',c2:'#b3a2b1',ex:g=>C(g.hx-g.hr*0.8-9*0.8,g.hy+g.hr*0.3-6,1.3,'rgba(0,0,0,.3)')})},
+lion:{n:'Lion',tier:'big',lv:20,cost:19000000,pay:750000,per:100,breed:400,art:()=>quadArt({c:'#cfa156',cd:'#a37a38',bw:50,bh:24,lg:20,lw:6.5,nl:10,na:45,nw:10,hr:7.5,sn:5.5,snh:4.4,ear:'round',earc:'#8a5a24',mane:'#8a5a24',tail:'rope',tailtuft:'#8a5a24',snc:'#e0bc80'})},
+tiger:{n:'Tiger',tier:'big',lv:21,cost:37000000,pay:1200000,per:120,breed:480,art:()=>quadArt({c:'#d98a3d',cd:'#a86426',bw:52,bh:24,lg:20,lw:6.5,nl:10,na:45,nw:10,hr:7.5,sn:5.5,snh:4.4,ear:'round',earc:'#d98a3d',stripes:'#33241a',strw:3,tail:'thin',tailc:'#33241a',snc:'#f2e3cc',c2:'#f2e3cc'})},
+rhino:{n:'Rhino',tier:'big',lv:22,cost:52000000,pay:1440000,per:120,breed:480,art:()=>quadArt({c:'#9aa0a3',cd:'#75797c',bw:58,bh:32,lg:16,lw:9,nl:7,na:25,nw:15,hr:9,sn:8,snh:6,ear:'point',earc:'#9aa0a3',tail:'thin',hornR:true})},
+polar:{n:'Polar Bear',tier:'big',lv:23,cost:83000000,pay:2100000,per:150,breed:600,art:()=>quadArt({c:'#eef0f2',cd:'#c6ced6',bw:56,bh:30,lg:18,lw:8.5,nl:12,na:30,nw:12,hr:7.5,sn:5.5,snh:4.2,ear:'round',earc:'#eef0f2',tail:'short',snc:'#eef0f2',nost:true})},
+elephant:{n:'Elephant',tier:'big',lv:25,cost:140000000,pay:2900000,per:180,breed:720,art:()=>quadArt({c:'#a8a5ab',cd:'#828087',bw:60,bh:36,lg:22,lw:11,nl:8,na:30,nw:17,hr:10.5,sn:7,snh:6,ear:'fan',earc:'#918e94',tail:'thin',trunk:true,
   exBack:g=>tuskShape(g.hx-10.5*0.1,g.hy+10.5*0.5, g.hx-10.5*1.3,g.hy+10.5*1.7, 10.5*0.28, '#d3c6a8', '#b8a888'),
   ex:g=>tuskShape(g.hx-10.5*0.4,g.hy+10.5*0.55, g.hx-10.5*1.6,g.hy+10.5*1.9, 10.5*0.34, '#efe6d2', '#d3c6a8')
 })},
 /* hybrids */
-liger:{n:'Liger',tier:'hybrid',lv:37,parents:['lion','tiger'],pay:1700000,per:120,breed:360,art:()=>quadArt({c:'#dfb977',cd:'#b18d4a',bw:54,bh:26,lg:21,lw:7,nl:10,na:45,nw:10.5,hr:7.8,sn:5.6,snh:4.5,ear:'round',earc:'#a3702f',mane:'#b8863c',stripes:'#8a6a3a',strw:2.4,tail:'rope',tailtuft:'#8a5a24',snc:'#f2e3cc'})},
-alpaca:{n:'Alpaca',tier:'hybrid',lv:10,parents:['sheep','llama'],pay:12000,per:30,breed:120,art:()=>quadArt({c:'#f0e4d2',cd:'#cbbaa0',bw:42,bh:26,lg:20,lw:6,nl:20,na:80,nw:11,hr:6.5,sn:4,snh:3.4,ear:'long',tail:'fluff',ex:g=>C(g.hx+1,g.hy-7,6,'#f6ecdd')+C(g.bcx-g.bw*0.25,g.bcy-g.bh*0.3,7,'#f6ecdd')+C(g.bcx+g.bw*0.25,g.bcy-g.bh*0.3,7,'#f6ecdd')})},
-platypus:{n:'Platypus',tier:'hybrid',lv:17,parents:['duck','beaver'],pay:36000,per:40,breed:180,water:true,art:()=>platypusArt()},
-sealion:{n:'Sea Lion',tier:'hybrid',lv:20,parents:['otter','seal'],pay:72000,per:60,breed:240,water:true,art:()=>sealArt('#a3774d','#c9a67e',true,1.05,true)},
-megalodon:{n:'Megalodon',tier:'hybrid',lv:40,parents:['shark','crocodile'],pay:2900000,per:150,breed:480,water:true,art:()=>megalodonArt()},
+liger:{n:'Liger',tier:'hybrid',lv:22,parents:['lion','tiger'],pay:1700000,per:120,breed:360,art:()=>quadArt({c:'#dfb977',cd:'#b18d4a',bw:54,bh:26,lg:21,lw:7,nl:10,na:45,nw:10.5,hr:7.8,sn:5.6,snh:4.5,ear:'round',earc:'#a3702f',mane:'#b8863c',stripes:'#8a6a3a',strw:2.4,tail:'rope',tailtuft:'#8a5a24',snc:'#f2e3cc'})},
+alpaca:{n:'Alpaca',tier:'hybrid',lv:7,parents:['sheep','llama'],pay:12000,per:30,breed:120,art:()=>quadArt({c:'#f0e4d2',cd:'#cbbaa0',bw:42,bh:26,lg:20,lw:6,nl:20,na:80,nw:11,hr:6.5,sn:4,snh:3.4,ear:'long',tail:'fluff',ex:g=>C(g.hx+1,g.hy-7,6,'#f6ecdd')+C(g.bcx-g.bw*0.25,g.bcy-g.bh*0.3,7,'#f6ecdd')+C(g.bcx+g.bw*0.25,g.bcy-g.bh*0.3,7,'#f6ecdd')})},
+platypus:{n:'Platypus',tier:'hybrid',lv:9,parents:['duck','beaver'],pay:36000,per:40,breed:180,water:true,art:()=>platypusArt()},
+sealion:{n:'Sea Lion',tier:'hybrid',lv:12,parents:['otter','seal'],pay:72000,per:60,breed:240,water:true,art:()=>sealArt('#a3774d','#c9a67e',true,1.05,true)},
+megalodon:{n:'Megalodon',tier:'hybrid',lv:21,parents:['shark','crocodile'],pay:2900000,per:150,breed:480,water:true,art:()=>megalodonArt()},
 /* mythicals */
-unicorn:{n:'Unicorn',tier:'myth',lv:42,parents:['narwhal','wildhorse'],pay:5000000,per:180,breed:600,art:()=>pegasusUnicornArt(true)},
-pegasus:{n:'Pegasus',tier:'myth',lv:43,parents:['wildhorse','eagle'],pay:5000000,per:180,breed:600,art:()=>pegasusUnicornArt(false)},
-griffin:{n:'Griffin',tier:'myth',lv:44,parents:['lion','eagle'],pay:6000000,per:200,breed:720,art:()=>griffinArt()},
-yeti:{n:'Yeti',tier:'myth',lv:45,parents:['polar','gorilla'],pay:6000000,per:200,breed:720,art:()=>yetiArt()},
-kraken:{n:'Kraken',tier:'myth',lv:47,parents:['seaturtle','dolphin'],pay:7000000,per:240,breed:840,water:true,art:()=>krakenArt('#7a4f7d')},
-mammoth:{n:'Mammoth',tier:'myth',lv:48,parents:['elephant','hippo'],pay:7000000,per:240,breed:960,art:()=>mammothArt()},
-phoenix:{n:'Phoenix',tier:'myth',lv:46,parents:['eagle','flamingo'],pay:7000000,per:240,breed:840,art:()=>phoenixArt()},
-basilisk:{n:'Basilisk',tier:'myth',lv:49,parents:['crocodile','komodo'],pay:7000000,per:240,breed:960,art:()=>basiliskArt()},
-dinosaur:{n:'Dinosaur',tier:'myth',lv:50,parents:['megalodon','komodo'],pay:9000000,per:300,breed:1200,art:()=>dinosaurArt()},
+unicorn:{n:'Unicorn',tier:'myth',lv:30,parents:['narwhal','wildhorse'],pay:5000000,per:180,breed:600,art:()=>pegasusUnicornArt(true)},
+pegasus:{n:'Pegasus',tier:'myth',lv:31,parents:['wildhorse','eagle'],pay:5000000,per:180,breed:600,art:()=>pegasusUnicornArt(false)},
+griffin:{n:'Griffin',tier:'myth',lv:32,parents:['lion','eagle'],pay:6000000,per:200,breed:720,art:()=>griffinArt()},
+yeti:{n:'Yeti',tier:'myth',lv:33,parents:['polar','gorilla'],pay:6000000,per:200,breed:720,art:()=>yetiArt()},
+kraken:{n:'Kraken',tier:'myth',lv:35,parents:['seaturtle','dolphin'],pay:7000000,per:240,breed:840,water:true,art:()=>krakenArt('#7a4f7d')},
+mammoth:{n:'Mammoth',tier:'myth',lv:36,parents:['elephant','hippo'],pay:7000000,per:240,breed:960,art:()=>mammothArt()},
+phoenix:{n:'Phoenix',tier:'myth',lv:34,parents:['eagle','flamingo'],pay:7000000,per:240,breed:840,art:()=>phoenixArt()},
+basilisk:{n:'Basilisk',tier:'myth',lv:37,parents:['crocodile','komodo'],pay:7000000,per:240,breed:960,art:()=>basiliskArt()},
+dinosaur:{n:'Dinosaur',tier:'myth',lv:38,parents:['megalodon','komodo'],pay:9000000,per:300,breed:1200,art:()=>dinosaurArt()},
 /* capstone */
-dragon:{n:'Dragon',tier:'cap',lv:51,parents:['basilisk','phoenix'],pay:25000000,per:360,breed:1440,art:()=>dragonArt()}
+dragon:{n:'Dragon',tier:'cap',lv:40,parents:['basilisk','phoenix'],pay:25000000,per:360,breed:1440,art:()=>dragonArt()}
 };
 const RECIPES=Object.keys(SP).filter(k=>SP[k].parents).map(k=>({a:SP[k].parents[0],b:SP[k].parents[1],res:k})).sort((p,q)=>SP[p.res].lv-SP[q.res].lv);
 const TIERS=[['base','Farm & Field'],['bird','Birds'],['water','Water Animals'],['rept','Reptiles'],['big','Big Mammals']];
@@ -799,10 +802,10 @@ const TIERS=[['base','Farm & Field'],['bird','Birds'],['water','Water Animals'],
 /* Same idea as SP above: lv to unlock, cost to build, pay per collection, per = minutes between
    collections, max = how many of that store the island can hold. */
 const STORES={
-icecream:{n:'Ice Cream Stand',lv:5,cost:2500,pay:1500,per:10,max:2,art:c=>storeArt('#f28fb0','🍦')},
-balloon:{n:'Balloon Cart',lv:14,cost:15000,pay:9000,per:20,max:2,art:c=>storeArt('#f2b52e','🎈')},
-popcorn:{n:'Popcorn Stand',lv:24,cost:150000,pay:90000,per:60,max:2,art:c=>storeArt('#e0483a','🍿')},
-gift:{n:'Gift Shop',lv:34,cost:1500000,pay:900000,per:120,max:2,art:c=>storeArt('#4f86d9','🎁')}
+icecream:{n:'Ice Cream Stand',lv:5,cost:3500,pay:1500,per:10,max:2,art:c=>storeArt('#f28fb0','🍦')},
+balloon:{n:'Balloon Cart',lv:7,cost:46000,pay:9000,per:20,max:2,art:c=>storeArt('#f2b52e','🎈')},
+popcorn:{n:'Popcorn Stand',lv:12,cost:1100000,pay:90000,per:60,max:2,art:c=>storeArt('#e0483a','🍿')},
+gift:{n:'Gift Shop',lv:20,cost:26000000,pay:900000,per:120,max:2,art:c=>storeArt('#4f86d9','🎁')}
 };
 function storeArt(c1,emo){
   let s='';
@@ -854,11 +857,11 @@ boardwalk:{n:'Boardwalk',cost:220,boost:0,path:true,
   }}
 };
 const EXP_SIZES=[8,10,12,14,16,18,20];
-const EXP_COST=[0,5000,40000,250000,1200000,5000000,20000000];
-const EXP_LV=[0,6,12,18,24,30,36];      // level needed for each expansion
+const EXP_COST=[0,8400,110000,1200000,9500000,66000000,450000000];
+const EXP_LV=[0,6,8,12,18,23,29];      // level needed for each expansion
 const GRID_MAX=20;
-const SLOT_COST=[0,20000,400000];
-const SLOT_LV=[0,10,25];                // level needed for nest 2 and 3
+const SLOT_COST=[0,47000,3400000];
+const SLOT_LV=[0,8,17];                // level needed for nest 2 and 3
 
 /* ---- levels & XP (Tap Zoo style: XP from collecting, buying and hatching) ---- */
 const TIER_XP={base:1,bird:1,big:1.2,water:1.2,rept:1.2,hybrid:1.5,myth:2,cap:3};
@@ -868,8 +871,8 @@ function xpFor(it){
   return 0;
 }
 const buyXp=cost=>Math.max(1,Math.round(Math.sqrt(cost)*0.6));
-const xpNeed=L=>Math.round(12+Math.pow(L,2.1));    // xp to go from level L to L+1
-const levelGold=L=>10*L*L;                          // gold gift on reaching level L
+const xpNeed=L=>Math.round(12+Math.pow(L,2.5));    // xp to go from level L to L+1
+const levelGold=L=>5*L*L;                           // gold gift on reaching level L
 const MAX_LV=51;
 function unlocksAt(L){
   const out=[];
@@ -1044,26 +1047,26 @@ function ownsSp(k){for(const it of state.items)if(it.kind==='exhibit'&&it.sp===k
 /* ================= missions ================= */
 /* r = star reward, g = gold reward. Only the first few unfinished goals are shown at once. */
 const MISSIONS=[
-{id:'m1',t:'Place your first exhibit',r:1,g:200,c:s=>s.items.some(i=>i.kind==='exhibit')},
-{id:'m2',t:'Collect 1,000 gold (lifetime)',r:1,g:300,c:s=>s.stats.gold>=1000},
-{id:'m4',t:'Keep 4 different species',r:2,g:800,c:s=>speciesOwned().size>=4},
-{id:'m3',t:'Pick up 5 pieces of trash',r:1,g:500,c:s=>s.stats.trash>=5},
-{id:'m9',t:'Place 3 decorations',r:1,g:1000,c:s=>s.items.filter(i=>i.kind==='deco').length>=3},
-{id:'m8',t:'Open a visitor stand',r:2,g:2000,c:s=>s.items.some(i=>i.kind==='store')},
-{id:'m10',t:'Expand the island',r:2,g:4000,c:s=>s.exp>=1},
-{id:'m5',t:'Start your first breeding',r:1,g:2000,c:s=>s.stats.breeds>=1},
-{id:'m19',t:'Reach level 10',r:3,g:10000,c:s=>s.lv>=10},
-{id:'m6',t:'Raise an exhibit to 3 animals',r:2,g:5000,c:s=>s.items.some(i=>i.kind==='exhibit'&&i.count>=3)},
-{id:'m7',t:'Discover a hybrid species',r:3,g:15000,c:s=>s.disc.some(k=>SP[k].tier==='hybrid')},
-{id:'m11',t:'Keep 10 different species',r:3,g:20000,c:s=>speciesOwned().size>=10},
-{id:'m13',t:'A full house: 4 animals in one exhibit',r:2,g:20000,c:s=>s.items.some(i=>i.kind==='exhibit'&&i.count>=4)},
-{id:'m12',t:'Collect 1,000,000 gold (lifetime)',r:3,g:50000,c:s=>s.stats.gold>=1e6},
-{id:'m20',t:'Reach level 20',r:4,g:150000,c:s=>s.lv>=20},
-{id:'m23',t:'Discover all 5 hybrids',r:5,g:2000000,c:s=>Object.keys(SP).filter(k=>SP[k].tier==='hybrid').every(k=>s.disc.includes(k))},
-{id:'m21',t:'Keep 25 different species',r:5,g:500000,c:s=>speciesOwned().size>=25},
-{id:'m16',t:'Pick up 200 pieces of trash',r:6,g:500000,c:s=>s.stats.trash>=200},
-{id:'m14',t:'Discover a mythical creature',r:5,g:3000000,c:s=>s.disc.some(k=>SP[k].tier==='myth')},
-{id:'m22',t:'Reach level 40',r:6,g:5000000,c:s=>s.lv>=40},
+{id:'m1',t:'Place your first exhibit',r:1,g:40,c:s=>s.items.some(i=>i.kind==='exhibit')},
+{id:'m2',t:'Collect 1,000 gold (lifetime)',r:1,g:60,c:s=>s.stats.gold>=1000},
+{id:'m4',t:'Keep 4 different species',r:2,g:160,c:s=>speciesOwned().size>=4},
+{id:'m3',t:'Pick up 5 pieces of trash',r:1,g:100,c:s=>s.stats.trash>=5},
+{id:'m9',t:'Place 3 decorations',r:1,g:200,c:s=>s.items.filter(i=>i.kind==='deco').length>=3},
+{id:'m8',t:'Open a visitor stand',r:2,g:400,c:s=>s.items.some(i=>i.kind==='store')},
+{id:'m10',t:'Expand the island',r:2,g:800,c:s=>s.exp>=1},
+{id:'m5',t:'Start your first breeding',r:1,g:400,c:s=>s.stats.breeds>=1},
+{id:'m19',t:'Reach level 10',r:3,g:2000,c:s=>s.lv>=10},
+{id:'m6',t:'Raise an exhibit to 3 animals',r:2,g:1000,c:s=>s.items.some(i=>i.kind==='exhibit'&&i.count>=3)},
+{id:'m7',t:'Discover a hybrid species',r:3,g:3000,c:s=>s.disc.some(k=>SP[k].tier==='hybrid')},
+{id:'m11',t:'Keep 10 different species',r:3,g:4000,c:s=>speciesOwned().size>=10},
+{id:'m13',t:'A full house: 4 animals in one exhibit',r:2,g:4000,c:s=>s.items.some(i=>i.kind==='exhibit'&&i.count>=4)},
+{id:'m12',t:'Collect 1,000,000 gold (lifetime)',r:3,g:10000,c:s=>s.stats.gold>=1e6},
+{id:'m20',t:'Reach level 20',r:4,g:30000,c:s=>s.lv>=20},
+{id:'m23',t:'Discover all 5 hybrids',r:5,g:400000,c:s=>Object.keys(SP).filter(k=>SP[k].tier==='hybrid').every(k=>s.disc.includes(k))},
+{id:'m21',t:'Keep 25 different species',r:5,g:100000,c:s=>speciesOwned().size>=25},
+{id:'m16',t:'Pick up 200 pieces of trash',r:6,g:100000,c:s=>s.stats.trash>=200},
+{id:'m14',t:'Discover a mythical creature',r:5,g:600000,c:s=>s.disc.some(k=>SP[k].tier==='myth')},
+{id:'m22',t:'Reach level 40',r:6,g:1000000,c:s=>s.lv>=40},
 {id:'m17',t:'Collect 1 billion gold (lifetime)',r:10,g:0,c:s=>s.stats.gold>=1e9},
 {id:'m15',t:'Hatch the Dragon',r:10,g:0,c:s=>s.disc.includes('dragon')},
 {id:'m18',t:'Every species with a full family of 4',r:25,g:0,c:s=>Object.keys(SP).every(k=>s.items.some(i=>i.kind==='exhibit'&&i.sp===k&&i.count>=4))}
@@ -2279,17 +2282,37 @@ function audioInit(){
   if(AC)return AC;
   const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return null;
   try{AC=new Ctx();}catch(e){return null;}
-  const master=AC.createGain();master.gain.value=0.9;master.connect(AC.destination);
+  const master=AC.createGain();master.gain.value=1.0;master.connect(AC.destination);
   const comp=AC.createDynamicsCompressor();comp.connect(master);
   musBus=AC.createGain();musBus.gain.value=0;musBus.connect(comp);
-  sfxBus=AC.createGain();sfxBus.gain.value=0.7;sfxBus.connect(master);
+  sfxBus=AC.createGain();sfxBus.gain.value=0.9;sfxBus.connect(master);
   noiseBuf=AC.createBuffer(1,AC.sampleRate*0.5,AC.sampleRate);
   const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   AC.onstatechange=updateMusicBtn;
+  // iPhones mute Web Audio when the ring/silent switch is on, unless the page counts as "media
+  // playback": navigator.audioSession (iOS 17+), or a looping silent <audio> element (older iOS).
+  try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
   return AC;
+}
+let silentEl=null;
+function silentUnlock(){
+  if(silentEl)return;
+  try{
+    // 0.5s of silent 8-bit mono PCM, built in code so there's no extra file
+    const n=4000,u8=new Uint8Array(44+n),dv=new DataView(u8.buffer);
+    const w=(o,s)=>{for(let i=0;i<s.length;i++)u8[o+i]=s.charCodeAt(i);};
+    w(0,'RIFF');dv.setUint32(4,36+n,true);w(8,'WAVEfmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+    dv.setUint32(24,8000,true);dv.setUint32(28,8000,true);dv.setUint16(32,1,true);dv.setUint16(34,8,true);w(36,'data');dv.setUint32(40,n,true);
+    u8.fill(128,44);
+    let bin='';for(let i=0;i<u8.length;i++)bin+=String.fromCharCode(u8[i]);
+    silentEl=document.createElement('audio');silentEl.src='data:audio/wav;base64,'+btoa(bin);
+    silentEl.loop=true;silentEl.setAttribute('playsinline','');silentEl.volume=0.01;
+    const p=silentEl.play();if(p&&p.catch)p.catch(()=>{silentEl=null;});
+  }catch(e){silentEl=null;}
 }
 function audioUnlock(e){
   const ac=audioInit();if(!ac)return;
+  silentUnlock();
   if(ac.state!=='running')ac.resume().then(updateMusicBtn).catch(()=>{});
   if(!audioUnlock.done){audioUnlock.done=true;
     try{const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);}catch(err){}}
@@ -2309,7 +2332,7 @@ function tone(bus,type,freq,t,peak,att,dec,freqEnd){
   o.type=type;o.frequency.setValueAtTime(freq,t);if(freqEnd)o.frequency.exponentialRampToValueAtTime(freqEnd,t+att+dec);
   env(g,t,peak,att,dec);o.connect(g).connect(bus);o.start(t);o.stop(t+att+dec+0.05);
 }
-function marimba(bus,freq,t,v){tone(bus,'sine',freq,t,0.22*v,0.004,0.45);tone(bus,'sine',freq*4,t,0.05*v,0.002,0.08);}
+function marimba(bus,freq,t,v){tone(bus,'sine',freq,t,0.22*v,0.004,0.45);tone(bus,'sine',freq*2,t,0.08*v,0.002,0.2);tone(bus,'sine',freq*4,t,0.05*v,0.002,0.08);}
 function noise(bus,t,peak,dec,ftype,f0,f1){
   const s=AC.createBufferSource();s.buffer=noiseBuf;
   const f=AC.createBiquadFilter();f.type=ftype;f.frequency.setValueAtTime(f0,t);if(f1)f.frequency.exponentialRampToValueAtTime(f1,t+dec);
@@ -2332,7 +2355,7 @@ let musOn=false,musNext=0,musStepN=0,musTimer=null;
 function musStart(){
   if(!audioInit())return;
   if(!musOn){musOn=true;musNext=AC.currentTime+0.12;musStepN=0;clearInterval(musTimer);musTimer=setInterval(musTick,50);}
-  musBus.gain.cancelScheduledValues(AC.currentTime);musBus.gain.setTargetAtTime(0.5,AC.currentTime,0.4);
+  musBus.gain.cancelScheduledValues(AC.currentTime);musBus.gain.setTargetAtTime(1.0,AC.currentTime,0.4);
   updateMusicBtn();
 }
 function musStop(){
@@ -2351,8 +2374,8 @@ function musPlayStep(n,t){
   const m=bar.m[st];
   if(m){const f=nf(m)*(alt&&st%2===0?0.5:1);marimba(musBus,f,t,alt?0.8:1);}
   if(alt&&st===3)marimba(musBus,nf(bar.ch[2])*2,t,0.45);              // little echo on the second pass
-  if(st===0)tone(musBus,'triangle',nf(bar.b),t,0.2,0.01,0.5);
-  if(st===4)tone(musBus,'triangle',nf(bar.f),t,0.16,0.01,0.4);
+  if(st===0)tone(musBus,'triangle',nf(bar.b)*2,t,0.2,0.01,0.5);
+  if(st===4)tone(musBus,'triangle',nf(bar.f)*2,t,0.16,0.01,0.4);
   if(st===2||st===6)bar.ch.forEach(c=>tone(musBus,'sine',nf(c),t,0.035,0.01,0.25));
   if(st===0)bar.ch.forEach(c=>tone(musBus,'sine',nf(c)/2,t,0.025,0.25,1.4)); // soft pad
   noise(musBus,t,st%2?0.035:0.018,0.045,'highpass',7000);                  // shaker
