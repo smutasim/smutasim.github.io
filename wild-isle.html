@@ -193,7 +193,7 @@ h1,h2,h3,.disp{font-family:'Fredoka','Nunito',system-ui,sans-serif;}
   <div class="chip" id="chipStar"></div>
   <div class="chip" id="chipRate"></div>
   <div id="zoomBtns">
-    <button class="rndBtn" id="musicBtn" title="Music on/off">🎵</button>
+    <button class="rndBtn" id="musicBtn" title="Sound on/off">🔊</button>
     <button class="rndBtn" id="recenterBtn" title="Recenter">🎯</button>
     <button class="rndBtn" id="zin" title="Zoom in">+</button>
     <button class="rndBtn" id="zout" title="Zoom out">−</button>
@@ -258,7 +258,7 @@ function shade(hex,amt){let c=hex.replace('#','');if(c.length===3)c=c.split('').
 
 /* ================= SVG primitives (string builders) ================= */
 let artSeq=0;
-const R=(x,y,w,h,rx,f)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${f}"/>`;
+const R=(x,y,w,h,rx,f,extra)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${f}" ${extra||''}/>`;
 const E=(cx,cy,rx,ry,f,extra)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${f}" ${extra||''}/>`;
 const C=(cx,cy,r,f)=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${f}"/>`;
 const P=(d,f,extra)=>`<path d="${d}" fill="${f}" ${extra||''}/>`;
@@ -802,57 +802,137 @@ const TIERS=[['base','Farm & Field'],['bird','Birds'],['water','Water Animals'],
 /* Same idea as SP above: lv to unlock, cost to build, pay per collection, per = minutes between
    collections, max = how many of that store the island can hold. */
 const STORES={
-icecream:{n:'Ice Cream Stand',lv:5,cost:3500,pay:1500,per:10,max:2,art:c=>storeArt('#f28fb0','🍦')},
-balloon:{n:'Balloon Cart',lv:7,cost:46000,pay:9000,per:20,max:2,art:c=>storeArt('#f2b52e','🎈')},
-popcorn:{n:'Popcorn Stand',lv:12,cost:1100000,pay:90000,per:60,max:2,art:c=>storeArt('#e0483a','🍿')},
-gift:{n:'Gift Shop',lv:20,cost:26000000,pay:900000,per:120,max:2,art:c=>storeArt('#4f86d9','🎁')}
+icecream:{n:'Ice Cream Stand',lv:5,cost:3500,pay:1500,per:10,max:2,art:c=>storeArt('#f28fb0','🍦',
+  P('M93 38 L103 38 L98 54 Z','#d9a35a','stroke="#a8743e" stroke-width="1"')+LN(95,42,100,48,'#b8864a',0.8)+LN(101,42,96,48,'#b8864a',0.8)+
+  C(98,35,6,'#f7b3c9')+C(95,32,3,'#fbd0de')+C(98,29,4,'#fff3e0')+C(98,25,1.9,'#d93a3a'))},
+balloon:{n:'Balloon Cart',lv:7,cost:46000,pay:9000,per:20,max:2,art:c=>storeArt('#f2b52e','🎈',
+  LN(90,58,90,40,'#8a7a6a',0.7)+LN(92,58,98,46,'#8a7a6a',0.7)+LN(94,58,105,52,'#8a7a6a',0.7)+
+  E(90,33,6,7.5,'#e0483a')+E(98,39,5.6,7,'#4f86d9')+E(105,45,5,6.4,'#5fae4a')+
+  E(88,30,1.6,2.4,'rgba(255,255,255,.6)')+E(96.5,36,1.4,2.2,'rgba(255,255,255,.6)')+E(103.5,42.5,1.3,2,'rgba(255,255,255,.6)'))},
+popcorn:{n:'Popcorn Stand',lv:12,cost:1100000,pay:90000,per:60,max:2,art:c=>storeArt('#e0483a','🍿',
+  P('M91 40 L107 40 L104 56 L94 56 Z','#fffaf0','stroke="#c43a2e" stroke-width="1"')+P('M95 40 L97 56 L100 56 L99 40 Z','#e0483a')+P('M103 40 L101.5 56 L103.5 56 L106 40 Z','#e0483a')+
+  C(93,38,3.2,'#fff4c4')+C(98,36,3.6,'#fff8d8')+C(103,37,3.4,'#fff4c4')+C(96,33,2.8,'#ffefb0')+C(101,32.5,3,'#fff8d8'))},
+gift:{n:'Gift Shop',lv:20,cost:26000000,pay:900000,per:120,max:2,art:c=>storeArt('#4f86d9','🎁',
+  R(93,78,15,14,1.5,'#f2c14e')+R(99.2,78,2.6,14,0,'#e0574a')+R(93,83.7,15,2.6,0,'#e0574a')+
+  R(96,67,11,11,1.5,'#9a6bde')+R(100.3,67,2.4,11,0,'#fff3c4')+R(96,71.3,11,2.4,0,'#fff3c4')+
+  P('M101.5 67 q -5 -5 -6 -1 q 1 2 6 1 q 5 -5 6 -1 q -1 2 -6 1','#fff3c4'))}
 };
-function storeArt(c1,emo){
+/* a little striped-awning booth drawn with a hint of depth (front face + side face), plus an
+   optional per-store flourish (giant cone, balloons...) */
+function storeArt(c1,emo,extra){
+  const dk=shade(c1,-32),ol='stroke="#5e4a34" stroke-width="1.1" stroke-linejoin="round"';
   let s='';
-  s+=E(60,93,40,5,'rgba(0,0,0,.18)');
-  s+=R(28,58,64,34,3,'#f7f1e2');                       // booth
-  s+=R(84,58,8,34,2,'#e2d8c0');                        // side shade
-  s+=R(48,70,24,22,3,shade(c1,-35));                    // doorway
-  s+=R(24,74,72,7,2,'#a8743e')+R(24,79,72,2,1,'#7f5428'); // counter
-  for(let i=0;i<6;i++)s+=R(22+i*12.7,48,12.7,12,0,i%2?'#fff':c1); // striped awning
-  for(let i=0;i<6;i++)s+=C(28.3+i*12.7,60,6.35,i%2?'#fff':c1);
-  s+=R(22,46,76,4,2,shade(c1,-25));
-  s+=R(40,28,40,17,7,'#fffdf4','stroke="'+shade(c1,-20)+'" stroke-width="2"'); // sign
-  s+=`<text x="60" y="42" font-size="13" text-anchor="middle">${emo}</text>`;
-  return s;
+  s+=E(62,93,42,6,'rgba(0,0,0,.18)');
+  s+=P('M26 58 H84 V92 H26 Z','#fbf4e4',ol);                              // booth front
+  s+=P('M84 58 L96 52 V86 L84 92 Z','#e3d3b0',ol);                        // side face
+  for(let i=1;i<4;i++)s+=LN(26+i*14.5,84,26+i*14.5,92,'rgba(110,80,40,.18)',1);
+  s+=R(33,62,44,16,2,dk);                                                  // serving window
+  s+=R(35,64,40,13,1.5,'#3b2f2a');
+  s+=C(42,72,3.2,shade(c1,30))+C(49,73,2.6,'#f7f1e2')+C(66,72,3,shade(c1,15))+R(55,68,6,8,1,'#f2c14e')+R(71,69,3,7,1,'#7fc0e8');
+  s+=R(29,77,57,6,2,'#b4804a','stroke="#7a5428" stroke-width="1"');       // counter
+  s+=P('M86 77 L97 71.5 V76.5 L86 83 Z','#946437');
+  s+=R(30,83,54,2.2,1,'rgba(0,0,0,.12)');
+  s+=R(26,86,58,6,1,c1)+R(26,86,58,1.4,0,'rgba(255,255,255,.35)');        // kick-plate trim
+  s+=P('M34 40 L102 40 L90 46 L22 46 Z',shade(c1,-12),ol);                // awning top
+  for(let i=0;i<6;i++)s+=R(22+i*11,46,11,10,0,i%2?'#fffaf0':c1);          // stripes
+  s+=P('M88 46 L100 40 V48 L88 54 Z',shade(c1,-20));                      // side awning
+  for(let i=0;i<6;i++)s+=P(`M${22+i*11} 56 a 5.5 5.5 0 0 0 11 0 z`,i%2?'#fffaf0':c1,'stroke="'+dk+'" stroke-width=".8"');
+  s+=R(22,45,66,2,1,dk);
+  s+=LN(48,30,48,40,'#7a5428',2)+LN(72,30,72,40,'#7a5428',2);              // sign posts
+  s+=R(40,22.5,40,16,7,'#fffdf4','stroke="'+dk+'" stroke-width="2"');     // sign
+  s+=`<text x="60" y="35" font-size="12" text-anchor="middle">${emo}</text>`;
+  return s+(extra||'');
 }
 /* lv = unlock level; boost = % payout bonus (all decor together caps at DECO_CAP) */
 const DECO_CAP=20;
+const f1=n=>+n.toFixed(1);
+// five-petal flower at x,y
+function FL(x,y,c,r){r=r||2.6;let s='';for(let i=0;i<5;i++){const a=i*1.2566-1.5708;s+=C(f1(x+Math.cos(a)*r),f1(y+Math.sin(a)*r),f1(r*0.72),c);}return s+C(x,y,f1(r*0.55),'#fff1a8');}
+// a point inside a ground tile: u,v in tile units (-0.5..0.5) around the centre px,py
+function tilePt(px,py,u,v){return [f1(px+(u-v)*TW/2),f1(py+(u+v)*TH/2)];}
 const DECOS={
-bush:{n:'Bush',lv:1,cost:500,boost:1,art:()=>C(60,84,14,'#5f8f4a')+C(48,88,10,'#6f9e57')+C(72,88,10,'#557f40')+C(56,78,5,'#7fb065')},
-flowers:{n:'Flower Bed',lv:3,cost:800,boost:1,art:()=>E(60,90,22,7,'#7a5c40')+C(50,84,4,'#e26a8d')+C(60,81,4,'#f2c14e')+C(70,84,4,'#c46ad9')+LN(50,88,50,84,'#4a7238',2)+LN(60,88,60,82,'#4a7238',2)+LN(70,88,70,84,'#4a7238',2)},
-bench:{n:'Park Bench',lv:5,cost:1500,boost:1,art:()=>R(40,78,40,5,2,'#8a5a2e')+R(40,64,40,5,2,'#8a5a2e')+R(42,68,4,22,1,'#5c3d20')+R(74,68,4,22,1,'#5c3d20')},
-tree:{n:'Shade Tree',lv:8,cost:2500,boost:1,art:()=>E(60,92,18,4,'rgba(0,0,0,.15)')+R(56,66,8,26,3,'#6e4a2a')+C(60,52,20,'#4d7a3a')+C(46,60,13,'#5f8f4a')+C(74,60,13,'#456e34')+C(54,46,7,'#5f9a48')},
-palm:{n:'Palm Tree',lv:10,cost:4000,boost:1,art:()=>E(62,92,14,3.5,'rgba(0,0,0,.15)')+P('M58 92 q -2 -24 6 -44 l 4 1 q -7 20 -5 43 z','#9a7244')+P('M64 48 q -18 -8 -28 4 q 14 -4 28 -2 z','#4f9a3e')+P('M64 48 q 18 -10 28 2 q -14 -4 -28 0 z','#5fae4a')+P('M64 48 q -6 -16 -20 -16 q 12 6 18 16 z','#5fae4a')+P('M64 48 q 8 -16 22 -14 q -14 4 -20 14 z','#4f9a3e')+C(62,51,3,'#7a5228')+C(67,51,3,'#7a5228')},
-lamp:{n:'Path Lamp',lv:12,cost:3000,boost:1,art:()=>R(58,58,4,34,1.5,'#3a4a44')+C(60,54,9,'rgba(255,230,140,.35)')+C(60,54,6,'#f2d98a')+P('M52 60 q 8 6 16 0 l -2 4 q -6 4 -12 0 z','#3a4a44')},
-pond:{n:'Duck Pond',lv:16,cost:6000,boost:2,art:()=>E(60,84,30,12,'#4fa3b8')+E(60,84,24,9,'#6fc0d3')+E(48,80,4,1.6,'#e8f4f6')+E(70,86,5,2.4,'#4d8f3f')},
-topiary:{n:'Peacock Topiary',cost:5,star:true,boost:2,art:()=>R(56,80,8,12,2,'#7a5c40')+C(60,66,13,'#3f7a4f')+P('M70 60 q 12 -8 16 -2 q -6 8 -14 8 z','#3f7a4f')+C(52,60,5,'#4d9e5f')},
-fountain:{n:'Grand Fountain',cost:10,star:true,boost:3,art:()=>E(60,88,26,9,'#9db4c9')+E(60,86,20,6,'#5ba8c9')+R(56,64,8,22,3,'#c9d4dd')+E(60,64,12,4,'#9db4c9')+P('M60 62 q -8 -14 0 -18 q 8 4 0 18','#8fd0e8')+C(60,44,3,'#bce4f2')},
-statue:{n:'Golden Dragon Statue',cost:20,star:true,boost:4,art:()=>E(60,90,20,6,'#b3a06a')+R(48,76,24,14,2,'#c9b67e')+P('M52 76 q -4 -18 12 -22 q 14 -4 16 8 q 1 8 -8 8 q 6 2 4 6 z','#f2c14e')+C(68,58,2,'#8a6a1e')},
+bush:{n:'Bush',lv:1,cost:500,boost:1,art:()=>E(60,91,24,5,'rgba(0,0,0,.16)')+E(60,86,24,7,'#3e6a30')+C(45,81,11,'#4a7a3a')+C(75,81,11,'#44723a')+C(60,73,15,'#578c43')+C(51,70,8,'#64a04d')+C(69,71,7.5,'#5e9748')+C(55,64,4.5,'#7cbb62')+C(47,77,3,'#72ae58')+
+  C(49,80,2.2,'#d94a5a')+C(66,77,2.2,'#d94a5a')+C(73,69,2,'#d94a5a')+C(58,82,2,'#d94a5a')+C(48.6,79.4,.7,'#ffd0d0')+C(65.6,76.4,.7,'#ffd0d0')},
+flowers:{n:'Flower Bed',lv:3,cost:800,boost:1,art:()=>E(60,90,27,8.5,'#9a7148')+E(60,88.5,24,6.8,'#6b4a2e')+
+  E(46,84,5,2.4,'#4f8a3f')+E(73,85,5,2.4,'#4f8a3f')+E(60,80,4.4,2,'#5c9a48')+
+  LN(46,86,46,78,'#4a7238',1.6)+LN(53,87,53,74,'#4a7238',1.6)+LN(60,86,60,76,'#4a7238',1.6)+LN(67,87,67,73,'#4a7238',1.6)+LN(74,86,74,79,'#4a7238',1.6)+
+  FL(46,77,'#e26a8d',2.6)+FL(53,73,'#f2c14e',2.8)+FL(60,75,'#c46ad9',2.6)+FL(67,72,'#ff8a5c',2.8)+FL(74,78,'#e26a8d',2.4)},
+bench:{n:'Park Bench',lv:5,cost:1500,boost:1,art:()=>E(60,92,28,4.5,'rgba(0,0,0,.16)')+
+  R(37,56,3.4,24,1.2,'#33403b')+R(80,56,3.4,24,1.2,'#33403b')+
+  R(35,58,50,5,2,'#b57a42','stroke="#7a5028" stroke-width=".8"')+R(35,65,50,5,2,'#ad7240','stroke="#7a5028" stroke-width=".8"')+
+  R(37,79,3.4,13,1.2,'#33403b')+R(80,79,3.4,13,1.2,'#33403b')+R(43,82,3,10,1.2,'#2b3632')+R(74,82,3,10,1.2,'#2b3632')+
+  P('M33 76 L87 76 L84 82 L30 82 Z','#c08648','stroke="#7a5028" stroke-width=".8"')+LN(32,79,86,79,'#9a6634',.8)+
+  R(31,72,5,3,1.2,'#33403b')+R(84,72,5,3,1.2,'#33403b')+R(33,72,2.4,8,1,'#33403b')+R(85,72,2.4,8,1,'#33403b')},
+tree:{n:'Shade Tree',lv:8,cost:2500,boost:1,art:()=>E(60,93,24,5,'rgba(0,0,0,.16)')+
+  P('M54 93 q 3 -4 3 -12 l 0 -18 h 7 l 0 18 q 0 8 4 12 z','#7a5232')+P('M61 70 q 6 -4 9 -10','none','stroke="#7a5232" stroke-width="3" stroke-linecap="round"')+LN(58,88,58,70,'#5e3e24',1)+
+  C(60,55,22,'#3d6b31')+C(43,62,13,'#467a39')+C(77,62,13,'#3d6b31')+C(50,46,14,'#548f42')+C(71,48,13,'#4c853e')+C(60,38,11,'#62a34d')+
+  C(52,38,5,'#7cbd62')+C(44,52,4,'#6aab52')+C(68,42,3.6,'#79b95f')+C(72,60,3,'#5a9947')+C(48,64,2.4,'#e8644a')+C(70,55,2.4,'#e8644a')+C(58,48,2.2,'#e8644a')},
+palm:{n:'Palm Tree',lv:10,cost:4000,boost:1,art:()=>E(62,93,15,3.5,'rgba(0,0,0,.16)')+P('M57 93 q -2 -24 6 -45 l 5 1 q -7 20 -5 44 z','#9a7244')+
+  LN(57.5,84,62.4,84.6,'#7a5632',1.2)+LN(57.6,76,62.6,76.6,'#7a5632',1.2)+LN(58.4,68,63.4,68.8,'#7a5632',1.2)+LN(59.8,60,64.6,60.8,'#7a5632',1.2)+
+  P('M64 48 q -18 -8 -30 4 q 14 -5 30 -2 z','#3f8a34')+P('M64 48 q 18 -10 30 3 q -14 -5 -30 -1 z','#4f9e40')+P('M64 48 q -6 -17 -21 -17 q 12 6 19 17 z','#5fae4a')+P('M64 48 q 8 -17 23 -15 q -14 4 -21 15 z','#4f9a3e')+P('M64 48 q -16 2 -22 14 q 10 -9 22 -12 z','#468f39')+P('M64 48 q 14 2 19 14 q -8 -9 -19 -12 z','#3f8a34')+
+  C(61,51,3.2,'#7a5228')+C(66.5,51,3.2,'#6e4a24')+C(63.6,53.6,3,'#7a5228')},
+lamp:{n:'Path Lamp',lv:12,cost:3000,boost:1,art:()=>E(60,93,11,3,'rgba(0,0,0,.16)')+C(60,44,17,'rgba(255,224,130,.22)')+C(60,45,10,'rgba(255,230,150,.35)')+
+  R(53,87,14,5,1.5,'#2b3632')+R(56,83,8,5,1.5,'#33403b')+R(58.4,52,3.2,32,1.2,'#3a4a44')+R(55,58,10,2,1,'#2b3632')+
+  P('M52 38 h16 l-3 14 h-10 z','#ffe9a0','stroke="#2b3632" stroke-width="1.6" stroke-linejoin="round"')+LN(60,38,60,52,'#2b3632',1.2)+C(60,45,3,'#fff8d8')+
+  P('M49 38 h22 l-5 -6 h-12 z','#2b3632')+C(60,30,2.2,'#2b3632')+R(54,51,12,2.6,1,'#2b3632')},
+pond:{n:'Duck Pond',lv:16,cost:6000,boost:2,art:()=>E(60,86,32,13,'#8f8a7e')+E(60,85,29,11,'#4f9fb6')+E(60,86,25,9,'#6fc0d3')+E(52,83,8,2,'rgba(255,255,255,.4)')+
+  [[30,84],[36,77],[46,73],[58,72],[70,73],[81,77],[89,84],[84,92],[72,96],[58,97],[44,96],[34,91]].map(([x,y],i)=>E(x,y,4.4,2.8,i%2?'#aba595':'#bfb9aa')).join('')+
+  E(46,89,6,2.6,'#4d8f3f')+P('M46 89 l 6 -1 l -1 2 z','#6fc0d3')+FL(47,87.6,'#f5a3c0',1.3)+
+  E(70,83,6,3.6,'#fffdf6')+C(74.5,78.5,2.8,'#fffdf6')+P('M77 78.4 l 3.2 .7 l -3.2 .9 z','#f2a13a')+C(75.2,77.6,.7,'#222')+P('M64.5 82 q 2 -3 5 -1.5','none','stroke="#e2dccd" stroke-width="1"')},
+topiary:{n:'Peacock Topiary',cost:5,star:true,boost:2,art:()=>{
+  let s=E(60,93,16,3.5,'rgba(0,0,0,.16)');
+  for(let i=0;i<7;i++){const a=Math.PI*(1.08+i*0.14);s+=C(f1(56+Math.cos(a)*19),f1(64+Math.sin(a)*19),6.5,i%2?'#3f7a4f':'#4a8a5a')+C(f1(56+Math.cos(a)*21),f1(64+Math.sin(a)*21),2,'#7fd0c8');}
+  s+=C(56,64,13,'#3a7348')+C(58,70,10,'#418050')+P('M64 66 q 6 -6 4 -16 l 5 0 q 2 10 -4 18 z','#418050')+C(70,49,5,'#4a8a5a')+P('M73.5 48.5 l 4 1 l -4 1.2 z','#c9a64a')+C(71,48,.9,'#1e2a22')+
+  LN(69,44,67,39,'#3f7a4f',1)+LN(70.5,44,70.5,38.6,'#3f7a4f',1)+LN(72,44,74,39,'#3f7a4f',1)+C(67,39,1.2,'#5fb0a8')+C(70.5,38.6,1.2,'#5fb0a8')+C(74,39,1.2,'#5fb0a8')+
+  P('M50 93 L70 93 L73 81 L47 81 Z','#c46e46','stroke="#8f4a2c" stroke-width="1"')+R(45,78,30,4.4,1.8,'#d4825a','stroke="#8f4a2c" stroke-width="1"');
+  return s;}},
+fountain:{n:'Grand Fountain',cost:10,star:true,boost:3,art:()=>E(60,92,34,6,'rgba(0,0,0,.14)')+E(60,86,32,10,'#a7b6c4')+E(60,84,30,9,'#c9d4dd')+E(60,84.5,26,7,'#4fa3c9')+E(60,85,22,5.4,'#7cc4e0')+
+  R(56,62,8,22,2,'#b8c5d0')+R(56,62,3,22,1.5,'#d6dfe6')+E(60,62,16,4.6,'#a7b6c4')+E(60,61,14,3.6,'#7cc4e0')+R(58,48,4,13,1.5,'#c9d4dd')+E(60,48,7,2.2,'#a7b6c4')+
+  P('M60 46 q -12 -10 -16 14','none','stroke="#a8ddf0" stroke-width="2" stroke-linecap="round"')+P('M60 46 q 12 -10 16 14','none','stroke="#a8ddf0" stroke-width="2" stroke-linecap="round"')+
+  P('M60 58 q -18 0 -24 24','none','stroke="#a8ddf0" stroke-width="1.8" stroke-linecap="round" opacity=".8"')+P('M60 58 q 18 0 24 24','none','stroke="#a8ddf0" stroke-width="1.8" stroke-linecap="round" opacity=".8"')+
+  P('M60 46 l 0 -10','none','stroke="#bce8f6" stroke-width="2.4" stroke-linecap="round"')+C(60,35,2.4,'#dff4fb')+E(52,85,4,1.2,'rgba(255,255,255,.55)')+E(70,86,3,1,'rgba(255,255,255,.55)')},
+statue:{n:'Golden Dragon Statue',cost:20,star:true,boost:4,art:()=>E(60,93,24,5,'rgba(0,0,0,.16)')+P('M42 92 L78 92 L74 84 L46 84 Z','#9d927a')+R(46,72,28,13,1.5,'#c2b591')+R(46,72,28,3,1,'#d9cfae')+R(44,70,32,3.4,1.2,'#e0b440')+R(44,84,32,2.4,1,'#e0b440')+
+  P('M60 60 q -16 -16 -8 -26 q 4 8 12 10 z','#e9b830')+P('M60 60 q -8 -14 0 -22 q 2 8 8 10 z','#f7d36a')+
+  P('M50 70 q -4 -18 12 -22 q 14 -4 16 8 q 1 8 -8 8 q 6 2 4 6 z','#f2c14e','stroke="#b8861e" stroke-width="1"')+P('M74 46 l 4 -6 l 1 6','#e9b830')+C(70,53,1.8,'#7a5a10')+
+  P('M50 70 q -6 -2 -9 -8','none','stroke="#e9b830" stroke-width="3" stroke-linecap="round"')+P('M86 40 l 1.4 3.4 l 3.4 1.4 l -3.4 1.4 l -1.4 3.4 l -1.4 -3.4 l -3.4 -1.4 l 3.4 -1.4 z','#fff3b0')+C(38,50,1.5,'#fff3b0')},
 stonepath:{n:'Stone Path',cost:150,boost:0,path:true,
-  art:()=>E(60,80,30,10,'#cdb98f')+E(48,78,6,4,'#b8a67e')+E(65,83,5.4,3.6,'#b3a078')+E(76,77,5.6,3.8,'#ac9976')+E(56,87,4.8,3.2,'#b8a67e'),
+  art:()=>`<g transform="translate(60 74) scale(0.62)">${DECOS.stonepath.groundArt(0,0)}</g>`,
   groundArt:(px,py)=>{
-    let s=`<path d="${diamond(px,py,TW*0.97,TH*0.97)}" fill="#cdb98f"/>`;
-    s+=`<path d="${diamond(px,py,TW*0.97,TH*0.97)}" fill="none" stroke="#b3a078" stroke-width="1"/>`;
-    const stones=[[-0.24,-0.12,7,5],[0.16,-0.22,6,4.2],[0.3,0.06,6.4,4.4],[-0.06,0.24,6.8,4.6],[0.02,-0.02,5.6,3.8],[-0.32,0.16,5.8,4],[0.32,-0.1,5.4,3.6]];
-    for(const [dx,dy,rx,ry] of stones)s+=E(px+dx*TW*0.42,py+dy*TH*0.42,rx,ry,'#b8a67e');
+    let s=`<path d="${diamond(px,py,TW*0.97,TH*0.97)}" fill="#d6c7a0" stroke="#bba982" stroke-width="1"/>`;
+    for(const [u,v] of [[-0.38,0.02],[0.05,-0.4],[0.4,0.1],[-0.1,0.4],[0.18,0.2],[-0.22,-0.2]]){const q=tilePt(px,py,u,v);s+=C(q[0],q[1],1.2,'#b9a882');} // gravel
+    // flagstones (u,v in tile units, r radius); mirrored on alternate tiles so a long path doesn't look stamped
+    const flip=hash2(Math.round(px),Math.round(py))<0.5?-1:1;
+    const stones=[[-0.24,-0.22,0.17,'#c4bdae'],[0.14,-0.24,0.15,'#b3ab9b'],[0.28,0.08,0.14,'#c9c2b3'],[-0.04,0.04,0.15,'#bab3a3'],[-0.28,0.16,0.13,'#b3ab9b'],[0.08,0.3,0.14,'#c4bdae']];
+    for(const [u0,v,r,c] of stones){
+      const u=u0*flip,q=tilePt(px,py,u,v),rx=f1(r*TW*0.62),ry=f1(r*TH*0.62);
+      s+=E(q[0],q[1]+1.8,rx,ry,'#8f8778');
+      s+=E(q[0],q[1],rx,ry,c);
+      s+=E(f1(q[0]-rx*0.25),f1(q[1]-ry*0.3),f1(rx*0.5),f1(ry*0.4),'rgba(255,255,255,.22)');
+    }
     return s;
   }},
 boardwalk:{n:'Boardwalk',cost:220,boost:0,path:true,
-  art:()=>R(30,74,60,16,2,'#c9a06a')+LN(40,74,40,90,'#a87c48',1.2)+LN(52,74,52,90,'#a87c48',1.2)+LN(64,74,64,90,'#a87c48',1.2)+LN(76,74,76,90,'#a87c48',1.2),
+  art:()=>`<g transform="translate(60 72) scale(0.62)">${DECOS.boardwalk.groundArt(0,0)}</g>`,
+  // a raised deck: planks run along the x axis so tiles placed in a row join into one walkway,
+  // and the two front faces give it a little thickness over the grass
   groundArt:(px,py)=>{
-    let s=`<path d="${diamond(px,py,TW*0.97,TH*0.97)}" fill="#c9a06a"/>`;
-    s+=`<path d="${diamond(px,py,TW*0.97,TH*0.97)}" fill="none" stroke="#a87c48" stroke-width="1"/>`;
-    for(let i=-3;i<=3;i++){
-      const x1=px+i*(TW*0.13), y1=py-TH*0.46;
-      const x2=px+i*(TW*0.13)-TW*0.15, y2=py+TH*0.46;
-      s+=LN(x1,y1,x2,y2,'#a87c48',1.6);
+    const w=TW*0.98,h=TH*0.98,d=5,pt=a=>f1(a[0])+' '+f1(a[1]);
+    const T=[px,py-h/2],Rt=[px+w/2,py],B=[px,py+h/2],L=[px-w/2,py];
+    const lerp=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+    let s=P(`M${pt(L)} L${pt(B)} L${pt([B[0],B[1]+d])} L${pt([L[0],L[1]+d])} Z`,'#8a6136');
+    s+=P(`M${pt(B)} L${pt(Rt)} L${pt([Rt[0],Rt[1]+d])} L${pt([B[0],B[1]+d])} Z`,'#6c4a28');
+    for(const t of [0.18,0.82]){const a=lerp(L,B,t);s+=R(f1(a[0]-1.5),f1(a[1]),3,d+1,0.8,'#5a3c20');}   // post ends
+    const N=5,cols=['#cf9f62','#c79558','#d3a76c','#c99a5d','#cda064'];
+    for(let k=0;k<N;k++){
+      const t0=k/N,t1=(k+1)/N;
+      const a=lerp(T,L,t0),b=lerp(Rt,B,t0),c=lerp(Rt,B,t1),e=lerp(T,L,t1);
+      s+=P(`M${pt(a)} L${pt(b)} L${pt(c)} L${pt(e)} Z`,cols[k],'stroke="#8f6438" stroke-width="0.9" stroke-linejoin="round"');
+      const m0=lerp(a,e,0.5),m1=lerp(b,c,0.5);
+      const g0=lerp(m0,m1,0.2+((k*37)%5)*0.04),g1=lerp(m0,m1,0.55+((k*53)%4)*0.06);
+      s+=LN(f1(g0[0]),f1(g0[1]-0.8),f1(g1[0]),f1(g1[1]-0.8),'rgba(255,240,210,.35)',0.9);   // grain
+      for(const tt of [0.12,0.88]){const n=lerp(m0,m1,tt);s+=C(f1(n[0]),f1(n[1]),0.9,'#6e4a28');} // nails
     }
+    s+=P(`M${pt(T)} L${pt(Rt)} L${pt(B)} L${pt(L)} Z`,'none','stroke="#7a5430" stroke-width="1"');
     return s;
   }}
 };
@@ -1062,7 +1142,7 @@ const MISSIONS=[
 {id:'m13',t:'A full house: 4 animals in one exhibit',r:2,g:4000,c:s=>s.items.some(i=>i.kind==='exhibit'&&i.count>=4)},
 {id:'m12',t:'Collect 1,000,000 gold (lifetime)',r:3,g:10000,c:s=>s.stats.gold>=1e6},
 {id:'m20',t:'Reach level 20',r:4,g:30000,c:s=>s.lv>=20},
-{id:'m23',t:'Discover all 5 hybrids',r:5,g:400000,c:s=>Object.keys(SP).filter(k=>SP[k].tier==='hybrid').every(k=>s.disc.includes(k))},
+{id:'m23',t:'Discover 5 hybrids',r:5,g:400000,c:s=>s.disc.filter(k=>SP[k]&&SP[k].tier==='hybrid').length>=5},
 {id:'m21',t:'Keep 25 different species',r:5,g:100000,c:s=>speciesOwned().size>=25},
 {id:'m16',t:'Pick up 200 pieces of trash',r:6,g:100000,c:s=>s.stats.trash>=200},
 {id:'m14',t:'Discover a mythical creature',r:5,g:600000,c:s=>s.disc.some(k=>SP[k].tier==='myth')},
@@ -1124,7 +1204,7 @@ function updateConfirmBar(){
   const on=ghostActive();
   $('#confirmBar').classList.toggle('on',on);
   if(on){const v=ghostValid();
-    $('#confirmLabel').textContent=v?(mode.type==='move'?'Move here?':'Place here?'):"Doesn't fit here";
+    $('#confirmLabel').textContent=mode.swapHover?'Hold to swap…':v?(mode.type==='move'?'Move here?':'Place here?'):"Doesn't fit here";
     $('#okBtn').disabled=!v;}
 }
 function cancelGhost(silent){
@@ -1285,18 +1365,20 @@ function renderWorld(){
   for(const d of drawables){
     if(d.tr){const p=isoPt(d.tr.x+0.5,d.tr.y+0.5);
       hotZones.push({type:'trash',id:d.tr.id,x:p.x,y:p.y-4,r:16});
-      s+=`<g data-act="trash" data-id="${d.tr.id}" style="cursor:pointer">${C(p.x,p.y-4,9,'#c9c4b4')}${C(p.x-4,p.y-7,5,'#ddd8c8')}${C(p.x+5,p.y-6,4,'#b8b3a2')}${P(`M${p.x-6} ${p.y-4} l4 -3 m2 5 l4 -4`,'none','stroke="#8f8a7a" stroke-width="1.4"')}</g>`;
+      s+=`<g data-z="${d.z}" data-act="trash" data-id="${d.tr.id}" style="cursor:pointer">${C(p.x,p.y-4,9,'#c9c4b4')}${C(p.x-4,p.y-7,5,'#ddd8c8')}${C(p.x+5,p.y-6,4,'#b8b3a2')}${P(`M${p.x-6} ${p.y-4} l4 -3 m2 5 l4 -4`,'none','stroke="#8f8a7a" stroke-width="1.4"')}</g>`;
       continue;}
-    s+=drawItem(d.it,1);
+    s+=`<g data-z="${d.z}">${drawItem(d.it,1)}</g>`;
   }
   s+=entranceMark();
+  s+='<g id="visEnd"></g>';
   if(ghostActive()&&mode.at){
-    const f=mode.payload.f, ok=ghostValid();
+    const f=mode.payload.f, ok=ghostValid(), sw=mode.swapHover;
     const cg=isoPt(mode.at.x+f/2,mode.at.y+f/2);
-    s+=`<path d="${diamond(cg.x,cg.y,f*TW,f*TH)}" fill="${ok?'rgba(90,200,110,.4)':'rgba(220,80,70,.4)'}" stroke="${ok?'#3f8f4f':'#a83a2e'}" stroke-width="3" stroke-dasharray="9 6" pointer-events="none"/>`;
+    s+=`<path d="${diamond(cg.x,cg.y,f*TW,f*TH)}" fill="${sw?'rgba(240,190,60,.4)':ok?'rgba(90,200,110,.4)':'rgba(220,80,70,.4)'}" stroke="${sw?'#b8860b':ok?'#3f8f4f':'#a83a2e'}" stroke-width="3" stroke-dasharray="9 6" pointer-events="none"/>`;
     s+=`<g class="placeGhost">${drawItem(ghostFakeItem(),0.8)}</g>`;
   }
   g.innerHTML=s;
+  indexDepth(g);
   applyPan();
 }
 function entranceMark(){
@@ -1412,7 +1494,7 @@ function applyPan(){$('#gRoot').setAttribute('transform',`translate(${pan.x} ${p
 function placeToasts(){$('#toasts').style.top=Math.round($('#hud').getBoundingClientRect().bottom+8)+'px';}
 window.addEventListener('resize',placeToasts);
 $('#recenterBtn').onclick=centerView;
-$('#musicBtn').onclick=toggleMusic;
+$('#musicBtn').onclick=toggleMute;
 let resizeT=null;
 function scheduleRecenter(){clearTimeout(resizeT);resizeT=setTimeout(centerView,150);}
 window.addEventListener('resize',scheduleRecenter);
@@ -1422,7 +1504,20 @@ window.addEventListener('orientationchange',scheduleRecenter);
 (function(){
   const svg=$('#worldSvg');
   const pts=new Map();let start=null,moved=false,pinch0=0,s0=1;
-  let dragItem=null,panDirty=false;
+  let dragItem=null,panDirty=false,swapped=false;
+  let swapCand=null,swapT=null;
+  function armSwap(tgt){
+    const id=tgt?tgt.id:null;
+    if(id===swapCand)return;
+    clearTimeout(swapT);swapCand=id;mode.swapHover=!!id;updateConfirmBar();
+    if(id)swapT=setTimeout(()=>{
+      const a=state.items.find(i=>i.id===dragItem),b=state.items.find(i=>i.id===id);
+      if(!a||!b||!dragItem)return;
+      const ax=a.x,ay=a.y;a.x=b.x;a.y=b.y;b.x=ax;b.y=ay;
+      swapped=true;swapCand=null;mode.swapHover=false;save();sfx('place');toast('Swapped!');
+      renderWorld();updateConfirmBar();
+    },500);
+  }
   function requestPanUpdate(){panDirty=true;}
   (function panLoop(){if(panDirty){applyPan();panDirty=false;}requestAnimationFrame(panLoop);})();
   function resetBaseline(){
@@ -1461,8 +1556,13 @@ window.addEventListener('orientationchange',scheduleRecenter);
     pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(dragItem){
       const g2=screenToGrid(e);
-      const half=Math.floor((mode.payload.f-1)/2);
-      mode.at={x:g2.x-half,y:g2.y-half};
+      const f=mode.payload.f;
+      // hovering over something the same size snaps onto it; hold there for half a second to swap
+      const over=itemAtTile(g2.x,g2.y);
+      const tgt=over&&over.id!==dragItem&&footOf(over)===f?over:null;
+      if(tgt)mode.at={x:tgt.x,y:tgt.y};
+      else{const half=Math.floor((f-1)/2);mode.at={x:g2.x-half,y:g2.y-half};}
+      armSwap(tgt);
       moved=true;
       renderWorld();
       return;
@@ -1488,13 +1588,15 @@ window.addEventListener('orientationchange',scheduleRecenter);
       return;
     }
     svg.classList.remove('dragging');
+    armSwap(null);
     if(dragItem){
       if(ghostValid()){
         const it=state.items.find(i=>i.id===dragItem);
         if(it){it.x=mode.at.x;it.y=mode.at.y;save();if(moved)toast('Moved!');}
-      } else if(moved){
+      } else if(moved&&!swapped){
         toast("Can't place it there");
       }
+      swapped=false;
       dragItem=null;mode.payload=null;mode.at=null;
       updateConfirmBar();renderWorld();updateHUD();
     } else if(!moved&&start){
@@ -1625,12 +1727,30 @@ function placePending(){
   save();sfx('place');
   if(p.paid&&p.kind!=='deco')gainXp(buyXp(p.paid),null);
   if(p.kind==='deco'&&!p.paidStars)gainXp(Math.max(1,Math.round(p.paid/500)),null);
-  if(p.kind==='exhibit'&&state.inv.length>0){
+  if(p.kind==='deco'&&DECOS[p.sp].path&&p.paid){
+    // paths keep coming: buy the next tile right away and aim it one step further along
+    const d=DECOS[p.sp];
+    if(state.gold<d.cost){toast('Out of gold for more '+d.n.toLowerCase()+'s');setMode('normal');}
+    else if(!hasSpaceFor(1)){setMode('normal');}
+    else{
+      state.gold-=d.cost;save();
+      setMode('place',{kind:'deco',sp:p.sp,f:1,paid:d.cost,prev:{x,y}});
+      mode.at=nextPathSpot(x,y,p.prev);
+      renderWorld();updateConfirmBar();
+      if(!p.prev)toast('Next '+d.n.toLowerCase()+' ready — tap a spot, or ✕ to stop');
+    }
+  } else if(p.kind==='exhibit'&&state.inv.length>0){
     const nx=state.inv[0];
     setMode('place',{kind:'exhibit',sp:nx.sp,f:SP[nx.sp].f,fromInv:0});
     toast('Next: tap a spot for your '+SP[nx.sp].n);
   } else setMode('normal');
   updateHUD();updateBadges();
+}
+function nextPathSpot(x,y,prev){
+  const dirs=[[1,0],[0,1],[-1,0],[0,-1]];
+  if(prev){const dx=x-prev.x,dy=y-prev.y;if(Math.abs(dx)+Math.abs(dy)===1)dirs.unshift([dx,dy]);}
+  for(const [dx,dy] of dirs)if(canPlaceAt(x+dx,y+dy,1,null))return {x:x+dx,y:y+dy};
+  return {x,y}; // boxed in: show the ghost where we are (red) so ✓/✕ are still on screen
 }
 function discover(sp){
   if(!state.disc.includes(sp)){state.disc.push(sp);
@@ -2167,7 +2287,7 @@ function openSettings(){
     <div class="statLine"><span>Days on the island</span><b>${days.toFixed(1)}</b></div>
     <div class="rowBtns" style="margin-top:16px"><button class="buyBtn warn" id="setReset">🔄 Reset game</button></div>`;
   $('#setMus').onclick=()=>{toggleMusic();openSettings();};
-  $('#setSfx').onclick=()=>{state.sfxOn=!state.sfxOn;save();sfx('click');openSettings();};
+  $('#setSfx').onclick=()=>{state.sfxOn=!state.sfxOn;save();sfx('click');updateMusicBtn();openSettings();};
   $('#setHelp').onclick=openHelp;
   $('#setReset').onclick=()=>{closeModal();resetGame();};
 }
@@ -2378,14 +2498,20 @@ function musPlayStep(n,t){
   if(st===4)tone(musBus,'triangle',nf(bar.f)*2,t,0.16,0.01,0.4);
   if(st===2||st===6)bar.ch.forEach(c=>tone(musBus,'sine',nf(c),t,0.035,0.01,0.25));
   if(st===0)bar.ch.forEach(c=>tone(musBus,'sine',nf(c)/2,t,0.025,0.25,1.4)); // soft pad
-  noise(musBus,t,st%2?0.035:0.018,0.045,'highpass',7000);                  // shaker
 }
+// the HUD button is a master mute: it reflects (and flips) music and sound effects together
 function updateMusicBtn(){
   const b=$('#musicBtn');if(!b||!state)return;
-  const playing=state.musicOn&&musOn&&AC&&AC.state==='running';
-  b.classList.toggle('toggled',!playing);
-  b.textContent=playing?'🎵':'🔇';
-  b.title=playing?'Music on (tap to mute)':'Music off (tap to play)';
+  const muted=!state.musicOn&&!state.sfxOn;
+  b.classList.toggle('toggled',muted);
+  b.textContent=muted?'🔇':'🔊';
+  b.title=muted?'Sound off (tap to unmute)':'Sound on (tap to mute)';
+}
+function toggleMute(){
+  audioUnlock();
+  if(state.musicOn||state.sfxOn){state.musicOn=false;state.sfxOn=false;musStop();}
+  else{state.musicOn=true;state.sfxOn=true;musStart();if(AC&&AC.state!=='running')AC.resume().then(updateMusicBtn).catch(()=>{});}
+  save();updateMusicBtn();
 }
 function toggleMusic(){
   audioUnlock();
@@ -2416,7 +2542,7 @@ document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('but
 const visitors=[];
 const SHIRT=['#d9432f','#3a7bd9','#3f9e5f','#e0912e','#9a6bde','#d96aa8'];
 function visitorSVG(v){
-  return `<g id="vis-${v.id}">
+  return `<g pointer-events="none">
     ${E(0,2,5,2,'rgba(0,0,0,.2)')}
     ${R(-3.5,-14,3,10,1.4,'#4a4a5a')}${R(0.5,-14,3,10,1.4,'#4a4a5a')}
     ${R(-4.5,-26,9,13,4,v.shirt)}
@@ -2435,6 +2561,9 @@ function isPathTile(x,y){
 function blockerAt(x,y){
   const it=itemAtTile(x,y);
   if(it&&it.kind==='deco'&&DECOS[it.sp]&&DECOS[it.sp].path)return null; // paths don't block, they invite
+  // a store's plaza is walkable except its back tile, so visitors stroll round the front of the
+  // booth (left -> counter -> right) and never appear on top of the building
+  if(it&&it.kind==='store'&&!(x===it.x&&y===it.y))return null;
   return it;
 }
 function walkableAt(x,y){return inGrid(x,y)&&!blockerAt(x,y)&&!trashAt(x,y);}
@@ -2449,6 +2578,14 @@ function anyWalkableTile(){
   for(let x=o;x<o+sz;x++)for(let y=o;y<o+sz;y++)if(walkableAt(x,y))return [x,y];
   return null;
 }
+function nearestWalkable(x,y){
+  const o=gridOff(),sz=EXP_SIZES[state.exp];let best=null,bd=1e9;
+  for(let tx=o;tx<o+sz;tx++)for(let ty=o;ty<o+sz;ty++){
+    if(!walkableAt(tx,ty))continue;
+    const d=(tx+0.5-x)**2+(ty+0.5-y)**2;if(d<bd){bd=d;best=[tx,ty];}
+  }
+  return best;
+}
 function newVisitorAt(t){
   return {id:uid(),cx:t[0],cy:t[1],x:t[0]+0.5,y:t[1]+0.5,tx:t[0]+0.5,ty:t[1]+0.5,wait:Math.random()*2,
     shirt:SHIRT[Math.floor(Math.random()*SHIRT.length)],
@@ -2462,13 +2599,45 @@ function syncVisitors(){
     const t=tiles.length?tiles[Math.floor(Math.random()*tiles.length)]:(anyWalkableTile()||[gridOff(),gridOff()]);
     visitors.push(newVisitorAt(t));
   }
-  while(visitors.length>want)visitors.pop();
-  $('#gVis').innerHTML=visitors.map(visitorSVG).join('');
+  while(visitors.length>want){const v=visitors.pop();if(v.el)v.el.remove();}
+  for(const v of visitors)if(!v.el){
+    const tmp=document.createElementNS('http://www.w3.org/2000/svg','g');tmp.innerHTML=visitorSVG(v);
+    v.el=tmp.firstElementChild;placeVisitorEl(v);
+  }
+}
+/* Visitors are depth-sorted in among the world's items (same x+y+2f key renderWorld sorts by),
+   so someone standing behind an exhibit is hidden by its fence and animals instead of being
+   painted on top of them, which made them look like they were standing inside it. */
+let zEls=[],visEnd=null;
+function indexDepth(g){
+  zEls=[...g.children].filter(e=>e.hasAttribute('data-z')).map(e=>({z:+e.getAttribute('data-z'),el:e}));
+  visEnd=g.querySelector('#visEnd');
+  for(const v of visitors){v.anchor=null;placeVisitorEl(v);}
+}
+function visitorZ(v){
+  let z=v.x+v.y+1; // a 1x1 item at the visitor's tile
+  const it=itemAtTile(Math.floor(v.x),Math.floor(v.y));
+  if(it&&it.kind==='store')z=Math.max(z,it.x+it.y+footOf(it)*2); // on a store plaza: in front of the booth
+  return z;
+}
+function placeVisitorEl(v){
+  if(!v.el)return;
+  const z=visitorZ(v);
+  let lo=0,hi=zEls.length;while(lo<hi){const m=(lo+hi)>>1;if(zEls[m].z>z)hi=m;else lo=m+1;}
+  const anchor=lo<zEls.length?zEls[lo].el:visEnd;
+  if(!anchor||(v.anchor===anchor&&v.el.parentNode))return;
+  anchor.parentNode.insertBefore(v.el,anchor);v.anchor=anchor;
 }
 let lastVis=0;
 function visitorFrame(ts){
   const dt=Math.min(0.1,(ts-lastVis)/1000);lastVis=ts;
   for(const v of visitors){
+    // something was placed or moved on top of us (e.g. a 3x3 exhibit, where no neighbour is free):
+    // hop to the nearest open tile instead of standing inside the exhibit
+    if(!walkableAt(Math.floor(v.x),Math.floor(v.y))&&!walkableAt(Math.floor(v.tx),Math.floor(v.ty))){
+      const t=nearestWalkable(v.x,v.y);
+      if(t){v.cx=t[0];v.cy=t[1];v.x=v.tx=t[0]+0.5;v.y=v.ty=t[1]+0.5;}
+    }
     // if the tile we're standing/heading to became occupied (e.g. something was just placed), reroute immediately
     if(!walkableAt(Math.round(v.tx-0.5),Math.round(v.ty-0.5))){
       const nb=neighborsOf(v.cx,v.cy);
@@ -2492,8 +2661,8 @@ function visitorFrame(ts){
       v.x+=dx*sp2;v.y+=dy*sp2;
     }
     const p=isoPt(v.x,v.y);
-    const el=document.getElementById('vis-'+v.id);
-    if(el)el.setAttribute('transform',`translate(${p.x} ${p.y}) scale(0.9)`);
+    placeVisitorEl(v);
+    if(v.el)v.el.setAttribute('transform',`translate(${p.x} ${p.y}) scale(0.9)`);
   }
   requestAnimationFrame(visitorFrame);
 }
@@ -2528,7 +2697,7 @@ $('#nHatch').onclick=()=>{cancelGhost(true);openHatch(0);};
 $('#nMis').onclick=()=>{cancelGhost(true);openMissions();};
 $('#nMove').onclick=()=>{
   if(mode.type==='move'||mode.type==='place'){cancelGhost(true);}
-  else{setMode('move');toast('Move mode: drag anything to reposition it. Tap ✋ again to finish');}
+  else{setMode('move');toast('Move mode: drag anything to reposition it, or hold it over a same-size item to swap. Tap ✋ again to finish');}
 };
 $('#setBtn').onclick=openSettings;
 $('#worldSvg').addEventListener('wheel',e=>{
