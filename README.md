@@ -9,7 +9,7 @@ Personal site for Sharif "Skip" Mutasim: navigation systems engineer, amateur as
   - `calc_kep2eci.html` — Keplerian elements to a state vector, in the perifocal, ECI, or a rotating body-fixed frame
   - `calc_transfer.html` — Hohmann vs. bi-elliptic transfer delta-v and time comparison, with an animated visual (`hohmann_vs_bielliptic_animation.html`)
 - `articles.html` — write-ups from recreational projects, starting with `dark_matter_demo/`
-- `games.html` — links to `zoo-isle.html`, an idle tap-to-build zoo game
+- `games.html` — links to `wild-isle.html`, an idle tap-to-build zoo game, and `long-ascent.html`, an incremental game spanning human history
 
 ## Structure
 

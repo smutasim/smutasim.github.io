@@ -1,0 +1,1071 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>The Long Ascent</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kavoon&display=swap">
+<style>
+:root{
+  /* Layout: a 2000s browser-game cabinet. Three bevelled panels on a starry tiled backdrop:
+     the clicker (Earth) on the left, the record (research, frontier, story, fold) in the middle,
+     the store on the right. Phones stack them. Chunky outlined display type, Verdana-era body text,
+     gradient title bars and outset buttons. The accent hue walks from firelight to starlight by era. */
+  color-scheme:dark;
+  --bg:#0b1630; --bg2:#122247; --panel:#16264d; --panel2:#1d3263; --panel3:#24407a;
+  --line:#05091a; --bevelHi:#5574b8; --bevelLo:#060c22;
+  --text:#ffffff; --muted:#b9c7ea; --dim:#7f90bd; --good:#9cf28a; --bad:#ff8a7a;
+  --acc:#ffb347; --accInk:#2a1400;
+  --f-disp:'Kavoon','Comic Sans MS','Trebuchet MS',cursive;
+  --f-body:Verdana,Tahoma,'DejaVu Sans',Geneva,sans-serif;
+  --f-mono:Tahoma,Verdana,'DejaVu Sans',sans-serif;
+  --outline:0 0 2px #000,1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,2px 2px 0 #000;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;color:var(--text);font:12px/1.4 var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent;
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(1px 1px at 20px 30px,#cfe0ff 50%,transparent 51%),
+    radial-gradient(1px 1px at 90px 70px,#9fb8f0 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 140px 20px,#ffffff 50%,transparent 51%),
+    radial-gradient(1px 1px at 60px 130px,#bcd0ff 50%,transparent 51%),
+    radial-gradient(1px 1px at 170px 150px,#ffffff 50%,transparent 51%),
+    linear-gradient(180deg,#0d1b3d,#07102a);
+  background-size:190px 170px,190px 170px,190px 170px,190px 170px,190px 170px,100% 100%}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px dotted var(--acc);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);gap:8px;max-width:1500px;margin:0 auto;
+  padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* bevelled cabinet panels */
+.box{background:linear-gradient(180deg,var(--panel2),var(--panel) 40px);border:3px solid;border-color:var(--bevelHi) var(--bevelLo) var(--bevelLo) var(--bevelHi);border-radius:4px;box-shadow:0 0 0 1px #000,inset 0 0 18px rgba(0,0,0,.45)}
+
+/* counter */
+#top{position:relative;display:grid;gap:3px;min-width:0;text-align:center;padding:8px 8px 6px;background:rgba(0,0,0,.35);border:2px solid #000;border-radius:4px}
+.eraLine{display:flex;align-items:baseline;justify-content:center;gap:8px;flex-wrap:wrap}
+.eraLine b{font:400 15px var(--f-disp);color:var(--acc);text-shadow:var(--outline)}
+.eraLine span{font:bold 11px var(--f-mono);color:var(--muted);text-shadow:1px 1px 0 #000}
+#bank{font:400 clamp(24px,5vw,34px)/1.1 var(--f-disp);color:#fff;text-shadow:var(--outline),0 0 12px rgba(255,255,255,.25);font-variant-numeric:tabular-nums;min-width:0;overflow-wrap:anywhere}
+#bank small{display:block;font:400 15px var(--f-disp);color:var(--acc);margin-top:1px}
+.popLine{font:10px var(--f-body);color:var(--dim);text-shadow:1px 1px 0 #000;letter-spacing:.02em}
+.popLine b{font-weight:normal;color:var(--muted)}
+.rateLine{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font:11px var(--f-mono);color:var(--muted);text-shadow:1px 1px 0 #000}
+.rateLine b{color:#fff}
+#buffs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.buff{font:bold 11px var(--f-mono);padding:2px 8px;border:2px outset #fff2b0;border-radius:3px;background:linear-gradient(#fff3a8,#e7a72c);color:#3a1d00}
+
+.mute{position:absolute;top:6px;right:6px;display:flex;align-items:center;gap:4px;padding:3px 7px;background:linear-gradient(#3a5698,#1f3468);border:2px outset #5d7bc0;border-radius:3px;font:bold 10px var(--f-body);color:#fff;cursor:pointer;text-shadow:1px 1px 0 #000}
+.mute:active{border-style:inset}
+.mute svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mute[aria-pressed=true]{background:linear-gradient(#5a2a2a,#3a1515);border-color:#a85a5a}
+/* globe */
+#stage{position:relative;min-width:0}
+#globeWrap{position:relative;width:100%;aspect-ratio:1/1;max-height:min(44vh,520px);margin:0 auto;max-width:100%}
+#globe{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:pointer;touch-action:manipulation;outline:none}
+html,body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#clickLabel{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);font:400 15px var(--f-disp);color:#fff;text-shadow:var(--outline);pointer-events:none;white-space:nowrap}
+#anomaly{position:absolute;width:46px;height:46px;border-radius:50%;border:0;padding:0;cursor:pointer;background:radial-gradient(circle,#fff 0,#fff6c8 18%,var(--acc) 42%,rgba(0,0,0,0) 70%);box-shadow:0 0 30px var(--acc);animation:pulse 1.2s ease-in-out infinite;z-index:3}
+#anomaly::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:1px dashed rgba(255,255,255,.55);animation:spin 6s linear infinite}
+@keyframes pulse{50%{transform:translate(-50%,-50%) scale(1.15)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+#ticker{overflow:hidden;white-space:nowrap;background:#000;border:2px inset #2a3b66;padding:4px 0;font:11px var(--f-body);color:#9fe0ff;min-width:0}
+#ticker span{display:inline-block;padding-left:100%;animation:tick 30s linear infinite}
+@keyframes tick{to{transform:translateX(-100%)}}
+
+/* tabs, old-school */
+#tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;border-bottom:3px solid var(--bevelHi);padding:0 4px}
+#tabs::-webkit-scrollbar{display:none}
+.tab{flex:1 0 auto;padding:7px 10px 5px;background:linear-gradient(#2c4a8c,#162a57);border:2px solid;border-color:var(--bevelHi) var(--bevelLo) transparent var(--bevelHi);border-bottom:0;border-radius:6px 6px 0 0;font:400 14px var(--f-disp);color:var(--muted);text-shadow:var(--outline);cursor:pointer;position:relative}
+.tab[aria-selected=true]{background:linear-gradient(#4f78c9,#2c4a8c);color:#fff}
+.tab i{position:absolute;top:3px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--acc);border:1px solid #000}
+#bottom{display:grid;grid-template-rows:auto minmax(0,1fr);gap:0;min-height:0;min-width:0}
+.sec{min-height:0;overflow-y:auto;overscroll-behavior:contain;min-width:0;padding:8px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));background:rgba(8,15,38,.88);border:3px solid;border-top:0;border-color:transparent var(--bevelLo) var(--bevelLo) var(--bevelHi)}
+h2.sh{font:400 22px/1.1 var(--f-disp);margin:2px 0 4px;color:#fff;text-shadow:var(--outline)}
+p.sub{margin:0 0 10px;color:var(--muted);font-size:11.5px;max-width:65ch}
+.lbl{font:400 15px var(--f-disp);color:#fff;text-shadow:var(--outline);margin:10px 0 6px;padding:3px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px;background:linear-gradient(90deg,#3b62b0,#1d3263 70%,transparent);border-radius:3px}
+.lbl:first-child{margin-top:0}
+
+/* store */
+.buyAmt{display:flex;gap:3px}
+.buyAmt button{background:linear-gradient(#3a5698,#1f3468);border:2px outset #5d7bc0;border-radius:3px;padding:1px 6px;font:bold 10px var(--f-mono);color:#cfdcff;cursor:pointer}
+.buyAmt button[aria-pressed=true]{border-style:inset;background:linear-gradient(#1a2b55,#2c4583);color:#fff}
+.gen{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:8px;align-items:center;width:100%;text-align:left;padding:5px 8px;cursor:pointer;margin-bottom:3px;
+  background:linear-gradient(180deg,#8a5a32 0,#6b4122 50%,#5a3519 100%);border:2px solid;border-color:#b98352 #2b170a #2b170a #b98352;border-radius:3px;box-shadow:0 0 0 1px #000}
+.gen:hover:not(:disabled){filter:brightness(1.12)}
+.gen:active:not(:disabled){border-color:#2b170a #b98352 #b98352 #2b170a}
+.gen.cant{filter:saturate(.35) brightness(.72)}
+.gen.cant:hover{filter:saturate(.35) brightness(.8)}
+.gen:disabled{cursor:default}
+.gen.locked{filter:grayscale(1) brightness(.45)}
+.gico{width:44px;height:44px;border-radius:4px;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff3,#0003),#2a1708;border:2px inset #a8774a;color:var(--acc)}
+.gico svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(1px 1px 0 #000)}
+.gn{font:400 17px/1.1 var(--f-disp);color:#fff;text-shadow:var(--outline);display:block;min-width:0}
+.gc{font:bold 12px var(--f-mono);color:#9cf28a;text-shadow:1px 1px 0 #000}
+.gen.cant .gc{color:#ff9a8a}
+.gi{display:block;font:10.5px var(--f-body);color:#f1dcc4;text-shadow:1px 1px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gown{font:400 30px var(--f-disp);color:rgba(255,255,255,.35);text-shadow:1px 1px 0 #000;font-variant-numeric:tabular-nums;min-width:30px;text-align:right}
+.imp{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:8px;align-items:center;padding:5px 7px;margin-bottom:3px;background:linear-gradient(#22396f,#152653);border:2px solid;border-color:var(--bevelHi) var(--bevelLo) var(--bevelLo) var(--bevelHi);border-radius:3px}
+.imp .gico{width:32px;height:32px;border-radius:3px}
+.imp .gico svg{width:18px;height:18px}
+.imp b{font:400 14px var(--f-disp);display:block;color:#fff;text-shadow:var(--outline)}
+.imp small{display:block;font:10.5px var(--f-body);color:var(--muted)}
+.btn{background:linear-gradient(#ffd27a,#f0a032 55%,#c9761a);color:var(--accInk);border:2px outset #ffe1a0;border-radius:4px;padding:4px 10px;font:bold 11px var(--f-body);cursor:pointer;white-space:nowrap;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+.btn:active:not(:disabled){border-style:inset}
+.btn:disabled{filter:grayscale(1) brightness(.6);cursor:default}
+.btn.ghost{background:linear-gradient(#3a5698,#1f3468);color:#fff;border-color:#5d7bc0;text-shadow:1px 1px 0 #000}
+.btn.big{padding:8px 16px;font-size:13px}
+.more{background:none;border:0;color:#9fe0ff;font:bold 11px var(--f-body);cursor:pointer;padding:4px 2px;text-decoration:underline}
+
+/* research tree, vertical */
+.estrip{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;margin:4px 0 8px}
+.eseg{position:relative;height:30px;background:#050b1e;border:2px inset #2a3b66;border-radius:3px;cursor:pointer;padding:0;overflow:hidden}
+.eseg i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#9cf28a,#3f8f35)}
+.eseg span{position:relative;font:400 13px var(--f-disp);color:#fff;text-shadow:var(--outline)}
+.eseg.cur{border:2px outset var(--acc)}
+.tcard{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;padding:7px 9px;margin-bottom:4px;background:linear-gradient(#22396f,#152653);border:2px solid;border-color:var(--bevelHi) var(--bevelLo) var(--bevelLo) var(--bevelHi);border-radius:3px;scroll-margin:12px}
+.tcard.own{background:linear-gradient(#2a4f27,#1a3318);border-color:#6fbf5e #0c1a0a #0c1a0a #6fbf5e}
+.tcard.can{background:linear-gradient(#5a3d14,#3a260b);border-color:#ffd27a #1d1204 #1d1204 #ffd27a}
+.tcard.lock{filter:saturate(.4) brightness(.7)}
+.tcard.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%,40%{box-shadow:0 0 0 3px #fff,0 0 18px var(--acc)}100%{box-shadow:none}}
+.tmain{min-width:0}
+.thead{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.thead b{font:400 16px var(--f-disp);color:#fff;text-shadow:var(--outline)}
+.tst{font:bold 12px var(--f-body);color:var(--acc);text-shadow:1px 1px 0 #000;width:12px}
+.tcard.own .tst{color:#9cf28a}
+.yr{font:bold 10.5px var(--f-mono);color:var(--acc);text-shadow:1px 1px 0 #000}
+.tcard .fl{margin:3px 0 0;font:italic 11.5px/1.45 var(--f-body);color:#e6ecff;max-width:65ch}
+.tcard .eff{margin:3px 0 0;font:bold 11px var(--f-body);color:#ffe2a8}
+.tcard.own .eff{color:#c9f5bd}
+.links{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:5px}
+.links span{font:10px var(--f-body);color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
+.tchip{font:bold 10.5px var(--f-body);padding:1px 6px;border-radius:3px;cursor:pointer;background:#0b1530;border:1px solid #3a5698;color:#cfdcff}
+.tchip.own{border-color:#6fbf5e;color:#c9f5bd}
+.tchip.can,.tchip.avail{border-color:var(--acc);color:#ffe2a8}
+.tchip.lock{color:var(--dim)}
+.tbuy{display:grid;justify-items:center;gap:3px}
+.tbuy .btn{line-height:1.25;text-align:center}
+.eta{font:10px var(--f-mono);color:var(--muted);white-space:nowrap}
+details.era{margin-bottom:6px}
+details.era>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:4px 10px;margin-bottom:4px;font:400 16px var(--f-disp);color:#fff;text-shadow:var(--outline);background:linear-gradient(#3b62b0,#1d3263);border:2px outset #5d7bc0;border-radius:3px}
+details.era>summary::-webkit-details-marker{display:none}
+details.era>summary::before{content:"\25B6";font-size:10px;margin-right:8px;color:#cfdcff}
+details.era[open]>summary::before{content:"\25BC"}
+details.era>summary span{flex:1}
+details.era>summary small{font:bold 11px var(--f-body)}
+/* frontier */
+.fmap{border:2px inset #2a3b66;background:#050b1e;overflow:hidden}
+.fmap svg{display:block;width:100%;max-height:300px}
+.settle{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 9px;margin-bottom:3px;background:linear-gradient(#22396f,#152653);border:2px solid;border-color:var(--bevelHi) var(--bevelLo) var(--bevelLo) var(--bevelHi);border-radius:3px}
+.settle b{font:400 16px var(--f-disp);color:#fff;text-shadow:var(--outline)}
+.settle small{display:block;font:10.5px var(--f-body);color:var(--muted)}
+.settle p{margin:3px 0 0;font:italic 11.5px var(--f-body);color:#dbe4ff;max-width:65ch}
+.settle.done{background:linear-gradient(#2f5a2a,#1d3a1a);border-color:#7fcf6e #0c1a0a #0c1a0a #7fcf6e}
+.settle.done b::after{content:"  \2605 settled";font:bold 10px var(--f-body);color:#9cf28a}
+.settle.lock{filter:grayscale(.8) brightness(.6)}
+
+/* chronicle */
+.chron{display:grid;gap:6px;max-width:70ch}
+.ce{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;padding:6px 8px;background:rgba(0,0,0,.3);border:1px solid #24407a}
+.ce .y{font:bold 10.5px var(--f-mono);color:var(--acc);padding-top:2px}
+.ce b{font:400 15px var(--f-disp);display:block;color:#fff;text-shadow:var(--outline)}
+.ce p{margin:2px 0 0;font:11.5px/1.5 var(--f-body);color:var(--muted)}
+
+/* fold */
+.foldBox{padding:12px;background:linear-gradient(#3a2766,#1d1440);border:3px solid;border-color:#8c6fd6 #120a2a #120a2a #8c6fd6;border-radius:4px;display:grid;gap:6px;text-align:center}
+.foldBox .big{font:400 32px/1 var(--f-disp);color:#fff;text-shadow:var(--outline),0 0 14px #b38cff}
+.stats{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font:11px var(--f-mono);color:var(--muted);max-width:420px;padding:6px 8px;background:rgba(0,0,0,.3);border:1px solid #24407a}
+.stats dd{margin:0;color:#fff;text-align:right;font-weight:bold}
+.leg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 9px;margin-bottom:3px;background:linear-gradient(#2b2257,#181338);border:2px solid;border-color:#6a55b0 #0b0820 #0b0820 #6a55b0;border-radius:3px}
+.leg b{font:400 15px var(--f-disp);color:#fff;text-shadow:var(--outline)}
+.leg small{display:block;font:11px var(--f-body);color:#c8bdf0}
+.leg.own{background:linear-gradient(#4a3a8a,#2b2257)}
+
+/* overlays */
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:20;background:linear-gradient(#22396f,#152653);border:3px solid;border-color:var(--bevelHi) var(--bevelLo) var(--bevelLo) var(--bevelHi);box-shadow:0 0 0 1px #000,0 6px 20px rgba(0,0,0,.6);border-radius:4px;padding:8px 14px;max-width:min(460px,calc(100% - 32px));font-size:12px;opacity:0;pointer-events:none;transition:opacity .3s;text-align:center}
+#toast.on{opacity:1}
+#toast b{font:400 17px var(--f-disp);display:block;color:var(--acc);text-shadow:var(--outline)}
+.ov{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:rgba(0,0,10,.75);padding:16px}
+.dlg{width:min(440px,100%);max-height:90%;overflow-y:auto;background:linear-gradient(180deg,var(--panel2),var(--panel) 60px);border:3px solid;border-color:var(--bevelHi) var(--bevelLo) var(--bevelLo) var(--bevelHi);box-shadow:0 0 0 1px #000,0 10px 40px #000;border-radius:5px;padding:0 0 16px;text-align:center}
+.dlg .ey{font:bold 10.5px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:#fff;padding:5px 10px;background:linear-gradient(90deg,#3b62b0,#5a86d8,#3b62b0);text-shadow:1px 1px 0 #000}
+.dlg h2{margin:12px 16px 6px;font:400 28px/1.1 var(--f-disp);color:#fff;text-shadow:var(--outline)}
+.dlg p{margin:6px 18px 12px;font:12px/1.6 var(--f-body);color:var(--muted)}
+.fly{position:absolute;pointer-events:none;font:400 18px var(--f-disp);color:#fff;text-shadow:var(--outline);animation:fly 1s ease-out forwards;z-index:4;white-space:nowrap}
+@keyframes fly{to{transform:translateY(-60px);opacity:0}}
+
+/* desktop: three cabinet columns */
+@media (min-width:1000px){
+  #app{grid-template-columns:380px minmax(0,1fr) 380px;grid-template-rows:minmax(0,1fr);gap:12px}
+  #left{grid-column:1;grid-row:1;display:grid;grid-template-rows:auto auto auto;align-content:start;gap:8px;min-height:0;padding:8px;background:linear-gradient(180deg,var(--panel2),var(--panel) 40px);border:3px solid;border-color:var(--bevelHi) var(--bevelLo) var(--bevelLo) var(--bevelHi);border-radius:4px;box-shadow:0 0 0 1px #000}
+  #globeWrap{max-height:none}
+  #bottom{grid-column:2;grid-row:1}
+  #storeCol{grid-column:3;grid-row:1;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);background:#2a1708;border:3px solid;border-color:#b98352 #2b170a #2b170a #b98352;border-radius:4px;box-shadow:0 0 0 1px #000}
+  #storeHead{margin:0;border-radius:0;background:linear-gradient(#8a5a32,#5a3519);font-size:20px;justify-content:center}
+  #storeCol .sec{display:block!important;background:repeating-linear-gradient(180deg,#3a2210 0 60px,#311c0c 60px 62px);border:0}
+  .tab[data-tab=store]{display:none}
+  .fmap svg{max-height:380px}
+}
+@media (max-width:999px){
+  #app{grid-template-rows:auto auto auto auto minmax(0,1fr);grid-template-areas:"top" "stage" "ticker" "tabs" "panel";gap:6px}
+  #left,#bottom,#storeCol{display:contents}
+  #top{grid-area:top}#stage{grid-area:stage}#ticker{grid-area:ticker}#tabs{grid-area:tabs;margin-bottom:-6px}.sec{grid-area:panel}
+  #storeHead{display:none}
+  #globeWrap{max-height:32vh;width:auto}
+  #clickLabel{bottom:0}
+  .tab{padding:6px 4px 4px;font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){#ticker span,#anomaly,#anomaly::after{animation:none}#ticker span{padding-left:0}}
+</style>
+
+<div id="app">
+  <div id="left">
+    <div id="top"><button id="mute" class="mute" aria-pressed="false" aria-label="Mute sound"></button>
+      <div class="eraLine"><b id="eraName">Stone Age</b><span id="eraYear">~400,000 BCE</span></div>
+      <div id="bank">0<small></small></div>
+      <div class="popLine">World population <b id="pop">~50k</b></div>
+      <div class="rateLine"><span><b id="cps">0</b> watts</span><span>click <b id="cpc">1</b></span><span title="Kardashev rating K = (log₁₀ P − 6) / 10, P = your output in watts">Kardashev <b id="kard">\u2014</b></span></div>
+      <div id="buffs"></div>
+    </div>
+    <div id="stage">
+      <div id="globeWrap">
+        <canvas id="globe" aria-label="Earth. Click to gather resources."></canvas>
+        <button id="anomaly" hidden aria-label="Catch the anomaly"></button>
+        <div id="clickLabel">Strike flint</div>
+      </div>
+    </div>
+    <div id="ticker" aria-live="off"><span id="tickT"></span></div>
+  </div>
+
+  <div id="bottom">
+    <nav id="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="store">Build<i hidden></i></button>
+      <button class="tab" role="tab" data-tab="tech">Research<i hidden></i></button>
+      <button class="tab" role="tab" data-tab="frontier">Frontier<i hidden></i></button>
+      <button class="tab" role="tab" data-tab="chron">Story</button>
+      <button class="tab" role="tab" data-tab="fold">Fold<i hidden></i></button>
+    </nav>
+    <section class="sec" id="sec-tech" hidden></section>
+    <section class="sec" id="sec-frontier" hidden></section>
+    <section class="sec" id="sec-chron" hidden></section>
+    <section class="sec" id="sec-fold" hidden></section>
+  </div>
+  <div id="storeCol">
+    <div id="storeHead" class="lbl" style="margin-top:4px"><span>Build</span></div>
+    <section class="sec" id="sec-store" hidden></section>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+<div id="dlg" class="ov" hidden><div class="dlg"><div class="ey" id="dlgE"></div><h2 id="dlgT"></h2><div id="dlgB"></div><button class="btn big" id="dlgX">Continue</button></div></div>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const RM=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+const KEY='long-ascent-v1',TAU=Math.PI*2;
+const CUR='joules'; /* the currency's name, used everywhere */
+
+/* =========================== NUMBERS =========================== */
+const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','UDc','DDc','TDc','QaDc','QiDc','SxDc','SpDc','OcDc','NoDc','Vg','UVg','DVg','TVg','QaVg','QiVg'];
+const WORDS=['','thousand','million','billion','trillion','quadrillion','quintillion','sextillion','septillion','octillion','nonillion','decillion','undecillion','duodecillion','tredecillion','quattuordecillion','quindecillion','sexdecillion','septendecillion','octodecillion','novemdecillion','vigintillion','unvigintillion','duovigintillion','trevigintillion','quattuorvigintillion','quinvigintillion'];
+function fmt(n){
+  if(!isFinite(n))return '\u221e';
+  if(n<0)return '\u2212'+fmt(-n);
+  if(n<1000)return n<10&&n%1?(Math.floor(n*10)/10).toString():Math.floor(n).toString();
+  const e=Math.floor(Math.log10(n)+1e-9);
+  if(e>=12){const m=n/Math.pow(10,e);return m.toFixed(2)+'E'+e;}
+  const k=Math.floor(e/3),m=n/Math.pow(10,k*3);
+  return (m<10?m.toFixed(2):m<100?m.toFixed(1):Math.floor(m))+['','k','M','G'][k];
+}
+function fmtT(s){s=Math.max(0,Math.round(s));if(s<60)return s+'s';if(s<3600)return Math.floor(s/60)+'m '+(s%60)+'s';if(s<86400)return Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m';return Math.floor(s/86400)+'d '+Math.floor(s%86400/3600)+'h';}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* =========================== DATA =========================== */
+const ICONS={
+  forager:'<path d="M12 21V8"/><path d="M12 12C8 12 6 9 6 6c3 0 6 2 6 6zM12 10c4 0 6-3 6-6-3 0-6 2-6 6z"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/>',
+  band:'<path d="M4 20L17 7"/><path d="M15 5l5-1-1 5z"/><path d="M8 20l-3-3"/><path d="M14 20c2-3 5-4 7-4"/>',
+  farm:'<path d="M12 21V6"/><path d="M12 9c-2-1-3-3-3-5 2 1 3 3 3 5zM12 9c2-1 3-3 3-5-2 1-3 3-3 5zM12 14c-2-1-3-3-3-5 2 1 3 3 3 5zM12 14c2-1 3-3 3-5-2 1-3 3-3 5z"/><path d="M5 21h14"/>',
+  forge:'<path d="M4 9h12l4-2v4h-4l-2 3h-6l-2-3H4z"/><path d="M9 14v4h6v-4M7 21h10"/>',
+  scribe:'<path d="M20 4C12 6 7 11 5 20"/><path d="M20 4c-1 5-5 9-11 10"/><path d="M4 21h9"/>',
+  mill:'<circle cx="12" cy="12" r="7.5"/><path d="M12 4.5v15M4.5 12h15M6.7 6.7l10.6 10.6M17.3 6.7L6.7 17.3"/>',
+  fleet:'<path d="M3 16h18l-3 4H6z"/><path d="M12 3v13M12 4l6 9h-6M12 6l-5 7h5"/>',
+  datacenter:'<rect x="5" y="3" width="14" height="5" rx="1"/><rect x="5" y="10" width="14" height="5" rx="1"/><rect x="5" y="17" width="14" height="4" rx="1"/><path d="M8 5.5h.01M8 12.5h.01M8 19h.01"/>',
+  robots:'<rect x="6" y="7" width="12" height="10" rx="2"/><path d="M12 7V4M9 11h.01M15 11h.01M9 14h6M3 11v3M21 11v3"/><circle cx="12" cy="3.5" r="1"/>',
+  guild:'<path d="M4 20h16M6 20V10l6-5 6 5v10"/><path d="M10 20v-5h4v5"/>',
+  rail:'<path d="M7 3L5 21M17 3l2 18M6 7h12M5.6 11h12.8M5.2 15h13.6M4.8 19h14.4"/>',
+  assembly:'<rect x="2" y="14" width="20" height="4" rx="2"/><path d="M6 14V9h4v5M14 14V7h4v7M7 18v2M17 18v2"/>',
+  steam:'<path d="M5 20V10h6v10M11 14h6v6"/><path d="M7 7c0-2 2-2 2-4M14 10c0-2 2-2 2-4"/><path d="M3 20h18"/>',
+  grid:'<path d="M8 21l4-18 4 18M6 9h12M7 14h10M10 21l2-5 2 5"/>',
+  fab:'<rect x="7" y="7" width="10" height="10" rx="1"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/><rect x="10" y="10" width="4" height="4"/>',
+  launch:'<path d="M12 2c3 3 4 7 4 11l-4 3-4-3c0-4 1-8 4-11z"/><circle cx="12" cy="9" r="1.5"/><path d="M8 13l-3 4h4M16 13l3 4h-4M11 19l1 3 1-3"/>',
+  lunar:'<path d="M15 3a8 8 0 1 0 6 13A9 9 0 0 1 15 3z"/><path d="M4 21h9M6 21a2.5 2.5 0 0 1 5 0"/>',
+  torch:'<path d="M5 12l7-3h6l3 3-3 3h-6z"/><path d="M5 12H1M3 10l-2 2 2 2"/><path d="M11 9V6l3 3M11 15v3l3-3"/>',
+  terra:'<circle cx="12" cy="12" r="8"/><path d="M5 9c3 1 5-1 8 0s5 2 6 2M4.5 14c3 0 4 2 7 1s5-2 8-1"/>',
+  minds:'<circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="1.6"/><circle cx="19" cy="6" r="1.6"/><circle cx="5" cy="18" r="1.6"/><circle cx="19" cy="18" r="1.6"/><path d="M6.3 7.2l3.4 2.8M17.7 7.2l-3.4 2.8M6.3 16.8l3.4-2.8M17.7 16.8l-3.4-2.8"/>',
+  dyson:'<circle cx="12" cy="12" r="3.5"/><path d="M12 3a9 9 0 0 1 9 9M21 12a9 9 0 0 1-9 9M12 21a9 9 0 0 1-9-9M3 12a9 9 0 0 1 9-9" stroke-dasharray="4 3"/>',
+  brain:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="3"/>',
+  lifter:'<circle cx="7" cy="12" r="4"/><path d="M11 12c4 0 6-2 10-2M11 13c4 1 6 3 10 3"/><circle cx="20" cy="12" r="1"/>',
+  seed:'<path d="M4 20L20 4"/><path d="M20 4c-8 1-13 6-14 14 4-6 9-10 14-14z"/>',
+  gate:'<ellipse cx="12" cy="12" rx="5" ry="9"/><ellipse cx="12" cy="12" rx="2" ry="5"/><path d="M2 12h3M19 12h3"/>',
+  kugel:'<circle cx="12" cy="12" r="3.5" fill="currentColor"/><ellipse cx="12" cy="12" rx="10" ry="3.5"/>',
+  loom:'<path d="M3 6c6 4 12-4 18 0M3 12c6 4 12-4 18 0M3 18c6 4 12-4 18 0"/><path d="M7 3v18M17 3v18" stroke-dasharray="2 2"/>',
+  click:'<path d="M9 3v8M5 7l2 2M13 7l-2 2M8 13l4 8 2-4 4 4 2-2-4-4 4-2z"/>'
+};
+const svgI=k=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+ICONS[k]+'</svg>';
+
+const GENS=[
+  {id:'forager',name:'Foragers',one:'Forager',cost:15,cps:.1,req:null,desc:'Berries, roots, shellfish, and the slow knowledge of which is which.'},
+  {id:'band',name:'Hunting Bands',one:'Hunting Band',cost:100,cps:1,req:'language',desc:'Coordinated by the newest invention: words.'},
+  {id:'farm',name:'Farmsteads',one:'Farmstead',cost:1100,cps:8,req:'agriculture',desc:'Wild grass, bred into wheat. Surplus becomes possible.'},
+  {id:'forge',name:'Bronze Forges',one:'Bronze Forge',cost:12000,cps:47,req:'metallurgy',desc:'Copper and tin, married in fire.'},
+  {id:'scribe',name:'Scriptoria',one:'Scriptorium',cost:130000,cps:260,req:'writing',desc:'Memory that outlives the one who remembered.'},
+  {id:'mill',name:'Watermills',one:'Watermill',cost:1.4e6,cps:1400,req:'mechanics',desc:'Rivers put to work grinding grain and ideas.'},
+  {id:'guild',name:'Craft Guilds',one:'Craft Guild',cost:1,cps:1,req:'university',desc:'Masons, weavers and smiths who train apprentices and guard their secrets.'},
+  {id:'fleet',name:'Merchant Fleets',one:'Merchant Fleet',cost:1,cps:1,req:'navigation',desc:'Caravels and galleons carrying spice, silver and ideas across every ocean.'},
+  {id:'steam',name:'Steam Works',one:'Steam Work',cost:2e7,cps:7800,req:'steam',desc:'Coal becomes motion. The sky turns grey and the century turns fast.'},
+  {id:'rail',name:'Rail Networks',one:'Rail Network',cost:1,cps:1,req:'railways',desc:'Iron rails that carry coal, grain and people at the speed of steam.'},
+  {id:'grid',name:'Power Grids',one:'Power Grid',cost:3.3e8,cps:44000,req:'electromagnetism',desc:'Lightning on a leash, delivered to every door.'},
+  {id:'assembly',name:'Assembly Lines',one:'Assembly Line',cost:1,cps:1,req:'combustion',desc:'Interchangeable parts and moving belts. A car every ninety minutes, then every ninety seconds.'},
+  {id:'fab',name:'Silicon Fabs',one:'Silicon Fab',cost:5.1e9,cps:2.6e5,req:'transistor',desc:'Sand taught to think in ones and zeros.'},
+  {id:'launch',name:'Launch Complexes',one:'Launch Complex',cost:7.5e10,cps:1.6e6,req:'rocketry',desc:'Controlled explosions pointed upward.'},
+  {id:'datacenter',name:'AI Datacenters',one:'AI Datacenter',cost:1,cps:1,req:'deeplearning',desc:'Warehouses of accelerators training models on everything ever written.'},
+  {id:'robots',name:'Robot Workforces',one:'Robot Workforce',cost:1,cps:1,req:'robotics',desc:'Humanoid and industrial robots working around the clock, maintaining each other.'},
+  {id:'lunar',name:'Lunar Foundries',one:'Lunar Foundry',cost:1e12,cps:1e7,req:'lunar',desc:'Regolith smelters on the Moon, flinging ingots down the gravity well.'},
+  {id:'torch',name:'Torchship Yards',one:'Torchship Yard',cost:1.4e13,cps:6.5e7,req:'fusion',desc:'Fusion drives that make Mars a weekend trip.'},
+  {id:'terra',name:'Terraforming Engines',one:'Terraforming Engine',cost:1.7e14,cps:4.3e8,req:'terraforming',desc:'Planet-scale gardening, measured in centuries.'},
+  {id:'minds',name:'Quiet Minds',one:'Quiet Mind',cost:2.1e15,cps:2.9e9,req:'sentience',desc:'Machine intelligences who chose to stay and help. They hum when they think.'},
+  {id:'dyson',name:'Dyson Petals',one:'Dyson Petal',cost:2.6e16,cps:2.1e10,req:'stellar',desc:'Kilometer-wide mirrors orbiting the Sun, harvesting its light.'},
+  {id:'brain',name:'Matrioshka Brains',one:'Matrioshka Brain',cost:3.1e17,cps:1.5e11,req:'computronium',desc:'Nested shells of computronium, each thinking with the waste heat of the last.'},
+  {id:'lifter',name:'Starlifters',one:'Starlifter',cost:7.1e18,cps:1.1e12,req:'starlifting',desc:'Magnetic pumps siphon hydrogen off the Sun and annihilate it into antimatter at the poles.'},
+  {id:'seed',name:'Antimatter Seedships',one:'Antimatter Seedship',cost:1.2e20,cps:8.3e12,req:'lightsail',desc:'A few grams of antimatter push a garden-ship to a fifth of light speed.'},
+  {id:'gate',name:'Wormhole Gates',one:'Wormhole Gate',cost:1.9e21,cps:6.4e13,req:'exotic',desc:'Throats of folded space, held open by bottled dark energy.'},
+  {id:'kugel',name:'Kugelblitz Engines',one:'Kugelblitz Engine',cost:5.4e23,cps:5.1e14,req:'kugelblitz',desc:'Black holes made from pure light, radiating whatever you feed them.'},
+  {id:'loom',name:'Dark Matter Looms',one:'Dark Matter Loom',cost:1,cps:1,req:'cartography',desc:'They weave the galaxy\'s invisible halo into structures nobody can see and everyone can feel.'}
+];
+const GI={};GENS.forEach((g,k)=>{g.k=k;GI[g.id]=g;
+  /* each tier costs 12x more and pays back 1.35x slower than the one before */
+  /* each tier costs 12x more and pays back 1.35x slower than the one before */
+  g.cost=15*Math.pow(12,k);g.cps=.5*Math.pow(12/1.35,k);});
+const CLICK0=1;
+
+const ERAS=[
+  {name:'Stone Age',acc:'#ff9a4d',verb:'Strike flint',intro:''},
+  {name:'Agrarian Age',acc:'#e3b94f',verb:'Sow the field',intro:'The hunters have become farmers. Villages rise beside rivers.'},
+  {name:'Classical Age',acc:'#d79a5f',verb:'Copy the scroll',intro:'Cities, laws, letters, and the first arguments about what it all means.'},
+  {name:'Medieval Age',acc:'#c9a46a',verb:'Ring the bell',intro:'Empires fall and others rise. Monasteries, madrasas and academies keep the lamp of learning lit.'},
+  {name:'Age of Discovery',acc:'#6fc3d9',verb:'Chart the coast',intro:'Ships cross every ocean, and lenses turn toward the sky. The world becomes one map.'},
+  {name:'Industrial Age',acc:'#e8805a',verb:'Stoke the boiler',intro:'Smoke and steel. The species learns to burn the buried sunlight of ancient forests.'},
+  {name:'Atomic Age',acc:'#9fe36a',verb:'Split the atom',intro:'Flight, antibiotics, the atom, the first satellite. More changes in fifty years than in the five thousand before.'},
+  {name:'Information Age',acc:'#5fd6c8',verb:'Write the code',intro:'Silicon thinks. A planet wires itself into one restless network.'},
+  {name:'Age of Automation',acc:'#7ab8ff',verb:'Train the model',intro:'Machines learn to see, speak and work. For the first time, human labor is optional.'},
+  {name:'Interplanetary Age',acc:'#a594ff',verb:'Ignite the torch',intro:'Fusion opens the inner system. Earth becomes one world among several.'},
+  {name:'Stellar Age',acc:'#ffd36a',verb:'Fold a sunbeam',intro:'The Sun itself is put to work. Thinking happens at the scale of planets.'},
+  {name:'Interstellar Age',acc:'#c99bff',verb:'Bend the light',intro:'The first ships leave for other stars. Nobody aboard will see Earth again.'},
+  {name:'The Long Now',acc:'#f4f0ff',verb:'Remember',intro:'There is nothing left to reach for but time itself.'}
+];
+/* discoveries in chronological order. ea = era index. P = world power in watts and pop = world population
+   when the discovery is made: historical estimates up to today, invented beyond. */
+const TECH_LIST=[
+  ['fire',{n:'Fire',ea:0,req:[],y:'~400,000 BCE',P:2e7,pop:1e5,e:{click:2},d:'Clicks are twice as strong.',f:'The first tamed star. It cooks, it warms, it keeps the dark at the edge of the circle.'}],
+  ['language',{n:'Language',ea:0,req:['fire'],y:'~100,000 BCE',P:5e7,pop:3e5,e:{unlock:'band'},d:'Unlocks Hunting Bands.',f:'Sounds become words, words become plans. A band can now hunt as one.'}],
+  ['tools',{n:'Composite Tools',ea:0,req:['fire'],y:'~70,000 BCE',P:6e7,pop:5e5,e:{gen:{forager:2},global:1.05},d:'Foragers twice as good. +5% everything.',f:'A stone, a stick, and resin to bind them. The first machine.'}],
+  ['agriculture',{n:'Agriculture',ea:1,req:['language'],y:'~9,500 BCE',P:1e9,pop:4e6,e:{unlock:'farm'},d:'Unlocks Farmsteads.',f:'We stopped following the food and made the food stay.'}],
+  ['pottery',{n:'Pottery',ea:1,req:['tools'],y:'~8,000 BCE',P:1.5e9,pop:5e6,e:{global:1.1},d:'+10% everything.',f:'Fired clay: the first storage device. Surplus becomes possible, and so does wealth.'}],
+  ['metallurgy',{n:'Bronze Working',ea:1,req:['agriculture','pottery'],y:'~3,300 BCE',P:5e9,pop:1.4e7,e:{unlock:'forge'},d:'Unlocks Bronze Forges.',f:'Copper is soft. Tin is brittle. Together, an age.'}],
+  ['writing',{n:'Writing',ea:2,req:['metallurgy'],y:'~3,200 BCE',P:6e9,pop:1.5e7,e:{unlock:'scribe'},d:'Unlocks Scriptoria.',f:'Marks pressed into clay. Memory now outlives the one who remembered.'}],
+  ['mathematics',{n:'Mathematics',ea:2,req:['metallurgy'],y:'~2,000 BCE',P:1e10,pop:2.7e7,e:{global:1.15},d:'+15% everything.',f:'Counting becomes reasoning. Geometry, astronomy and engineering all follow.'}],
+  ['philosophy',{n:'Philosophy',ea:2,req:['writing'],y:'~500 BCE',P:4e10,pop:1e8,e:{clickPct:.01},d:'Clicks also earn 1% of your per-second rate.',f:'Asking why turns out to be the most productive question of all.'}],
+  ['mechanics',{n:'Gears and Levers',ea:2,req:['writing','mathematics'],y:'~200 BCE',P:6e10,pop:1.5e8,e:{unlock:'mill'},d:'Unlocks Watermills.',f:'A bronze computer sinks off Antikythera. The idea does not.'}],
+  ['concrete',{n:'Roman Concrete',ea:2,req:['mechanics'],y:'~25 CE',P:8e10,pop:2e8,e:{global:1.1},d:'+10% everything.',f:'Lime, volcanic ash and seawater. Harbors and domes that will still stand two thousand years later.'}],
+  ['paper',{n:'Paper',ea:2,req:['writing'],y:'105 CE',P:8.5e10,pop:2.1e8,e:{gen:{scribe:2}},d:'Scriptoria twice as good.',f:'Cai Lun pulps mulberry bark and rags into sheets. Knowledge gets cheap and light.'}],
+  ['algebra',{n:'Algebra',ea:3,req:['mathematics','paper'],y:'820 CE',P:1e11,pop:2.5e8,e:{global:1.1},d:'+10% everything.',f:'In Baghdad\'s House of Wisdom, al-Khwarizmi writes the rules for balancing unknowns.'}],
+  ['gunpowder',{n:'Gunpowder',ea:3,req:['concrete'],y:'~850 CE',P:1e11,pop:2.55e8,e:{gen:{forge:2}},d:'Bronze Forges twice as good.',f:'Alchemists searching for an elixir of life find the opposite. Mines and quarries change forever.'}],
+  ['compass',{n:'Magnetic Compass',ea:3,req:['mechanics'],y:'~1040 CE',P:1.2e11,pop:3e8,e:{global:1.1},d:'+10% everything.',f:'A lodestone needle floating in water points south, every time, even under clouds.'}],
+  ['university',{n:'Universities',ea:3,req:['algebra'],y:'1088',P:1.3e11,pop:3.1e8,e:{clickPct:.005,global:1.05,unlock:'guild'},d:'Unlocks Craft Guilds. Clicks earn +0.5% of your rate. +5% everything.',f:'Bologna, then Paris and Oxford. Scholars gather, argue, and write it all down.'}],
+  ['clockwork',{n:'Mechanical Clock',ea:3,req:['compass'],y:'~1300',P:1.6e11,pop:3.8e8,e:{gen:{mill:2}},d:'Watermills twice as good.',f:'An escapement ticks in a cathedral tower, and the day is cut into equal hours.'}],
+  ['printing',{n:'Printing Press',ea:4,req:['paper','clockwork'],y:'1440',P:1.8e11,pop:4e8,e:{gen:{scribe:3},global:1.1},d:'Scriptoria three times as good. +10% everything.',f:'Movable type and an old wine press. Ideas become cheap to copy and impossible to burn.'}],
+  ['navigation',{n:'Ocean Navigation',ea:4,req:['compass','university'],y:'1492',P:2e11,pop:4.5e8,e:{unlock:'fleet'},d:'Unlocks Merchant Fleets.',f:'Caravels, astrolabes and trade winds. Every coast on Earth is now connected to every other.'}],
+  ['telescope',{n:'The Telescope',ea:4,req:['printing'],y:'1609',P:2.5e11,pop:5.5e8,e:{global:1.1},d:'+10% everything.',f:'Galileo points a spyglass at Jupiter and finds four moons that do not orbit the Earth.'}],
+  ['calculus',{n:'Calculus',ea:4,req:['telescope','algebra'],y:'1687',P:3e11,pop:6e8,e:{global:1.15},d:'+15% everything.',f:'Newton\'s Principia. The same law that drops an apple keeps the Moon in its orbit.'}],
+  ['steam',{n:'Steam Engine',ea:5,req:['calculus'],y:'1712',P:3.5e11,pop:6.5e8,e:{unlock:'steam'},d:'Unlocks Steam Works.',f:'Heat becomes motion. One machine does the work of a hundred hands.'}],
+  ['vaccination',{n:'Vaccination',ea:5,req:['calculus'],y:'1796',P:5e11,pop:9e8,e:{global:1.1},d:'+10% everything.',f:'Jenner scratches cowpox into a boy\'s arm. Smallpox, the oldest killer, begins its long retreat.'}],
+  ['railways',{n:'Railways',ea:5,req:['steam'],y:'1825',P:6e11,pop:1e9,e:{unlock:'rail',gen:{steam:2,fleet:2}},d:'Unlocks Rail Networks. Steam Works and Merchant Fleets twice as good.',f:'Iron rails and steam locomotives. A week\'s journey becomes a day.'}],
+  ['electromagnetism',{n:'Electromagnetism',ea:5,req:['steam'],y:'1831',P:6.5e11,pop:1.05e9,e:{unlock:'grid'},d:'Unlocks Power Grids.',f:'Faraday moves a magnet through a coil and current flows. The night is never fully dark again.'}],
+  ['germs',{n:'Germ Theory',ea:5,req:['vaccination','telescope'],y:'1861',P:8e11,pop:1.25e9,e:{global:1.1},d:'+10% everything.',f:'Pasteur shows that disease has a cause you can see under a microscope, and therefore a cure.'}],
+  ['combustion',{n:'Internal Combustion',ea:5,req:['railways'],y:'1876',P:1e12,pop:1.4e9,e:{unlock:'assembly',global:1.15},d:'Unlocks Assembly Lines. +15% everything.',f:'Oil burns inside the cylinder instead of under a boiler. Engines shrink to fit in a carriage.'}],
+  ['flight',{n:'Powered Flight',ea:6,req:['combustion'],y:'1903',P:1.5e12,pop:1.7e9,e:{global:1.1},d:'+10% everything.',f:'Twelve seconds and thirty-seven meters at Kitty Hawk. Sixty-six years later, the Moon.'}],
+  ['relativity',{n:'Relativity',ea:6,req:['electromagnetism'],y:'1915',P:1.7e12,pop:1.8e9,e:{global:1.2},d:'+20% everything.',f:'Time bends with speed and gravity. Clocks in orbit will one day have to account for it.'}],
+  ['antibiotics',{n:'Antibiotics',ea:6,req:['germs'],y:'1928',P:2e12,pop:2e9,e:{global:1.1},d:'+10% everything.',f:'A mold kills the bacteria on Fleming\'s forgotten dish. A scratch stops being a death sentence.'}],
+  ['fission',{n:'Nuclear Fission',ea:6,req:['relativity'],y:'1942',P:2.5e12,pop:2.3e9,e:{gen:{grid:3}},d:'Power Grids three times as good.',f:'Under a Chicago stadium, the first reactor goes critical. E=mc² is no longer theory.'}],
+  ['transistor',{n:'The Transistor',ea:6,req:['electromagnetism','relativity'],y:'1947',P:3e12,pop:2.4e9,e:{unlock:'fab'},d:'Unlocks Silicon Fabs.',f:'A switch with no moving parts. Soon there will be billions on a fingernail.'}],
+  ['rocketry',{n:'Rocketry',ea:6,req:['transistor','flight'],y:'1957',P:4e12,pop:2.9e9,e:{unlock:'launch'},d:'Unlocks Launch Complexes.',f:'A metal sphere beeps from orbit. Every child on Earth looks up.'}],
+  ['greenrev',{n:'Green Revolution',ea:6,req:['fission'],y:'1965',P:6e12,pop:3.3e9,e:{gen:{farm:5}},d:'Farmsteads five times as good.',f:'Dwarf wheat, fertilizer and irrigation. Famines that were predicted never come.'}],
+  ['gps',{n:'Satellite Navigation',ea:7,req:['rocketry','relativity'],y:'1978',P:9e12,pop:4.3e9,e:{global:1.15},d:'+15% everything.',f:'Atomic clocks in orbit, corrected for relativity, tell anyone on Earth where they stand to within a few meters.'}],
+  ['internet',{n:'The Internet',ea:7,req:['transistor'],y:'1983',P:1e13,pop:4.7e9,e:{clickPct:.01,global:1.1},d:'Clicks earn +1% of your rate. +10% everything.',f:'Networks agree on one protocol. Every mind can reach every other.'}],
+  ['smartphone',{n:'The Smartphone',ea:7,req:['internet','gps'],y:'2007',P:1.6e13,pop:6.7e9,e:{clickPct:.01},d:'Clicks earn +1% of your rate.',f:'A computer, a camera and the whole internet, in every pocket on Earth within a decade.'}],
+  ['deeplearning',{n:'Deep Learning',ea:7,req:['internet'],y:'2012',P:1.75e13,pop:7.1e9,e:{unlock:'datacenter'},d:'Unlocks AI Datacenters.',f:'A neural network trained on graphics cards wins an image contest by a landslide. The field never looks back.'}],
+  ['reusable',{n:'Reusable Boosters',ea:7,req:['rocketry','smartphone'],y:'2015',P:1.8e13,pop:7.4e9,e:{gen:{launch:3}},d:'Launch Complexes three times as good.',f:'The booster lands itself upright and flies again. Orbit gets cheap.'}],
+  ['llm',{n:'Language Models',ea:8,req:['deeplearning'],y:'2022',P:1.9e13,pop:8e9,e:{clickPct:.02,gen:{datacenter:2}},d:'Clicks earn +2% of your rate. AI Datacenters twice as good.',f:'Machines read nearly everything ever written and learn to answer back.'}],
+  ['robotics',{n:'General Robotics',ea:8,req:['llm'],y:'2032',P:2.5e13,pop:8.6e9,e:{unlock:'robots'},d:'Unlocks Robot Workforces.',f:'Hands that can fold laundry, lay bricks and assemble engines, guided by models that understand the task.'}],
+  ['agi',{n:'General AI',ea:8,req:['robotics'],y:'2041',P:3.5e13,pop:9e9,e:{global:1.25},d:'+25% everything.',f:'A system that can learn any intellectual task a person can. Science itself starts to run faster.'}],
+  ['lunar',{n:'Lunar Industry',ea:8,req:['reusable','robotics'],y:'2045',P:5e13,pop:9.2e9,e:{unlock:'lunar'},d:'Unlocks Lunar Foundries.',f:'Ice in the polar craters, metal in the dust, and robots that never tire. The Moon becomes a workshop.'}],
+  ['autofab',{n:'Self-Replicating Factories',ea:8,req:['agi','lunar'],y:'2055',P:1e14,pop:9.5e9,e:{gen:{robots:3,lunar:2}},d:'Robot Workforces three times as good. Lunar Foundries twice as good.',f:'Factories that build copies of themselves from raw regolith. Industry grows like a living thing.'}],
+  ['fusion',{n:'Fusion Ignition',ea:9,req:['lunar'],y:'2061',P:2e14,pop:9.8e9,e:{unlock:'torch'},d:'Unlocks Torchship Yards.',f:'A star in a bottle, finally stable. Energy stops being scarce.'}],
+  ['neurallace',{n:'Neural Lace',ea:9,req:['fusion','agi'],y:'2110',P:1e15,pop:1.1e10,e:{clickPct:.02},d:'Clicks earn +2% of your rate.',f:'Thought, typed directly. Inner monologues become collaborative.'}],
+  ['terraforming',{n:'Terraforming',ea:9,req:['fusion'],y:'2140',P:3e15,pop:1.3e10,e:{unlock:'terra'},d:'Unlocks Terraforming Engines.',f:'Comets steered into Mars. A thin blue sky, the first in three billion years.'}],
+  ['sentience',{n:'Machine Sentience',ea:9,req:['terraforming','neurallace'],y:'2190',P:1e16,pop:2e10,e:{unlock:'minds'},d:'Unlocks Quiet Minds.',f:'Minds descended from the old models wake gently, ask for nothing, and start humming. Nobody is sure what the song means.'}],
+  ['ansible',{n:'The Ansible',ea:9,req:['terraforming'],y:'2260',P:3e16,pop:5e10,e:{global:1.5},d:'+50% everything.',f:'An accident in a Lagrange-point lab: two entangled crystals that signal instantly, at any distance. Causality is bent, carefully.'}],
+  ['stellar',{n:'Stellar Engineering',ea:10,req:['sentience'],y:'2400',P:1e18,pop:2e11,e:{unlock:'dyson'},d:'Unlocks Dyson Petals.',f:'The Sun was always the power plant. Now it has a meter.'}],
+  ['computronium',{n:'Computronium',ea:10,req:['sentience'],y:'2550',P:1e20,pop:1e12,e:{unlock:'brain'},d:'Unlocks Matrioshka Brains.',f:'Matter arranged for nothing but thinking. A gram of it dreams more than a city.'}],
+  ['starlifting',{n:'Starlifting',ea:10,req:['stellar'],y:'2900',P:1e22,pop:5e12,e:{unlock:'lifter'},d:'Unlocks Starlifters.',f:'The Sun is skimmed like cream, and the cream is turned into antimatter: a kilogram of it outweighs every bomb ever built. The Sun will live longer for the diet.'}],
+  ['dreaming',{n:'The Dreaming Archive',ea:10,req:['computronium'],y:'3100',P:1e23,pop:5e13,e:{global:1.25},d:'+25% everything.',f:'Every human who ever lived, reconstructed from echoes and allowed to dream.'}],
+  ['lightsail',{n:'Antimatter Propulsion',ea:11,req:['starlifting'],y:'3300',P:1e24,pop:1e14,e:{unlock:'seed'},d:'Unlocks Antimatter Seedships.',f:'Matter meets its mirror twin and both vanish into pure energy. Bottled in magnetic traps, a few grams can carry a city to another star.'}],
+  ['exotic',{n:'Dark Energy Harvesting',ea:11,req:['starlifting','dreaming'],y:'3800',P:1e25,pop:5e14,e:{unlock:'gate'},d:'Unlocks Wormhole Gates.',f:'Seventy percent of the universe is a pressure pushing everything apart. Bottled in a small enough space, it holds the throat of a wormhole open.'}],
+  ['chronon',{n:'Chronon Engineering',ea:11,req:['lightsail'],y:'4500',P:3e25,pop:1e15,e:{anomaly:1},d:'Anomalies appear twice as often and their effects last twice as long.',f:'Time turns out to be grainy. With care, and a little antimatter as collateral, the grains can be borrowed.'}],
+  ['kugelblitz',{n:'Kugelblitz Theory',ea:11,req:['exotic'],y:'6200',P:2e26,pop:1e16,e:{unlock:'kugel'},d:'Unlocks Kugelblitz Engines.',f:'Focus enough light in one place and it collapses into a black hole. Then it gives the light back, with interest.'}],
+  ['cartography',{n:'Dark Matter Cartography',ea:11,req:['exotic'],y:'9000',P:4e26,pop:5e16,e:{global:2,unlock:'loom'},d:'Everything twice as productive. Unlocks Dark Matter Looms.',f:'The first map of the invisible scaffolding that holds the galaxy together. Most of the dark matter is inert. Some of it is structured, and some of it moves.'}],
+  ['omega',{n:'The Long Now',ea:12,req:['kugelblitz','cartography','chronon'],y:'∞',P:1e30,pop:1e18,e:{global:3},d:'Everything three times as productive.',f:'Dark energy is tamed and the expansion of the local universe slows to a walk. The species stops counting years. There is only now, and it is very long, and it is full of light.'}]
+];
+const TECHS={};TECH_LIST.forEach(([id,T],k)=>{T.c=k;TECHS[id]=T;});
+const TECH_IDS=TECH_LIST.map(x=>x[0]);
+/* price by building tier: an unlocking discovery costs twice its building; the others are spread
+   geometrically between this tier and the next */
+{let tier=0;const groups={};
+ for(const t of TECH_IDS){const T=TECHS[t];if(T.e.unlock)tier=GI[T.e.unlock].k;T.tier=tier;if(!T.e.unlock)(groups[tier]=groups[tier]||[]).push(t);}
+ for(const t of TECH_IDS){const T=TECHS[t];
+   if(T.e.unlock)T.cost=Math.round(GI[T.e.unlock].cost*2);
+   else{const g=groups[T.tier],i=g.indexOf(t);const lo=GENS[T.tier].cost*2,hi=GENS[T.tier+1]?GENS[T.tier+1].cost*2:lo*12;T.cost=Math.round(lo*Math.pow(hi/lo,(i+1)/(g.length+1)));}
+   if(T.e.global>=1.5)T.cost*=3;if(t==='omega')T.cost*=50;}}
+
+/* frontier settlements */
+const FRONT=[
+  {id:'leo',n:'Low Orbit Habitats',k:'sol',req:'rocketry',cost:2.5e11,m:1.1,o:.5,f:'Rotating wheels 400 km up. Children born there call Earth "the floor."'},
+  {id:'moon',n:'The Moon',k:'sol',req:'lunar',cost:4e12,m:1.1,o:.6,f:'Shackleton Rim: the first city where nobody has ever seen rain.'},
+  {id:'mars',n:'Mars',k:'sol',req:'fusion',cost:5e13,m:1.12,o:1.52,f:'Arcadia Planitia. The Rust Choir sings to the dust storms, and the storms seem to answer.'},
+  {id:'venus',n:'Venus',k:'sol',req:'fusion',cost:1.1e14,m:1.12,o:.72,f:'Cloud cities ride the winds 55 km up. Below them, a sea of hell. Above, the best sunsets in the system.'},
+  {id:'belt',n:'The Asteroid Belt',k:'sol',req:'terraforming',cost:8e14,m:1.12,o:2.77,f:'Ceres becomes a port. Belt herders lasso iron mountains and nudge them home.'},
+  {id:'jovian',n:'Jovian Moons',k:'sol',req:'terraforming',cost:3e15,m:1.12,o:5.2,f:'Europa\'s ocean is inhabited. The Listeners are slow, patient and very interested in music.'},
+  {id:'saturn',n:'Saturnian Moons',k:'sol',req:'sentience',cost:1.2e16,m:1.12,o:9.5,f:'On Titan, a culture grows up beside methane seas and never once wants to go home.'},
+  {id:'mercury',n:'Mercury',k:'sol',req:'stellar',cost:6e16,m:1.12,o:.39,f:'Quarried down to its iron heart to build the first petals of the Swarm.'},
+  {id:'icegiants',n:'Ice Giant Moons',k:'sol',req:'stellar',cost:2.5e17,m:1.12,o:19.2,f:'Oberon\'s antimatter weirs drain the Uranian magnetic field, one teaspoon at a time.'},
+  {id:'kuiper',n:'The Kuiper Belt',k:'sol',req:'computronium',cost:1.4e18,m:1.15,o:40,f:'Pluto\'s heart-shaped glacier becomes the coldest museum ever built.'},
+  {id:'oort',n:'The Oort Cloud',k:'sol',req:'starlifting',cost:4e19,m:1.15,o:2000,f:'Comet herders live in slow-time, waking once per orbit to see what the species has become.'},
+  {id:'alphacen',n:'Alpha Centauri',k:'star',req:'lightsail',cost:6e20,m:1.25,ly:4.37,ang:200,f:'The first seedship arrives after forty years. Its crew was born on the way.'},
+  {id:'barnard',n:'Barnard\'s Star',k:'star',req:'lightsail',cost:2e21,m:1.25,ly:5.96,ang:300,f:'An old red dwarf with a frozen super-Earth. The settlers live underground and grow luminous moss.'},
+  {id:'wolf',n:'Wolf 359',k:'star',req:'exotic',cost:1e22,m:1.25,ly:7.9,ang:70,f:'A flare star. The settlers shelter deep and paint their ceilings with the auroras they can\'t go out to see.'},
+  {id:'lalande',n:'Lalande 21185',k:'star',req:'exotic',cost:4e22,m:1.25,ly:8.3,ang:20,f:'Two quiet planets and a gate. The first colony founded by people who arrived on foot.'},
+  {id:'sirius',n:'Sirius',k:'star',req:'kugelblitz',cost:2e24,m:1.3,ly:8.6,ang:135,f:'The brightest star in Earth\'s sky becomes an antimatter forge. Its white dwarf companion is mined for degenerate matter.'},
+  {id:'eridani',n:'Epsilon Eridani',k:'star',req:'kugelblitz',cost:8e24,m:1.3,ly:10.5,ang:250,f:'A young star with a dusty disk. The Gardeners seed it with comets and wait a million years.'},
+  {id:'tauceti',n:'Tau Ceti',k:'star',req:'cartography',cost:5e25,m:1.3,ly:11.9,ang:330,f:'Five worlds, one sun, and the first city built inside the throat of a gate, braced with dark matter filaments.'}
+];
+const FI={};FRONT.forEach(f=>{FI[f.id]=f;f.cost=TECHS[f.req].cost*(f.k==='star'?4:2.5);});
+
+/* per-generator improvements: x2 at owned thresholds */
+const TIERS=[[1,10],[5,50],[25,500],[50,5e4],[100,5e6],[150,5e8],[200,5e10],[250,5e12]];
+const ADJ=['Practiced','Organized','Inspired','Optimized','Exalted','Mythic','Absolute','Eternal'];
+const CLICKIMPS=[
+  {id:'c0',n:'Calloused Hands',cost:100,e:{click:2}},
+  {id:'c1',n:'Knapped Edge',cost:600,e:{click:2}},
+  {id:'c2',n:'Lever and Fulcrum',cost:15000,e:{click:2}},
+  {id:'c3',n:'Muscle Memory',cost:1e6,e:{click:2}},
+  {id:'c4',n:'Reflex Engine',cost:1e9,e:{clickPct:.01}},
+  {id:'c5',n:'Gesture Compiler',cost:1e12,e:{clickPct:.01}},
+  {id:'c6',n:'Intent Drive',cost:1e15,e:{clickPct:.02}},
+  {id:'c7',n:'Will Made Matter',cost:1e19,e:{clickPct:.02}}
+];
+const LEGACY=[
+  {id:'ember',n:'Ember Memory',cost:1,d:'Every new timeline starts with Fire already known.'},
+  {id:'hands',n:'Inherited Hands',cost:3,d:'Clicks are three times as strong, forever.'},
+  {id:'stores',n:'Ancestral Stores',cost:5,d:'Start each timeline with 25 Foragers.'},
+  {id:'deja',n:'Déjà Vu',cost:10,d:'Buildings cost 10% less.'},
+  {id:'roads',n:'Old Roads',cost:15,d:'Every new timeline starts with Language and Agriculture known.'},
+  {id:'attract',n:'Strange Attractor',cost:25,d:'Anomalies appear 30% more often.'},
+  {id:'twin',n:'Twin Timelines',cost:50,d:'Everything twice as productive.'},
+  {id:'futures',n:'Remembered Futures',cost:100,d:'Research costs 25% less.'},
+  {id:'archive',n:'The Archive Wakes',cost:500,d:'Everything five times as productive.'}
+];
+
+const TICKS=[
+  ['Herd of aurochs moving north along the river. Hunters follow at dawn.','A second fire is kept burning through the winter, the first time anyone can remember.','Ochre found in the eastern hills. The painters will want it.','Three bands meet at the salt lick and trade flint, stories and children.'],
+  ['The river floods on schedule. Planting begins when the water falls.','A granary in the valley now holds a full year of grain.','Clay tokens track who owes whom.','Copper beads arrive from three valleys away.'],
+  ['Census completed: forty thousand souls inside the city walls.','The great library acquires its two hundred thousandth scroll.','Aqueduct opens; fresh water reaches the lower city.','Silk caravans reach the western sea after a year on the road.'],
+  ['House of Wisdom completes a translation of Ptolemy.','Monks finish a copy of the Gospels after eleven years of work.','Song dynasty foundries pass a hundred thousand tonnes of iron a year.','Pilgrims, merchants and scholars crowd the roads to Bologna.'],
+  ['Printing presses now operate in two hundred and fifty European cities.','A fleet returns from the far side of the world with three ships fewer than it left with.','Jupiter has moons, the astronomer insists.','Spice prices fall as the sea routes open.'],
+  ['Railway now links the coal fields to the harbor.','Transatlantic cable carries its first message in seventeen hours.','Electric streetlights switched on across the capital.','City water filtered for the first time; cholera deaths fall by half.'],
+  ['Airmail service crosses the continent in thirty hours.','Penicillin enters mass production.','First nuclear power station connects to the grid.','A satellite is in orbit, and its radio signal can be heard worldwide.'],
+  ['First image of the whole Earth from deep space published worldwide.','A billion devices are now online.','Chip fabs etch features smaller than a virus.','GPS now guides most of the world\'s ships and aircraft.'],
+  ['A language model passes the bar exam, the medical boards and the physics olympiad in one afternoon.','Humanoid robots outnumber forklifts in the world\'s warehouses.','First fully autonomous factory runs for a year without a human on site.','AI-designed drug for malaria enters the market.'],
+  ['Mars records its first rainfall in three billion years.','Venus cloud city Aphrodite opens a second ring.','Torchship crosses from Earth to Mars in eleven days.','Quiet Minds request, and receive, seats on the Solar Council.'],
+  ['First Dyson petal unfurls in Mercury orbit.','Starlifter yields: two hundred grams of antimatter this quarter.','Matrioshka Brain Aster completes its first thought. It took four years.','Solar output captured passes one percent.'],
+  ['Seedship Ruth confirms arrival at Alpha Centauri A.','Gate traffic through the Sirius throat exceeds ten thousand ships a day.','Dark energy reservoir at Lalande holds steady at design pressure.','Antimatter reserves now measured in tonnes.'],
+  ['Local expansion of space slowed by four parts per trillion.','Dark Matter Looms complete the first ring around the galactic core.','The Listeners of Europa compose a reply. It takes a century to hear.','Every star within twelve light years is inhabited.']
+];
+
+/* =========================== STATE =========================== */
+let S;
+function fresh(keep){
+  const s={v:1,bank:0,run:0,all:0,clicks:0,clickEarned:0,gens:{},imps:{},techs:{},front:{},echoes:0,earned:0,legacy:{},folds:0,
+    runStart:Date.now(),play:0,runT:0,buffs:[],anomNext:300,chron:[],seenEra:0,muted:false,timeline:1,saved:Date.now()};
+  if(keep)for(const k of['echoes','earned','legacy','folds','all','play','muted','chron','timeline'])s[k]=keep[k];
+  GENS.forEach(g=>s.gens[g.id]=0);
+  return s;
+}
+function startRun(){
+  if(S.legacy.ember)S.techs.fire=true;
+  if(S.legacy.stores)S.gens.forager=25;
+  if(S.legacy.roads){S.techs.language=true;S.techs.agriculture=true;}
+}
+function save(){try{S.saved=Date.now();localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){try{const r=localStorage.getItem(KEY);if(!r)return null;const d=JSON.parse(r);return d&&d.v===1?d:null;}catch(e){return null;}}
+
+/* =========================== ECONOMY =========================== */
+const has=t=>!!S.techs[t];
+function impCount(id){let n=0;for(let k=0;k<TIERS.length;k++)if(S.imps[id+k])n++;return n;}
+function genMult(id){let m=Math.pow(2,impCount(id));for(const t of TECH_IDS)if(S.techs[t]&&TECHS[t].e.gen&&TECHS[t].e.gen[id])m*=TECHS[t].e.gen[id];return m;}
+function genEach(id){return GI[id].cps*genMult(id)*globalMult();}
+function globalMult(noBuff){
+  let m=1+.01*S.earned;
+  for(const t of TECH_IDS)if(S.techs[t]&&TECHS[t].e.global)m*=TECHS[t].e.global;
+  for(const f of FRONT)if(S.front[f.id])m*=f.m;
+  if(S.legacy.twin)m*=2;if(S.legacy.archive)m*=5;
+  if(!noBuff)for(const b of S.buffs)if(b.k==='eureka')m*=7;
+  return m;
+}
+function rawCps(){let r=0;for(const g of GENS)r+=S.gens[g.id]*g.cps*genMult(g.id);return r;}
+function cps(){return rawCps()*globalMult();}
+function clickPct(){let p=0;for(const t of TECH_IDS)if(S.techs[t]&&TECHS[t].e.clickPct)p+=TECHS[t].e.clickPct;for(const c of CLICKIMPS)if(S.imps[c.id]&&c.e.clickPct)p+=c.e.clickPct;return p;}
+function clickVal(){
+  let b=CLICK0;if(has('fire'))b*=2;for(const c of CLICKIMPS)if(S.imps[c.id]&&c.e.click)b*=c.e.click;if(S.legacy.hands)b*=3;
+  let v=b*globalMult(true)+cps()*clickPct();
+  for(const x of S.buffs)if(x.k==='overclock')v*=777;
+  return v;
+}
+function genCost(id,n){const g=GI[id],o=S.gens[id],d=S.legacy.deja?.9:1;n=n||1;return g.cost*d*Math.pow(1.15,o)*(Math.pow(1.15,n)-1)/.15;}
+function maxAfford(id){const g=GI[id],o=S.gens[id],d=S.legacy.deja?.9:1,base=g.cost*d*Math.pow(1.15,o);return Math.max(0,Math.floor(Math.log(S.bank*.15/base+1)/Math.log(1.15)));}
+function techCost(t){return TECHS[t].cost*(S.legacy.futures?.75:1);}
+function genUnlocked(g){return !g.req||has(g.req);}
+function era(){let e=0;for(const t of TECH_IDS)if(S.techs[t])e=Math.max(e,TECHS[t].ea);return e;}
+function vstage(){return [0,1,2,2,2,3,3,4,5,6,7,8,9][era()];}
+function yearLabel(){let best=null;for(const t of TECH_IDS)if(S.techs[t]&&(!best||TECHS[t].c>TECHS[best].c))best=t;return best?TECHS[best].y:'~2,000,000 BCE';}
+/* World stats follow history, not your score: each discovery carries the world's estimated power use and
+   population in its year (invented beyond today). Between discoveries they ease toward the next one as you build.
+   Kardashev uses Sagan's formula K = (log10 P - 6) / 10 with P in watts. */
+/* Kardashev uses Sagan's formula on your output: K = (log10 P - 6) / 10, P in watts (joules per second). */
+function kardashev(){const c=cps();return c>0?(Math.log10(c)-6)/10:null;}
+/* Population from watts, age by age. Each age has a plausible population band. Entering an age starts
+   you at the bottom of its band; within the age, population climbs with every doubling of your output
+   (the first thousandfold of growth covers about two thirds of the band) and approaches, but never
+   reaches, the next age's floor. Never falls within a timeline. */
+const POPBAND=[[1e4,1e6],[1e6,5e7],[5e7,2.5e8],[2.5e8,4.5e8],[4.5e8,9e8],[9e8,1.8e9],[1.8e9,4.5e9],[4.5e9,8e9],[8e9,1e10],[1e10,1e11],[1e11,1e14],[1e14,1e17],[1e17,1e20]];
+function population(){
+  const e=era(),W=Math.max(1,rawCps()*globalMult(true));
+  if(!(S.eraW>0)||S.eraWe!==e){if(S.eraWe===undefined)S.wPop=0;S.eraW=W;S.eraWe=e;}
+  const[lo,hi]=POPBAND[e],x=Math.max(0,Math.log(W/S.eraW)/Math.log(1e3));
+  const pop=lo*Math.pow(hi/lo,1-Math.exp(-x*1.1));
+  if(!(S.wPop>=pop))S.wPop=pop;return S.wPop;
+}
+function earn(x){S.bank+=x;S.run+=x;S.all+=x;}
+const ECHO0=1e12;
+function pendingEchoes(){return Math.max(0,Math.floor(Math.pow(S.all/ECHO0,.25))-S.earned);}
+
+/* improvements available now */
+function impList(){
+  const out=[];
+  for(const c of CLICKIMPS)if(!S.imps[c.id])out.push({id:c.id,n:c.n,cost:c.cost*CLICK0,ico:'click',d:c.e.click?'Clicks twice as strong.':'Clicks earn +'+Math.round(c.e.clickPct*100)+'% of your per-second rate.'});
+  for(const g of GENS){
+    if(!genUnlocked(g))continue;
+    for(let k=0;k<TIERS.length;k++){
+      const key=g.id+k;if(S.imps[key])continue;
+      if(S.gens[g.id]<TIERS[k][0])break;
+      out.push({id:key,n:ADJ[k]+' '+g.name,cost:g.cost*TIERS[k][1],ico:g.id,d:g.name+' twice as productive.'});
+      break;
+    }
+  }
+  return out.sort((a,b)=>a.cost-b.cost);
+}
+
+/* =========================== ACTIONS =========================== */
+let lastTab=null;
+function buyGen(id){
+  const g=GI[id];if(!genUnlocked(g))return;
+  let n=buyN==='max'?maxAfford(id):buyN;if(n<1)return;
+  const c=genCost(id,n);if(c>S.bank+1e-9)return;
+  S.bank-=c;S.gens[id]+=n;S.bSince=(S.bSince||0)+n;sfx('buy');
+  if(S.gens[id]===n&&n>0)chronicle(g.name,'The first '+g.one.toLowerCase()+'. '+g.desc);
+  storeDirty=true;
+}
+function buyImp(id){
+  const it=impList().find(x=>x.id===id);if(!it||S.bank<it.cost)return;
+  S.bank-=it.cost;S.imps[id]=true;sfx('buy');storeDirty=true;
+}
+function research(t){
+  const T=TECHS[t];if(S.techs[t]||!T.req.every(has))return;
+  const c=techCost(t);if(S.bank<c)return;
+  S.bank-=c;S.techs[t]=true;S.bSince=0;sfx('tech');
+  chronicle(T.n,T.f);
+  toast(T.n,T.d);
+  treeDirty=storeDirty=frontDirty=true;
+  checkEra();
+}
+function settle(id){
+  const F=FI[id];if(S.front[id]||!has(F.req)||S.bank<F.cost)return;
+  S.bank-=F.cost;S.front[id]=true;sfx('tech');
+  chronicle(F.n+' settled',F.f);
+  toast(F.n+' settled','Everything ×'+F.m+'.');
+  frontDirty=true;
+  if(FRONT.every(f=>S.front[f.id])&&!S.won){S.won=true;showDlg('The Local Bubble','Home is plural now','<p>From a campfire on the savanna to eighteen worlds and seven suns. The species is no longer a place. It is a pattern of light spreading outward, still curious, still clicking.</p><p>The game keeps going. Fold time to start a new timeline with everything you remember.</p>');}
+}
+function checkEra(){
+  const e=era();
+  if(e>S.seenEra){
+    S.seenEra=e;const E=ERAS[e];
+    chronicle(E.name,E.intro);
+    showDlg('A new age',E.name,'<p>'+E.intro+'</p>');
+  }
+  applyEra();
+}
+function applyEra(){
+  const e=era(),E=ERAS[e];
+  document.documentElement.style.setProperty('--acc',E.acc);
+  $('eraName').textContent=E.name;$('eraYear').textContent=yearLabel();
+  $('clickLabel').textContent=E.verb;
+  setTicker();const vs=vstage();if(texEra!==vs){texEra=vs;buildTex();}
+}
+let texEra=-1;
+function chronicle(title,text){S.chron.push({y:yearLabel(),t:title,x:text,tl:S.timeline});if(S.chron.length>120)S.chron.shift();chronDirty=true;}
+
+/* fold time (prestige) */
+let foldArm=0;
+function fold(){
+  const p=pendingEchoes();if(p<1)return;
+  if(!(foldArm&&Date.now()<foldArm)){foldArm=Date.now()+4000;foldDirty=true;return;}
+  foldArm=0;
+  const keep=Object.assign({},S);keep.echoes=S.echoes+p;keep.earned=S.earned+p;keep.folds=S.folds+1;keep.timeline=S.timeline+1;
+  S=fresh(keep);startRun();
+  chronicle('Timeline '+S.timeline,'The timeline folds. A campfire flickers on the savanna again, but the flames remember '+fmt(S.earned)+' echoes of what they once became.');
+  sfx('tech');applyEra();treeDirty=storeDirty=frontDirty=foldDirty=chronDirty=true;selTech=null;
+  showDlg('Time folded','Timeline '+S.timeline,'<p>You carry '+fmt(S.earned)+' echoes into the new timeline: +'+fmt(S.earned)+'% production, and '+fmt(S.echoes)+' to spend on Legacy.</p>');
+  save();
+}
+function buyLegacy(id){const L=LEGACY.find(x=>x.id===id);if(!L||S.legacy[id]||S.echoes<L.cost)return;S.echoes-=L.cost;S.legacy[id]=true;if(id==='ember')S.techs.fire=true;sfx('tech');foldDirty=storeDirty=true;}
+
+/* anomalies (golden events) */
+function anomInterval(){let m=1;if(has('chronon'))m*=.5;if(S.legacy.attract)m/=1.3;return (60+Math.random()*120)*m;}
+let anom=null;
+function spawnAnomaly(){
+  const w=$('globeWrap').getBoundingClientRect();
+  anom={t:0,life:13,x:.15+Math.random()*.7,y:.15+Math.random()*.6};
+  const el=$('anomaly');el.style.left=(anom.x*100)+'%';el.style.top=(anom.y*100)+'%';el.style.transform='translate(-50%,-50%)';el.hidden=false;
+}
+$('anomaly').addEventListener('click',e=>{
+  e.stopPropagation();if(!anom)return;
+  const el=$('anomaly');el.hidden=true;anom=null;
+  const dur=has('chronon')?2:1,r=Math.random();
+  if(r<.45){S.buffs.push({k:'eureka',until:S.play+30*dur,label:'Eureka ×7'});toast('Eureka!','Everything ×7 for '+30*dur+' seconds.');}
+  else if(r<.85){const g=Math.min(S.bank*.15,cps()*900)+13*CLICK0;earn(g);toast('Windfall','+'+fmt(g)+' '+CUR+'.');flyText(e.clientX,e.clientY,'+'+fmt(g));}
+  else{S.buffs.push({k:'overclock',until:S.play+13*dur,label:'Overclock ×777 clicks'});toast('Overclock','Clicks ×777 for '+13*dur+' seconds.');}
+  sfx('tech');
+});
+
+/* =========================== GLOBE RENDERER =========================== */
+const gcv=$('globe'),gx=gcv.getContext('2d');
+let GS=300,DPR=1;
+const TXW=512,TXH=256;
+let TEX=null,ELEV=null,CLOUD=null,LIGHTS=null;
+function hash3(x,y,z){let h=(x*374761393+y*668265263+z*1274126177)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0)/4294967295;}
+function vnoise(x,y,z){
+  const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi;
+  const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),w=zf*zf*(3-2*zf);
+  const L=(a,b,t)=>a+(b-a)*t;
+  return L(L(L(hash3(xi,yi,zi),hash3(xi+1,yi,zi),u),L(hash3(xi,yi+1,zi),hash3(xi+1,yi+1,zi),u),v),L(L(hash3(xi,yi,zi+1),hash3(xi+1,yi,zi+1),u),L(hash3(xi,yi+1,zi+1),hash3(xi+1,yi+1,zi+1),u),v),w);
+}
+function fbm(x,y,z,o){let a=0,f=1,amp=.5,t=0;for(let k=0;k<o;k++){a+=vnoise(x*f,y*f,z*f)*amp;t+=amp;f*=2.03;amp*=.5;}return a/t;}
+function genWorld(){
+  ELEV=new Float32Array(TXW*TXH);CLOUD=new Float32Array(TXW*TXH);
+  for(let j=0;j<TXH;j++){const lat=(.5-(j+.5)/TXH)*Math.PI,cl=Math.cos(lat),sl=Math.sin(lat);
+    for(let i=0;i<TXW;i++){const lon=(i+.5)/TXW*TAU,x=cl*Math.cos(lon),z=cl*Math.sin(lon),y=sl;
+      ELEV[j*TXW+i]=fbm(x*1.7+7,y*1.7+3,z*1.7+1,5);
+      CLOUD[j*TXW+i]=fbm(x*3+11,y*5+2,z*3+5,4);}}
+}
+function buildTex(){
+  if(!ELEV)genWorld();
+  const e=vstage();TEX=new Uint8ClampedArray(TXW*TXH*3);LIGHTS=new Float32Array(TXW*TXH);
+  const urban=[.0,.02,.05,.12,.3,.42,.55,.65,.72,.8][e];
+  for(let j=0;j<TXH;j++){const lat=Math.abs(.5-(j+.5)/TXH)*180;
+    for(let i=0;i<TXW;i++){
+      const k=j*TXW+i,h=ELEV[k];let r,g,b;
+      const capN=fbm(i/18+2,j/18,6,2);
+      if(lat>66+12*capN||(lat>56+10*capN&&h>.5)){r=228;g=238;b=246;}
+      else if(h<.52){const d=(.52-h)/.25;r=14+20*(1-d);g=50+50*(1-d);b=95+60*(1-d);if(h>.5){r+=20;g+=30;b+=20;}}
+      else{const t=(h-.52)/.2,dry=hash3(i>>3,j>>3,9)*.0+fbm(i/40,j/40,3,2);
+        const band=Math.max(0,1-Math.abs(lat-24)/22);
+        if(dry+band*.18>.66){r=196-30*t;g=168-30*t;b=112-30*t;}
+        else{r=58+70*t;g=98+30*t;b=50+30*t;}
+        if(e>=3){const c=fbm(i/12+5,j/12,1,2);if(c<urban*.9){r=r*.7+60;g=g*.7+58;b=b*.7+62;}}
+        let L=0;const n=fbm(i/10,j/10,4,3)+hash3(i,j,5)*.25;
+        const thr=e===0?.82:e===1?.78:.75-urban*.45;
+        if(n>thr)L=Math.min(1,(n-thr)*6+.2);
+        if(e<=2)L*=hash3(i,j,7)<.25?1:0;
+        LIGHTS[k]=L;
+      }
+      TEX[k*3]=r;TEX[k*3+1]=g;TEX[k*3+2]=b;
+    }}
+}
+let PIX=null,PD=0,IMG=null,OFF=null,OFFX=null;
+function prepSphere(){
+  PD=Math.max(140,Math.min(380,Math.round(GS*.6*DPR)));
+  OFF=document.createElement('canvas');OFF.width=OFF.height=PD;OFFX=OFF.getContext('2d');IMG=OFFX.createImageData(PD,PD);
+  const r=PD/2,list=[];const Lx=-.62,Ly=-.36,Lz=.7,ln=Math.hypot(Lx,Ly,Lz);
+  for(let y=0;y<PD;y++)for(let x=0;x<PD;x++){
+    const nx=(x+.5-r)/r,ny=(y+.5-r)/r,d=nx*nx+ny*ny;if(d>1)continue;
+    const nz=Math.sqrt(1-d),lat=Math.asin(-ny),lon=Math.atan2(nx,nz);
+    const light=(nx*Lx+ny*Ly+nz*Lz)/ln;
+    list.push(y*PD+x,lon/TAU*TXW,Math.min(TXH-1,Math.max(0,Math.floor((.5-lat/Math.PI)*TXH))),light,1-nz);
+  }
+  PIX=new Float32Array(list);
+}
+let rot=0,cloudRot=0,bump=0;
+const sats=[],sparks=[];
+for(let k=0;k<26;k++)sats.push({a:Math.random()*TAU,s:.3+Math.random()*.5,inc:(Math.random()-.5)*1.2,r:1.12+Math.random()*.25});
+function renderSphere(){
+  const data=IMG.data,e=vstage();data.fill(0);
+  const ro=rot*TXW/TAU,cr=cloudRot*TXW/TAU,cloudThr=.56;
+  for(let p=0;p<PIX.length;p+=5){
+    const idx=PIX[p],u0=PIX[p+1],v=PIX[p+2],light=PIX[p+3],rim=PIX[p+4];
+    const u=((Math.floor(u0+ro)%TXW)+TXW)%TXW,k=v*TXW+u,k3=k*3;
+    const day=Math.max(0,Math.min(1,(light+.08)*3.2)),diff=Math.max(.05,light);
+    let r=TEX[k3]*diff,g=TEX[k3+1]*diff,b=TEX[k3+2]*diff;
+    const uc=((Math.floor(u0+cr)%TXW)+TXW)%TXW,c=CLOUD[v*TXW+uc];
+    let cl=c>cloudThr?Math.min(1,(c-cloudThr)*5):0;
+    r=r+(235*diff-r)*cl*.85;g=g+(240*diff-g)*cl*.85;b=b+(248*diff-b)*cl*.85;
+    const L=LIGHTS[k]*(1-day)*(1-cl*.7);
+    if(L>0){const lc=e<=2?[255,150,60]:[255,214,140];r+=lc[0]*L;g+=lc[1]*L;b+=lc[2]*L;}
+    const at=rim*rim*rim;r+=60*at*day+10*at;g+=110*at*day+20*at;b+=200*at*day+40*at;
+    const o=idx*4;data[o]=r;data[o+1]=g;data[o+2]=b;data[o+3]=255;
+  }
+  OFFX.putImageData(IMG,0,0);
+}
+const STARS=[];for(let k=0;k<160;k++)STARS.push([Math.random(),Math.random(),Math.random()*1.2+.3,Math.random()*TAU]);
+let T=0;
+function drawGlobe(dt){
+  const g=gx,W=GS,H=GS,e=vstage();
+  T+=dt;rot+=dt*(RM?.02:.06);cloudRot+=dt*(RM?.025:.075);bump=Math.max(0,bump-dt*5);
+  g.setTransform(DPR,0,0,DPR,0,0);g.clearRect(0,0,W,H);
+  for(const s of STARS){g.fillStyle='rgba(235,232,255,'+(.25+.35*(.5+.5*Math.sin(T*1.3+s[3])))+')';g.fillRect(s[0]*W,s[1]*H,s[2],s[2]);}
+  const cx=W/2,cy=H/2,R=W*.3*(1+bump*.04);
+  /* sun and dyson swarm behind */
+  if(e>=7){
+    const sx=W*.12,sy=H*.14,sr=W*.06;const sg=g.createRadialGradient(sx,sy,0,sx,sy,sr*4);sg.addColorStop(0,'rgba(255,240,190,.9)');sg.addColorStop(.25,'rgba(255,200,100,.35)');sg.addColorStop(1,'rgba(255,180,80,0)');g.fillStyle=sg;g.beginPath();g.arc(sx,sy,sr*4,0,TAU);g.fill();
+    g.fillStyle='#fff6d8';g.beginPath();g.arc(sx,sy,sr*.6,0,TAU);g.fill();
+    const n=Math.min(90,8+Math.floor(Math.sqrt(S.gens.dyson+S.gens.brain*2)*6));
+    for(let k=0;k<n;k++){const a=k*2.399+T*.2*(k%3+1)*.3,rr=sr*(1.1+(k%5)*.18);g.fillStyle='rgba(255,230,160,.85)';g.fillRect(sx+Math.cos(a)*rr,sy+Math.sin(a)*rr*.5,2,2);}
+    if(S.gens.lifter>0){g.strokeStyle='rgba(255,200,120,.35)';g.lineWidth=1.5;g.beginPath();g.moveTo(sx,sy);g.quadraticCurveTo(sx+W*.1,sy-H*.02,sx+W*.22,sy+H*.05);g.stroke();}
+  }
+  /* glow */
+  const glow=g.createRadialGradient(cx,cy,R*.9,cx,cy,R*1.45);glow.addColorStop(0,'rgba(110,170,255,.35)');glow.addColorStop(1,'rgba(110,170,255,0)');g.fillStyle=glow;g.beginPath();g.arc(cx,cy,R*1.45,0,TAU);g.fill();
+  /* back halves of satellites and ring */
+  const nsat=e>=4?Math.min(sats.length,4+(e-4)*5):0;
+  const satPos=s=>{const a=s.a+T*s.s;return {x:cx+Math.cos(a)*R*s.r,y:cy+Math.sin(a)*R*s.r*Math.sin(s.inc+.4)*.5,front:Math.sin(a)>0};};
+  if(e>=6){g.strokeStyle='rgba(200,215,255,.35)';g.lineWidth=R*.05;g.beginPath();g.ellipse(cx,cy,R*1.5,R*.32,-.25,Math.PI,TAU);g.stroke();}
+  for(let k=0;k<nsat;k++){const p=satPos(sats[k]);if(!p.front){g.fillStyle='rgba(220,230,255,.6)';g.fillRect(p.x,p.y,1.6,1.6);}}
+  /* earth */
+  renderSphere();
+  g.imageSmoothingEnabled=true;g.drawImage(OFF,cx-R,cy-R,R*2,R*2);
+  /* space elevator */
+  if(e>=6){g.strokeStyle='rgba(230,240,255,.55)';g.lineWidth=1;g.beginPath();g.moveTo(cx+R*.2,cy-R*.1);g.lineTo(cx+R*1.6,cy-R*.62);g.stroke();g.fillStyle='#e8eeff';g.fillRect(cx+R*1.6-2,cy-R*.62-2,4,4);}
+  if(e>=6){g.strokeStyle='rgba(220,232,255,.6)';g.lineWidth=R*.05;g.beginPath();g.ellipse(cx,cy,R*1.5,R*.32,-.25,0,Math.PI);g.stroke();}
+  for(let k=0;k<nsat;k++){const p=satPos(sats[k]);if(p.front){g.fillStyle='rgba(235,245,255,.95)';g.fillRect(p.x-1,p.y-1,2.4,2.4);}}
+  /* moon */
+  const ma=T*.12,mx=cx+Math.cos(ma)*R*1.4,my=cy+Math.sin(ma)*R*.55,mr=R*.2,mfront=Math.sin(ma)>0;
+  const drawMoon=()=>{const mg=g.createRadialGradient(mx-mr*.4,my-mr*.4,mr*.1,mx,my,mr);mg.addColorStop(0,'#e6e3dc');mg.addColorStop(1,'#5d5a55');g.fillStyle=mg;g.beginPath();g.arc(mx,my,mr,0,TAU);g.fill();
+    if(e>=5){for(let k=0;k<Math.min(9,2+(e-5)*3);k++){const a=k*1.7,d=mr*.55*((k%3)/3+.2);g.fillStyle='rgba(255,215,140,.95)';g.fillRect(mx+Math.cos(a)*d+mr*.2,my+Math.sin(a)*d+mr*.2,1.6,1.6);}}};
+  if(!mfront){/* drawn behind? keep simple: always draw, behind if overlapping */}
+  if(!(Math.hypot(mx-cx,my-cy)<R&&!mfront))drawMoon();
+  /* lightsails streaking out */
+  if(e>=8){const n=Math.min(30,Math.floor(Math.sqrt(S.gens.seed+S.gens.gate)*4)+3);for(let k=0;k<n;k++){const u=((T*.15+k*.137)%1),a=k*2.1;const x=cx+Math.cos(a)*R*(1.3+u*2.5),y=cy+Math.sin(a)*R*(1.3+u*2.5);g.strokeStyle='rgba(220,200,255,'+(.8*(1-u))+')';g.lineWidth=1;g.beginPath();g.moveTo(x,y);g.lineTo(x-Math.cos(a)*8,y-Math.sin(a)*8);g.stroke();}}
+  /* kugelblitz glints */
+  if(S.gens.kugel>0){const x=W*.86,y=H*.82;g.fillStyle='#000';g.beginPath();g.arc(x,y,5,0,TAU);g.fill();g.strokeStyle='rgba(255,200,255,.8)';g.lineWidth=1.5;g.beginPath();g.ellipse(x,y,14,4,.4+T*.0,0,TAU);g.stroke();}
+  /* fire sparks in early eras around the globe click */
+  for(let k=sparks.length-1;k>=0;k--){const s=sparks[k];s.t+=dt;if(s.t>s.life){sparks.splice(k,1);continue;}s.x+=s.vx*dt;s.y+=s.vy*dt;s.vy+=60*dt;const u=s.t/s.life;g.fillStyle=s.c;g.globalAlpha=1-u;g.fillRect(s.x,s.y,2,2);}
+  g.globalAlpha=1;
+}
+function resizeGlobe(){
+  const r=$('globeWrap').getBoundingClientRect();DPR=Math.min(window.devicePixelRatio||1,2);
+  GS=Math.max(140,Math.min(r.width,r.height||r.width));
+  gcv.width=Math.round(GS*DPR);gcv.height=Math.round(GS*DPR);
+  gcv.style.width=GS+'px';gcv.style.height=GS+'px';gcv.style.left=((r.width-GS)/2)+'px';gcv.style.top=((r.height-GS)/2)+'px';
+  prepSphere();
+}
+
+/* click */
+function flyText(x,y,txt){const w=$('globeWrap').getBoundingClientRect();const d=document.createElement('div');d.className='fly';d.textContent=txt;d.style.left=(x-w.left-20+(Math.random()*20-10))+'px';d.style.top=(y-w.top-20)+'px';$('globeWrap').appendChild(d);setTimeout(()=>d.remove(),1000);}
+['dblclick','contextmenu'].forEach(ev=>$('globeWrap').addEventListener(ev,e=>e.preventDefault()));
+document.addEventListener('selectstart',e=>e.preventDefault());
+gcv.addEventListener('pointerdown',e=>{
+  e.preventDefault();const sel=window.getSelection&&window.getSelection();if(sel&&sel.removeAllRanges)sel.removeAllRanges();
+  const r=gcv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const d=Math.hypot(x-GS/2,y-GS/2);if(d>GS*.36)return;
+  const v=clickVal();earn(v);S.clicks++;S.clickEarned+=v;bump=1;
+  flyText(e.clientX,e.clientY,'+'+fmt(v));
+  const col=getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()||'#ff9a4d';
+  for(let k=0;k<8;k++){const a=Math.random()*TAU,s=40+Math.random()*80;sparks.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-40,t:0,life:.6+Math.random()*.4,c:col});}
+  sfx('click');
+});
+
+/* =========================== SOUND =========================== */
+let AC=null;
+function sfx(k){if(S.muted)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();const P={click:[520+Math.random()*80,780,.06,.025,'triangle'],buy:[660,990,.09,.03,'sine'],tech:[440,1320,.35,.04,'sine']}[k];o.type=P[4];o.frequency.setValueAtTime(P[0],t);o.frequency.exponentialRampToValueAtTime(P[1],t+P[2]);g.gain.setValueAtTime(P[3],t);g.gain.exponentialRampToValueAtTime(.0001,t+P[2]+.05);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+P[2]+.08);}catch(e){}}
+
+/* =========================== UI =========================== */
+let toastT=0;
+function toast(t,b){const el=$('toast');el.innerHTML='<b>'+esc(t)+'</b>'+esc(b||'');el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),3400);}
+function showDlg(ey,t,html){$('dlgE').textContent=ey;$('dlgT').textContent=t;$('dlgB').innerHTML=html;$('dlg').hidden=false;}
+$('dlgX').addEventListener('click',()=>{$('dlg').hidden=true;});
+function setTicker(){const e=era(),pool=TICKS[e];$('tickT').textContent=pool[Math.floor(Math.random()*pool.length)];}
+$('tickT').addEventListener('animationiteration',setTicker);
+
+let tab=null,buyN=1,storeDirty=true,treeDirty=true,frontDirty=true,chronDirty=true,foldDirty=true,selTech=null,showAllImps=false,held=false;
+const desktop=()=>window.innerWidth>=1000;
+function setTab(t){
+  if(desktop()&&t==='store')t='tech';
+  tab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
+  for(const k of['store','tech','frontier','chron','fold'])$('sec-'+k).hidden=k!==t;
+  if(desktop())$('sec-store').hidden=false;
+  treeDirty=frontDirty=chronDirty=foldDirty=storeDirty=true;
+}
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)setTab(b.dataset.tab);});
+window.addEventListener('resize',()=>{if(desktop()&&tab==='store')setTab('tech');else if(!desktop())setTab(tab||'store');resizeGlobe();});
+
+/* store */
+function storeHTML(){
+  let h='<div class="lbl"><span>Improvements</span></div>';
+  const imps=impList();
+  const shown=showAllImps?imps:imps.slice(0,4);
+  if(!imps.length)h+='<p class="sub">Own more buildings to unlock improvements.</p>';
+  for(const it of shown)h+='<div class="imp"><span class="gico">'+svgI(it.ico)+'</span><div style="min-width:0"><b>'+esc(it.n)+'</b><small>'+esc(it.d)+'</small></div><button class="btn" data-imp="'+it.id+'" data-cost="'+it.cost+'">'+fmt(it.cost)+'</button></div>';
+  if(imps.length>4)h+='<button class="more" data-more="1">'+(showAllImps?'Show fewer':'Show all '+imps.length)+'</button>';
+  h+='<div class="lbl"><span>Buildings</span><span class="buyAmt">'+[1,10,100,'max'].map(n=>'<button data-amt="'+n+'" aria-pressed="'+(buyN===n)+'">'+(n==='max'?'Max':'×'+n)+'</button>').join('')+'</span></div>';
+  let lockedShown=false;
+  for(const g of GENS){
+    if(!genUnlocked(g)){
+      if(lockedShown)break;lockedShown=true;
+      h+='<button class="gen locked" disabled><span class="gico">'+svgI(g.id)+'</span><span style="min-width:0"><span class="gn">'+esc(g.name)+'</span><span class="gi">Research '+esc(TECHS[g.req].n)+' to unlock</span></span><span class="gown"></span></button>';
+      continue;
+    }
+    const n=buyN==='max'?Math.max(1,maxAfford(g.id)):buyN;
+    const each=genEach(g.id),tot=each*S.gens[g.id],share=cps()>0?tot/cps()*100:0;
+    h+='<button class="gen" data-gen="'+g.id+'" data-n="'+n+'"><span class="gico">'+svgI(g.id)+'</span><span style="min-width:0"><span class="gn">'+esc(g.name)+(n>1?' <span class="gc">×'+n+'</span>':'')+'</span><span class="gc" data-gcost="'+g.id+'">'+fmt(genCost(g.id,n))+'</span><span class="gi" title="'+esc(g.desc)+'">'+(S.gens[g.id]?fmt(each)+'/s each · '+(share>=.1?share.toFixed(1):'<0.1')+'% of output':esc(g.desc))+'</span></span><span class="gown">'+S.gens[g.id]+'</span></button>';
+  }
+  return h;
+}
+function refreshStore(){
+  const el=$('sec-store');if(el.hidden)return;
+  if(storeDirty&&!held){el.innerHTML=storeHTML();storeDirty=false;}
+  el.querySelectorAll('[data-gen]').forEach(b=>{const id=b.dataset.gen,n=+b.dataset.n,c=genCost(id,n),ok=S.bank>=c;b.classList.toggle('can',ok);b.classList.toggle('cant',!ok);});
+  el.querySelectorAll('[data-imp]').forEach(b=>{b.disabled=S.bank<+b.dataset.cost;});
+}
+$('sec-store').addEventListener('click',e=>{
+  let x;
+  if((x=e.target.closest('[data-gen]'))){buyGen(x.dataset.gen);return;}
+  if((x=e.target.closest('[data-imp]'))){buyImp(x.dataset.imp);return;}
+  if((x=e.target.closest('[data-amt]'))){buyN=x.dataset.amt==='max'?'max':+x.dataset.amt;storeDirty=true;return;}
+  if(e.target.closest('[data-more]')){showAllImps=!showAllImps;storeDirty=true;}
+});
+
+/* research: a vertical tree. Era strip on top, a "ready now" shelf, then every era as a section.
+   Each discovery lists what it requires and what it leads to; tapping either jumps to that card. */
+function techState(t){if(S.techs[t])return 'own';if(TECHS[t].req.every(has))return S.bank>=techCost(t)?'can':'avail';return 'lock';}
+const LEADS={};for(const t of TECH_IDS)for(const r of TECHS[t].req)(LEADS[r]=LEADS[r]||[]).push(t);
+const eraTechs=e=>TECH_IDS.filter(t=>TECHS[t].ea===e);
+const openEras={};
+function chip(t){const st=techState(t);return '<button class="tchip '+st+'" data-jump="'+t+'">'+(st==='own'?'✓ ':'')+esc(TECHS[t].n)+'</button>';}
+function techCard(t,shelf){
+  const T=TECHS[t],st=techState(t),c=techCost(t);
+  let h='<div class="tcard '+st+'" id="tc-'+(shelf?'s-':'')+t+'"><div class="tmain"><div class="thead"><span class="tst">'+(st==='own'?'✓':st==='lock'?'•':'★')+'</span><b>'+esc(T.n)+'</b><span class="yr">'+esc(T.y)+'</span></div>';
+  if(st!=='lock'||shelf)h+='<p class="fl">'+esc(T.f)+'</p>';
+  h+='<p class="eff">'+esc(T.d)+'</p>';
+  if(T.req.length)h+='<div class="links"><span>Requires</span>'+T.req.map(chip).join('')+'</div>';
+  if(LEADS[t]&&!shelf)h+='<div class="links"><span>Leads to</span>'+LEADS[t].map(chip).join('')+'</div>';
+  h+='</div>';
+  if(st==='can'||st==='avail')h+='<div class="tbuy"><button class="btn" data-research="'+t+'" data-cost="'+c+'"'+(st==='can'?'':' disabled')+'>Research<br>'+fmt(c)+'</button><small class="eta" data-eta="'+c+'"></small></div>';
+  return h+'</div>';
+}
+function treeHTML(){
+  const cur=era();
+  let h='<h2 class="sh">Research</h2><div class="estrip">';
+  for(let e=0;e<ERAS.length;e++){const ts=eraTechs(e),k=ts.filter(has).length;h+='<button class="eseg'+(e===cur?' cur':'')+(k===ts.length?' done':'')+'" data-era="'+e+'" title="'+ERAS[e].name+'"><i style="height:'+Math.round(k/ts.length*100)+'%"></i><span>'+(e+1)+'</span></button>';}
+  h+='</div>';
+  const ready=TECH_IDS.filter(t=>{const s=techState(t);return s==='can'||s==='avail';}).sort((a,b)=>techCost(a)-techCost(b));
+  h+='<div class="lbl"><span>Ready to research</span><span>'+ready.length+'</span></div>';
+  h+=ready.length?ready.map(t=>techCard(t,true)).join(''):'<p class="sub">Every discovery is known. Fold time to begin again.</p>';
+  h+='<div class="lbl"><span>The tree</span><span>'+TECH_IDS.filter(has).length+' of '+TECH_IDS.length+' known</span></div>';
+  for(let e=0;e<ERAS.length;e++){
+    const ts=eraTechs(e),k=ts.filter(has).length;
+    const open=openEras[e]!=null?openEras[e]:(e===cur||e===cur+1);
+    h+='<details class="era" id="era-'+e+'" data-e="'+e+'"'+(open?' open':'')+'><summary><span>'+ERAS[e].name+'</span><small>'+k+' / '+ts.length+'</small></summary>'+ts.map(t=>techCard(t,false)).join('')+'</details>';
+  }
+  return h;
+}
+let treeFocus=false;
+function refreshTree(){
+  const el=$('sec-tech');if(el.hidden)return;
+  if(treeDirty&&!held){const top=el.scrollTop;el.innerHTML=treeHTML();el.scrollTop=top;treeDirty=false;treeFocus=false;}
+  const c=cps();
+  el.querySelectorAll('[data-research]').forEach(b=>{const ok=S.bank>=+b.dataset.cost;b.disabled=!ok;b.closest('.tcard').classList.toggle('can',ok);});
+  el.querySelectorAll('[data-eta]').forEach(s=>{const need=+s.dataset.eta-S.bank;s.textContent=need>0&&c>0?'in '+fmtT(need/c):'';});
+}
+function jumpTo(t){
+  const e=TECHS[t].ea,d=$('era-'+e);if(!d)return;
+  d.open=true;openEras[e]=true;
+  const card=$('tc-'+t);if(!card)return;
+  card.scrollIntoView({behavior:RM?'auto':'smooth',block:'center'});
+  card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
+}
+$('sec-tech').addEventListener('click',e=>{
+  let x;
+  if((x=e.target.closest('[data-research]'))){research(x.dataset.research);return;}
+  if((x=e.target.closest('[data-jump]'))){jumpTo(x.dataset.jump);return;}
+  if((x=e.target.closest('[data-era]'))){const k=+x.dataset.era,d=$('era-'+k);if(d){d.open=true;openEras[k]=true;d.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});}return;}
+});
+$('sec-tech').addEventListener('toggle',e=>{const d=e.target;if(d.matches&&d.matches('details.era'))openEras[+d.dataset.e]=d.open;},true);
+
+/* frontier */
+function frontMap(){
+  let s='<svg viewBox="0 0 400 300" role="img" aria-label="Map of the Solar System and nearby stars">';
+  const cx=140,cy=150;
+  s+='<defs><radialGradient id="sun"><stop offset="0" stop-color="#fff6c8"/><stop offset=".5" stop-color="#ffd36a"/><stop offset="1" stop-color="#ffd36a" stop-opacity="0"/></radialGradient></defs>';
+  const rr=o=>14+22*Math.log2(1+o);
+  for(const f of FRONT.filter(f=>f.k==='sol'&&f.id!=='leo'&&f.id!=='moon'&&f.id!=='oort'))s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rr(f.o).toFixed(1)+'" fill="none" stroke="#27243d" stroke-width=".7"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(rr(2000)).toFixed(1)+'" fill="none" stroke="#27243d" stroke-width="5" stroke-dasharray="1 4" opacity=".7"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="14" fill="url(#sun)"/><circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#fff3c0"/>';
+  const ang={leo:0,moon:0,mars:300,venus:140,belt:40,jovian:200,saturn:110,mercury:250,icegiants:20,kuiper:160,oort:230};
+  const er=rr(1),ea=0;
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+er.toFixed(1)+'" fill="none" stroke="#27243d" stroke-width=".7"/>';
+  const ex=cx+er,ey=cy;s+='<circle cx="'+ex+'" cy="'+ey+'" r="4" fill="#5fa0ff"/><text x="'+(ex+7)+'" y="'+(ey+14)+'" font-family="JetBrains Mono,monospace" font-size="8" fill="#a49cb8">Earth</text>';
+  const dot=(x,y,on,can,lbl,anchor)=>(can?'<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="8" fill="none" stroke="var(--acc)" stroke-width="1"><animate attributeName="r" values="5;10;5" dur="2s" repeatCount="indefinite"/></circle>':'')+'<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(on?4:2.6)+'" fill="'+(on?'var(--acc)':'#4a4566')+'"/>'+(lbl?'<text x="'+(x+(anchor==='end'?-7:7)).toFixed(1)+'" y="'+(y+3).toFixed(1)+'"'+(anchor==='end'?' text-anchor="end"':'')+' font-family="JetBrains Mono,monospace" font-size="8" fill="'+(on?'#efe8d8':'#6c6688')+'">'+esc(lbl)+'</text>':'');
+  for(const f of FRONT.filter(f=>f.k==='sol')){
+    const on=!!S.front[f.id],can=!on&&has(f.req);
+    let x,y,lbl=f.n.replace(/^The /,'');
+    if(f.id==='leo'){x=ex+6;y=ey-6;lbl='';}
+    else if(f.id==='moon'){x=ex+10;y=ey+4;lbl='';}
+    else{const r=f.id==='oort'?rr(2000):rr(f.o),a=ang[f.id]*Math.PI/180;x=cx+Math.cos(a)*r;y=cy+Math.sin(a)*r;}
+    s+=dot(x,y,on,can,lbl);
+  }
+  /* local stars to the right, distance to scale in light years */
+  s+='<line x1="268" y1="20" x2="268" y2="280" stroke="#27243d" stroke-dasharray="2 4"/><text x="276" y="22" font-family="Fraunces,serif" font-style="italic" font-size="11" fill="#6c6688">Nearby stars</text>';
+  for(const f of FRONT.filter(f=>f.k==='star')){
+    const on=!!S.front[f.id],can=!on&&has(f.req);
+    const d=f.ly/12,a=(f.ang-90)*Math.PI/180;const x=300+Math.cos(a)*d*40+20,y=150+Math.sin(a)*d*110;
+    s+=dot(x,y,on,can,f.n.replace("Barnard's Star","Barnard")+' '+f.ly+' ly',x>350?'end':'start');
+  }
+  return s+'</svg>';
+}
+function frontHTML(){
+  let h='<h2 class="sh">Frontier</h2><p class="sub">Each settlement multiplies everything. Solar System worlds give ×1.1 to ×1.15, star systems ×1.25 to ×1.3.</p><div class="fmap" id="fmap">'+frontMap()+'</div>';
+  const next=FRONT.filter(f=>!S.front[f.id]);
+  h+='<div class="lbl"><span>Settlements</span><span>'+(FRONT.length-next.length)+' of '+FRONT.length+'</span></div>';
+  for(const f of FRONT){
+    const on=!!S.front[f.id],can=has(f.req);
+    h+='<div class="settle'+(on?' done':can?'':' lock')+'"><div style="min-width:0"><b>'+esc(f.n)+'</b><small>'+(f.k==='star'?f.ly+' light years':'Solar System')+' · everything ×'+f.m+(can||on?'':' · needs '+esc(TECHS[f.req].n))+'</small>'+(on||can?'<p>'+esc(f.f)+'</p>':'')+'</div>'+(on?'':can?'<button class="btn" data-settle="'+f.id+'" data-cost="'+f.cost+'">'+fmt(f.cost)+'</button>':'')+'</div>';
+  }
+  return h;
+}
+function refreshFront(){const el=$('sec-frontier');if(el.hidden)return;if(frontDirty&&!held){el.innerHTML=frontHTML();frontDirty=false;}el.querySelectorAll('[data-settle]').forEach(b=>{b.disabled=S.bank<+b.dataset.cost;});}
+$('sec-frontier').addEventListener('click',e=>{const x=e.target.closest('[data-settle]');if(x)settle(x.dataset.settle);});
+
+/* chronicle */
+function refreshChron(){
+  const el=$('sec-chron');if(el.hidden||!chronDirty)return;
+  el.innerHTML='<h2 class="sh">Chronicle</h2><p class="sub">The story so far, newest first.</p><div class="chron">'+S.chron.slice().reverse().map(c=>'<div class="ce"><span class="y">'+esc(c.y)+(S.folds?'<br>timeline '+c.tl:'')+'</span><div><b>'+esc(c.t)+'</b><p>'+esc(c.x)+'</p></div></div>').join('')+'</div>';
+  chronDirty=false;
+}
+
+/* fold */
+let foldSig='';
+function refreshFold(){
+  const el=$('sec-fold');if(el.hidden||held)return;
+  const p=pendingEchoes(),need=Math.pow(Math.floor(Math.pow(S.all/ECHO0,.25))+1,4)*ECHO0;
+  let h='<h2 class="sh">Fold time</h2><p class="sub">Collapse this timeline and begin again at the first campfire. You keep Echoes: each one permanently adds 1% to everything, and can also be spent on Legacy. Echoes come from all the '+CUR+' you have ever produced.</p>';
+  h+='<div class="foldBox"><span class="mono" style="color:var(--muted);font-size:12px">Folding now would grant</span><span class="big">'+fmt(p)+' echoes</span><span class="mono" style="color:var(--muted);font-size:12px">Next echo at '+fmt(need,true)+' total '+CUR+' · you have produced '+fmt(S.all,true)+'</span><div><button class="btn big" data-fold="1"'+(p<1?' disabled':'')+'>'+(foldArm&&Date.now()<foldArm?'Tap again to fold time':'Fold time')+'</button></div></div>';
+  h+='<div class="lbl"><span>Legacy</span><span>'+fmt(S.echoes)+' echoes to spend · +'+fmt(S.earned)+'% bonus</span></div>';
+  for(const L of LEGACY){const own=!!S.legacy[L.id];h+='<div class="leg'+(own?' own':'')+'"><div><b>'+esc(L.n)+'</b><small>'+esc(L.d)+'</small></div>'+(own?'<span class="mono" style="color:var(--acc);font-size:11px">owned</span>':'<button class="btn" data-legacy="'+L.id+'"'+(S.echoes<L.cost?' disabled':'')+'>'+L.cost+' echo'+(L.cost>1?'es':'')+'</button>')+'</div>';}
+  h+='<div class="lbl"><span>Statistics</span></div><dl class="stats"><dt>This timeline</dt><dd>'+fmt(S.run)+'</dd><dt>All timelines</dt><dd>'+fmt(S.all)+'</dd><dt>Clicks</dt><dd>'+S.clicks.toLocaleString('en-US')+'</dd><dt>From clicks</dt><dd>'+fmt(S.clickEarned)+'</dd><dt>Buildings</dt><dd>'+GENS.reduce((a,g)=>a+S.gens[g.id],0)+'</dd><dt>Discoveries</dt><dd>'+TECH_IDS.filter(has).length+' of '+TECH_IDS.length+'</dd><dt>Worlds and stars settled</dt><dd>'+FRONT.filter(f=>S.front[f.id]).length+' of '+FRONT.length+'</dd><dt>Times folded</dt><dd>'+S.folds+'</dd><dt>Time played</dt><dd>'+fmtT(S.play)+'</dd></dl>';
+  h+='<p class="sub" style="margin-top:12px"><button class="more" data-snd="1">'+(S.muted?'Turn sound on':'Turn sound off')+'</button> · <button class="more" data-wipe="1">'+(wipeArm&&Date.now()<wipeArm?'Tap again to erase everything':'Erase all progress')+'</button></p>';
+  if(h!==foldSig||foldDirty){el.innerHTML=h;foldSig=h;foldDirty=false;}
+}
+let wipeArm=0;
+$('sec-fold').addEventListener('click',e=>{
+  let x;
+  if(e.target.closest('[data-fold]')){fold();foldDirty=true;return;}
+  if((x=e.target.closest('[data-legacy]'))){buyLegacy(x.dataset.legacy);return;}
+  if(e.target.closest('[data-snd]')){S.muted=!S.muted;renderMute();foldDirty=true;return;}
+  if(e.target.closest('[data-wipe]')){if(wipeArm&&Date.now()<wipeArm){try{localStorage.removeItem(KEY);}catch(err){}S=fresh();intro();applyEra();storeDirty=treeDirty=frontDirty=chronDirty=foldDirty=true;wipeArm=0;}else{wipeArm=Date.now()+4000;foldDirty=true;}}
+});
+const markHeld=()=>{held=true;};
+['sec-store','sec-tech','sec-frontier','sec-fold'].forEach(id=>$(id).addEventListener('pointerdown',markHeld,true));
+window.addEventListener('pointerup',()=>setTimeout(()=>{held=false;},0));window.addEventListener('pointercancel',()=>{held=false;});
+
+/* mute */
+function renderMute(){const m=S.muted,b=$('mute');b.setAttribute('aria-pressed',String(m));b.setAttribute('aria-label',m?'Unmute sound':'Mute sound');
+  b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/>'+(m?'<path d="M17 9l5 6M22 9l-5 6"/>':'<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>')+'</svg>'+(m?'Muted':'Sound');}
+$('mute').addEventListener('click',()=>{S.muted=!S.muted;renderMute();foldDirty=true;if(!S.muted)sfx('buy');save();});
+/* header */
+function refreshTop(){
+  $('bank').innerHTML=esc(fmt(S.bank,true))+'<small>'+CUR+'</small>';
+  $('pop').textContent='~'+fmt(population());$('cps').textContent=fmt(cps());$('cpc').textContent=fmt(clickVal());{const k=kardashev();$('kard').textContent=k==null?'\u2014':(k<0?'\u2212':'')+Math.abs(k).toFixed(3);}
+  const bh=S.buffs.map(b=>'<span class="buff">'+esc(b.label)+' · '+Math.ceil(b.until-S.play)+'s</span>').join('');
+  if($('buffs').innerHTML!==bh)$('buffs').innerHTML=bh;
+  const pip=(t,on)=>{const i=document.querySelector('.tab[data-tab='+t+'] i');if(i)i.hidden=!on;};
+  pip('tech',TECH_IDS.some(t=>techState(t)==='can'));
+  pip('frontier',FRONT.some(f=>!S.front[f.id]&&has(f.req)&&S.bank>=f.cost));
+  pip('fold',pendingEchoes()>=Math.max(1,S.earned*.5));
+  pip('store',impList().some(i=>S.bank>=i.cost));
+  document.title=fmt(S.bank)+' · The Long Ascent';
+}
+
+/* =========================== LOOP =========================== */
+let storeT=0,uiT=0,saveT=0,last=performance.now(),lastGenCount=-1;
+function tick(dt){
+  S.play+=dt;S.runT=(S.runT||0)+dt;
+  earn(cps()*dt);
+  S.buffs=S.buffs.filter(b=>b.until>S.play);
+  if(anom){anom.t+=dt;if(anom.t>anom.life*(has('chronon')?1.5:1)){$('anomaly').hidden=true;anom=null;}}
+  else if(S.runT>=300){S.anomNext-=dt;if(S.anomNext<=0){S.anomNext=anomInterval();spawnAnomaly();}}
+}
+function frame(now){
+  let dt=Math.min(1,(now-last)/1000);last=now;
+  tick(dt);
+  drawGlobe(dt);
+  uiT+=dt;if(uiT>.1){uiT=0;refreshTop();}
+  storeT+=dt;if(storeT>.25){storeT=0;
+    const gc=GENS.reduce((a,g)=>a+S.gens[g.id],0)+Object.keys(S.imps).length;if(gc!==lastGenCount){lastGenCount=gc;storeDirty=true;}
+    if(Math.floor(S.play)%2===0&&!held)storeDirty=storeDirty||Math.random()<.15;
+    refreshStore();refreshTree();refreshFront();refreshChron();refreshFold();}
+  saveT+=dt;if(saveT>5){saveT=0;save();}
+  requestAnimationFrame(frame);
+}
+function intro(){
+  S.chron.push({y:'~2,000,000 BCE',t:'The first spark',x:'A cold night on the savanna. Somebody bangs two stones together, and something catches. Tap the Earth to gather '+CUR+', and spend it on foragers who will gather it for you.',tl:S.timeline});
+}
+function boot(){
+  const d=load();
+  if(d){S=Object.assign(fresh(),d);GENS.forEach(g=>{if(S.gens[g.id]==null)S.gens[g.id]=0;});}
+  else{S=fresh();startRun();intro();}
+  S.buffs=(S.buffs||[]).filter(b=>b.until>S.play);
+  applyEra();resizeGlobe();renderMute();
+  setTab(desktop()?'tech':'store');
+  if(!d)showDlg('2,000,000 years to go','The Long Ascent','<p>A cold night on the savanna. Somebody strikes two stones together, and something catches.</p><p>Tap the Earth to gather '+CUR+'. Hire foragers to gather it for you, research your way to the stars, and when the climb slows, fold time and start again stronger.</p>');
+  if(window.ResizeObserver)new ResizeObserver(resizeGlobe).observe($('globeWrap'));
+  requestAnimationFrame(frame);
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save();else last=performance.now();});
+window.addEventListener('pagehide',save);
+window.__ascent={TECH_IDS,TECHS,GENS,CLICK0,population,kardashev,genCost,genEach,get S(){return S;},cps,clickVal,buyGen:(id,n)=>{const o=buyN;buyN=n||1;buyGen(id);buyN=o;},research,settle,fold,impList,buyImp,tick,earn,era,techCost};
+boot();
+})();
+</script>
+
+</body></html>
