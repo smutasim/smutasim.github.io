@@ -819,6 +819,8 @@ gcv.addEventListener('pointerdown',e=>{
 
 /* =========================== SOUND =========================== */
 let AC=null;
+/* muted = no live AudioContext, so the tab doesn't count as an audio source and pause other media */
+function audioRelease(){if(AC){const a=AC;AC=null;a.close().catch(()=>{});}}
 function sfx(k){if(S.muted)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();const P={click:[520+Math.random()*80,780,.06,.025,'triangle'],buy:[660,990,.09,.03,'sine'],tech:[440,1320,.35,.04,'sine']}[k];o.type=P[4];o.frequency.setValueAtTime(P[0],t);o.frequency.exponentialRampToValueAtTime(P[1],t+P[2]);g.gain.setValueAtTime(P[3],t);g.gain.exponentialRampToValueAtTime(.0001,t+P[2]+.05);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+P[2]+.08);}catch(e){}}
 
 /* =========================== UI =========================== */
@@ -1012,7 +1014,7 @@ const markHeld=()=>{held=true;};
 window.addEventListener('pointerup',()=>setTimeout(()=>{held=false;},0));window.addEventListener('pointercancel',()=>{held=false;});
 
 /* mute */
-function renderMute(){const m=S.muted,b=$('mute');b.setAttribute('aria-pressed',String(m));b.setAttribute('aria-label',m?'Unmute sound':'Mute sound');
+function renderMute(){const m=S.muted,b=$('mute');if(m)audioRelease();b.setAttribute('aria-pressed',String(m));b.setAttribute('aria-label',m?'Unmute sound':'Mute sound');
   b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/>'+(m?'<path d="M17 9l5 6M22 9l-5 6"/>':'<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>')+'</svg>'+(m?'Muted':'Sound');}
 $('mute').addEventListener('click',()=>{S.muted=!S.muted;renderMute();foldDirty=true;if(!S.muted)sfx('buy');save();});
 /* header */

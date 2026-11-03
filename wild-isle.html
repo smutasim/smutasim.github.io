@@ -1849,10 +1849,16 @@ function buySlot(){
 
 /* ---- breeding ---- */
 function pendingFor(itemId){return state.hatch.breeds.filter(b=>b.type==='same'&&b.exhibit===itemId).length;}
+/* Every animal of a species counts toward the cap of 4: placed, waiting in inventory, and eggs in nests. */
+function placedTotal(sp){let n=0;for(const it of state.items)if(it.kind==='exhibit'&&it.sp===sp)n+=it.count;for(const v of state.inv)if(v.sp===sp)n++;return n;}
+function pendingTotal(sp){return state.hatch.breeds.filter(b=>b.res===sp).length;}
+function speciesTotal(sp){return placedTotal(sp)+pendingTotal(sp);}
+// a crossbreed only produces the first 2 animals of its species; the 3rd and 4th come from same-species breeding
+const crossOpen=r=>speciesTotal(r.res)<2;
 function startSameBreed(itemId){
   if(state.hatch.breeds.length>=state.hatch.slots){toast('No free hatchery nests');sfx('nope');return;}
   const it=state.items.find(i=>i.id===itemId);
-  if(!it||it.count<2||it.count+pendingFor(itemId)>=4){toast('Needs a pair with room to grow');sfx('nope');return;}
+  if(!it||it.count<2||speciesTotal(it.sp)>=4){toast('Needs a pair with room to grow');sfx('nope');return;}
   const mins=SP[it.sp].breed;
   state.hatch.breeds.push({id:uid(),type:'same',res:it.sp,exhibit:it.id,end:nowMs()+mins*60000,total:mins*60000});
   state.stats.breeds++;save();updateBadges();openHatch(0);sfx('buy');
@@ -1862,6 +1868,7 @@ function startCross(recipe){
   if(state.hatch.breeds.length>=state.hatch.slots){toast('No free hatchery nests');sfx('nope');return;}
   if(!ownsSp(recipe.a)||!ownsSp(recipe.b)){toast('You need both parent species in your zoo');sfx('nope');return;}
   if(!unlocked(SP[recipe.res].lv))return needLevel(SP[recipe.res].lv);
+  if(!crossOpen(recipe)){toast('Crossbreeding is done for the '+SP[recipe.res].n+' — breed the pair instead');sfx('nope');return;}
   const mins=SP[recipe.res].breed;
   state.hatch.breeds.push({id:uid(),type:'cross',res:recipe.res,end:nowMs()+mins*60000,total:mins*60000});
   state.stats.breeds++;save();updateBadges();openHatch(0);sfx('buy');
@@ -1877,11 +1884,13 @@ function collectBreed(bid){
   gainXp(SP[b.res].breed/10,null);
   if(b.type==='same'){
     const it=state.items.find(x=>x.id===b.exhibit);
-    if(it&&it.count<4){it.count++;toast('A baby '+SP[b.res].n+' joins the exhibit!');if(it.count===4)confetti(30);}
-    else{state.inv.push({sp:b.res});toast('New '+SP[b.res].n+' sent to your inventory');}
+    if(it&&it.count<4&&placedTotal(b.res)<4){it.count++;toast('A baby '+SP[b.res].n+' joins the exhibit!');if(it.count===4)confetti(30);}
+    else if(placedTotal(b.res)<4){state.inv.push({sp:b.res});toast('New '+SP[b.res].n+' sent to your inventory');}
+    else toast('The '+SP[b.res].n+' family is already full');
   } else {
-    const ex=state.items.find(x=>x.kind==='exhibit'&&x.sp===b.res&&x.count+pendingFor(x.id)<4);
-    if(ex){ex.count++;discover(b.res);toast('The '+SP[b.res].n+' joins its exhibit!');}
+    const ex=state.items.find(x=>x.kind==='exhibit'&&x.sp===b.res&&x.count<4);
+    if(placedTotal(b.res)>=4){discover(b.res);toast('The '+SP[b.res].n+' family is already full');}
+    else if(ex){ex.count++;discover(b.res);toast('The '+SP[b.res].n+' joins its exhibit!');}
     else{state.inv.push({sp:b.res});discover(b.res);
       closeModal();setMode('place',{kind:'exhibit',sp:b.res,f:SP[b.res].f,fromInv:state.inv.length-1});
       toast('Tap a spot for your new '+SP[b.res].n+'!');
@@ -2087,12 +2096,12 @@ function openHatchTab(i){
   }
   if(i===1){
     let h='<div class="hint">A pair can breed a 3rd and 4th animal for its exhibit. A full family of 4 pays ×5!</div>';
-    const opts=state.items.filter(it=>it.kind==='exhibit'&&it.count>=2&&it.count<4);
+    const opts=state.items.filter(it=>it.kind==='exhibit'&&it.count>=2&&placedTotal(it.sp)<4);
     if(!opts.length)h+='<div class="hint" style="padding:20px">No exhibits with a pair and room to grow yet.<br>Buy a 2nd animal for an exhibit first!</div>';
     for(const it of opts){
-      const pend=pendingFor(it.id),full=it.count+pend>=4;
+      const pend=pendingTotal(it.sp),full=speciesTotal(it.sp)>=4;
       h+=`<div class="recipeRow"><div class="miniA">${svgBox(it.sp,48,42)}</div>
-        <div style="flex:1"><b>${SP[it.sp].n}</b><div class="meta" style="font-size:11.5px">${it.count}/4 animals${pend?' (+'+pend+' in nest)':''} · ${fmtTime(SP[it.sp].breed*60000)}</div></div>
+        <div style="flex:1"><b>${SP[it.sp].n}</b><div class="meta" style="font-size:11.5px">${placedTotal(it.sp)}/4 animals${pend?' (+'+pend+' in nest)':''} · ${fmtTime(SP[it.sp].breed*60000)}</div></div>
         ${full?'<div class="meta">In the nest 🥚</div>':`<button class="buyBtn" data-breed="${it.id}">Breed</button>`}</div>`;
     }
     b.innerHTML=h;
@@ -2100,7 +2109,7 @@ function openHatchTab(i){
   }
   if(i===2){
     let h='<div class="hint">Cross two species living in your zoo to discover something new…</div>';
-    const avail=RECIPES.filter(r=>ownsSp(r.a)&&ownsSp(r.b));
+    const avail=RECIPES.filter(r=>ownsSp(r.a)&&ownsSp(r.b)&&(crossOpen(r)||nestBusy(r.res)));
     if(!avail.length)h+='<div class="hint" style="padding:20px">No compatible pairs yet. Keep collecting species — some combinations hide secrets!</div>';
     for(const r of avail){
       const disc=state.disc.includes(r.res),lv=SP[r.res].lv;
@@ -2193,7 +2202,7 @@ function openItemSheet(it){
     const sp=SP[it.sp];
     openModal(sp.n+' Exhibit',null,null);
     const {rem,rdy,pct}=timerLine(it);
-    const pend=pendingFor(it.id);
+    const pend=pendingTotal(it.sp);
     const boostTxt=it.count>=4?'×5 full-family boost active!':(it.count>=2?'×'+MULT[it.count]+' boost — grows to ×5 with all 4':'Payouts boost ×2.5 with a pair, ×5 with all 4');
     let h=`<div class="sheetRow"><div class="aw" style="width:100px;height:80px">${svgBox(it.sp,92,74)}</div>
       <div style="flex:1">
@@ -2207,7 +2216,7 @@ function openItemSheet(it){
       <button class="buyBtn" id="shCollect" ${rdy?'':'disabled'}>${rdy?'Collect '+fmt(payout(it)):'⏳ '+fmtTime(rem)}</button>`;
     if(it.count===1&&sp.cost)h+=priceBtn('id="shSecond"',sp.cost,'2nd ');
     if(it.count===1&&!sp.cost)h+=`<button class="buyBtn ghost" id="shCrossHint">2nd via Hatchery</button>`;
-    if(it.count>=2&&it.count+pend<4)h+=`<button class="buyBtn" id="shBreed">Breed 🥚</button>`;
+    if(it.count>=2&&speciesTotal(it.sp)<4)h+=`<button class="buyBtn" id="shBreed">Breed 🥚</button>`;
     h+=`<button class="buyBtn ghost" id="shMove">Move ✋</button>
       <button class="buyBtn warn" id="shSell">Sell</button></div>`;
     if(it.count>=4)h+=`<div class="hint">A full, happy family!</div>`;
@@ -2287,7 +2296,7 @@ function openSettings(){
     <div class="statLine"><span>Days on the island</span><b>${days.toFixed(1)}</b></div>
     <div class="rowBtns" style="margin-top:16px"><button class="buyBtn warn" id="setReset">🔄 Reset game</button></div>`;
   $('#setMus').onclick=()=>{toggleMusic();openSettings();};
-  $('#setSfx').onclick=()=>{state.sfxOn=!state.sfxOn;save();sfx('click');updateMusicBtn();openSettings();};
+  $('#setSfx').onclick=()=>{state.sfxOn=!state.sfxOn;if(state.sfxOn)audioUnlock();else audioRelease();save();sfx('click');updateMusicBtn();openSettings();};
   $('#setHelp').onclick=openHelp;
   $('#setReset').onclick=()=>{closeModal();resetGame();};
 }
@@ -2305,8 +2314,9 @@ function askConfirm(title,msg,okLabel,danger){
 function unlockCard(u){
   if(u.kind==='animal'){const sp=SP[u.k];
     if(!sp.cost){ // bred species: keep the surprise, show only a silhouette
-      const r=RECIPES.find(q=>q.res===u.k),known=r&&recipeKnown(r);
-      return `<div class="u"><div class="aw silh" style="width:80px;height:56px;margin:0 auto 3px">${svgBox(u.k,72,52)}</div>${known?sp.n+' crossbreed':'Secret crossbreed'}</div>`;}
+      // only name it once it has actually been bred; owning both parents is not enough
+      if(state.disc.includes(u.k))return `<div class="u"><div class="aw" style="width:80px;height:56px;margin:0 auto 3px">${svgBox(u.k,72,52)}</div>${sp.n} crossbreed</div>`;
+      return `<div class="u"><div style="font-size:34px;line-height:56px">❓</div>Secret crossbreed</div>`;}
     return `<div class="u"><div class="aw" style="width:80px;height:56px;margin:0 auto 3px">${svgBox(u.k,72,52)}</div>${sp.n}</div>`;}
   if(u.kind==='store')return `<div class="u"><div class="aw" style="width:80px;height:56px;margin:0 auto 3px">${svgBoxRaw(STORES[u.k].art(),72,52)}</div>${STORES[u.k].n}</div>`;
   if(u.kind==='deco')return `<div class="u"><div class="aw" style="width:80px;height:56px;margin:0 auto 3px">${svgBoxRaw(DECOS[u.k].art(),72,52)}</div>${DECOS[u.k].n}</div>`;
@@ -2430,7 +2440,18 @@ function silentUnlock(){
     const p=silentEl.play();if(p&&p.catch)p.catch(()=>{silentEl=null;});
   }catch(e){silentEl=null;}
 }
+function soundWanted(){return !!(state&&(state.musicOn||state.sfxOn));}
+/* When muted, hold no audio resources at all: a live AudioContext / looping <audio> makes the
+   tab an audio source, which pauses podcasts and videos playing elsewhere. */
+function audioRelease(){
+  if(soundWanted())return;
+  clearInterval(musTimer);musOn=false;
+  if(silentEl){try{silentEl.pause();silentEl.removeAttribute('src');silentEl.load();}catch(e){}silentEl=null;}
+  try{if(navigator.audioSession)navigator.audioSession.type='auto';}catch(e){}
+  if(AC){const ac=AC;AC=null;musBus=sfxBus=noiseBuf=null;audioUnlock.done=false;ac.onstatechange=null;ac.close().catch(()=>{});}
+}
 function audioUnlock(e){
+  if(!soundWanted())return;
   const ac=audioInit();if(!ac)return;
   silentUnlock();
   if(ac.state!=='running')ac.resume().then(updateMusicBtn).catch(()=>{});
@@ -2441,7 +2462,7 @@ function audioUnlock(e){
 }
 ['pointerdown','pointerup','touchend','click','keydown'].forEach(ev=>window.addEventListener(ev,audioUnlock,{capture:true,passive:true}));
 document.addEventListener('visibilitychange',()=>{
-  if(!AC)return;
+  if(!AC||!soundWanted())return;
   if(document.hidden)AC.suspend().catch(()=>{});else AC.resume().catch(()=>{});
 });
 const NOTE_SEMI={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
@@ -2508,16 +2529,14 @@ function updateMusicBtn(){
   b.title=muted?'Sound off (tap to unmute)':'Sound on (tap to mute)';
 }
 function toggleMute(){
-  audioUnlock();
-  if(state.musicOn||state.sfxOn){state.musicOn=false;state.sfxOn=false;musStop();}
-  else{state.musicOn=true;state.sfxOn=true;musStart();if(AC&&AC.state!=='running')AC.resume().then(updateMusicBtn).catch(()=>{});}
+  if(state.musicOn||state.sfxOn){state.musicOn=false;state.sfxOn=false;musStop();audioRelease();}
+  else{state.musicOn=true;state.sfxOn=true;audioUnlock();musStart();if(AC&&AC.state!=='running')AC.resume().then(updateMusicBtn).catch(()=>{});}
   save();updateMusicBtn();
 }
 function toggleMusic(){
-  audioUnlock();
   // tap means "make it play" when it isn't audibly playing, even if the saved setting says on
-  if(state.musicOn&&musOn){state.musicOn=false;musStop();}
-  else{state.musicOn=true;musStart();if(AC&&AC.state!=='running')AC.resume().then(updateMusicBtn).catch(()=>{});}
+  if(state.musicOn&&musOn){state.musicOn=false;musStop();audioRelease();}
+  else{state.musicOn=true;audioUnlock();musStart();if(AC&&AC.state!=='running')AC.resume().then(updateMusicBtn).catch(()=>{});}
   save();updateMusicBtn();
 }
 function sfx(name){
