@@ -347,7 +347,7 @@ const GENS=[
 const GI={};GENS.forEach((g,k)=>{g.k=k;GI[g.id]=g;
   /* each tier costs 12x more and pays back 1.35x slower than the one before */
   /* each tier costs 12x more and pays back 1.35x slower than the one before */
-  g.cost=15*Math.pow(12,k);g.cps=.5*Math.pow(12/1.35,k);});
+  g.cost=15*Math.pow(12,k);g.cps=.5*Math.pow(12/1.35,k)*Math.pow(1.125,Math.max(0,Math.min(6,k-10)));}); /* tiers 11-16 (the 21st century) pay back faster, up to 2x */
 const CLICK0=1;
 
 const ERAS=[
@@ -368,7 +368,7 @@ const ERAS=[
 /* discoveries in chronological order. ea = era index. P = world power in watts and pop = world population
    when the discovery is made: historical estimates up to today, invented beyond. */
 const TECH_LIST=[
-  ['fire',{n:'Fire',ea:0,req:[],y:'~400,000 BCE',P:2e7,pop:1e5,e:{click:2},d:'Clicks are twice as strong.',f:'The first tamed star. It cooks, it warms, it keeps the dark at the edge of the circle.'}],
+  ['fire',{n:'Fire',ea:0,req:[],y:'~400,000 BCE',P:2e7,pop:1e5,e:{click:1.5},d:'Clicks are 50% stronger.',f:'The first tamed star. It cooks, it warms, it keeps the dark at the edge of the circle.'}],
   ['language',{n:'Language',ea:0,req:['fire'],y:'~100,000 BCE',P:5e7,pop:3e5,e:{unlock:'band'},d:'Unlocks Hunting Bands.',f:'Sounds become words, words become plans. A band can now hunt as one.'}],
   ['tools',{n:'Composite Tools',ea:0,req:['fire'],y:'~70,000 BCE',P:6e7,pop:5e5,e:{gen:{forager:2},global:1.05},d:'Foragers twice as good. +5% everything.',f:'A stone, a stick, and resin to bind them. The first machine.'}],
   ['agriculture',{n:'Agriculture',ea:1,req:['language'],y:'~9,500 BCE',P:1e9,pop:4e6,e:{unlock:'farm'},d:'Unlocks Farmsteads.',f:'We stopped following the food and made the food stay.'}],
@@ -376,14 +376,14 @@ const TECH_LIST=[
   ['metallurgy',{n:'Bronze Working',ea:1,req:['agriculture','pottery'],y:'~3,300 BCE',P:5e9,pop:1.4e7,e:{unlock:'forge'},d:'Unlocks Bronze Forges.',f:'Copper is soft. Tin is brittle. Together, an age.'}],
   ['writing',{n:'Writing',ea:2,req:['metallurgy'],y:'~3,200 BCE',P:6e9,pop:1.5e7,e:{unlock:'scribe'},d:'Unlocks Scriptoria.',f:'Marks pressed into clay. Memory now outlives the one who remembered.'}],
   ['mathematics',{n:'Mathematics',ea:2,req:['metallurgy'],y:'~2,000 BCE',P:1e10,pop:2.7e7,e:{global:1.15},d:'+15% everything.',f:'Counting becomes reasoning. Geometry, astronomy and engineering all follow.'}],
-  ['philosophy',{n:'Philosophy',ea:2,req:['writing'],y:'~500 BCE',P:4e10,pop:1e8,e:{clickPct:.01},d:'Clicks also earn 1% of your per-second rate.',f:'Asking why turns out to be the most productive question of all.'}],
+  ['philosophy',{n:'Philosophy',ea:2,req:['writing'],y:'~500 BCE',P:4e10,pop:1e8,e:{clickPct:.005},d:'Clicks also earn 0.5% of your per-second rate.',f:'Asking why turns out to be the most productive question of all.'}],
   ['mechanics',{n:'Gears and Levers',ea:2,req:['writing','mathematics'],y:'~200 BCE',P:6e10,pop:1.5e8,e:{unlock:'mill'},d:'Unlocks Watermills.',f:'A bronze computer sinks off Antikythera. The idea does not.'}],
   ['concrete',{n:'Roman Concrete',ea:2,req:['mechanics'],y:'~25 CE',P:8e10,pop:2e8,e:{global:1.1},d:'+10% everything.',f:'Lime, volcanic ash and seawater. Harbors and domes that will still stand two thousand years later.'}],
   ['paper',{n:'Paper',ea:2,req:['writing'],y:'105 CE',P:8.5e10,pop:2.1e8,e:{gen:{scribe:2}},d:'Scriptoria twice as good.',f:'Cai Lun pulps mulberry bark and rags into sheets. Knowledge gets cheap and light.'}],
   ['algebra',{n:'Algebra',ea:3,req:['mathematics','paper'],y:'820 CE',P:1e11,pop:2.5e8,e:{global:1.1},d:'+10% everything.',f:'In Baghdad\'s House of Wisdom, al-Khwarizmi writes the rules for balancing unknowns.'}],
   ['gunpowder',{n:'Gunpowder',ea:3,req:['concrete'],y:'~850 CE',P:1e11,pop:2.55e8,e:{gen:{forge:2}},d:'Bronze Forges twice as good.',f:'Alchemists searching for an elixir of life find the opposite. Mines and quarries change forever.'}],
   ['compass',{n:'Magnetic Compass',ea:3,req:['mechanics'],y:'~1040 CE',P:1.2e11,pop:3e8,e:{global:1.1},d:'+10% everything.',f:'A lodestone needle floating in water points south, every time, even under clouds.'}],
-  ['university',{n:'Universities',ea:3,req:['algebra'],y:'1088',P:1.3e11,pop:3.1e8,e:{clickPct:.005,global:1.05,unlock:'guild'},d:'Unlocks Craft Guilds. Clicks earn +0.5% of your rate. +5% everything.',f:'Bologna, then Paris and Oxford. Scholars gather, argue, and write it all down.'}],
+  ['university',{n:'Universities',ea:3,req:['algebra'],y:'1088',P:1.3e11,pop:3.1e8,e:{clickPct:.0025,global:1.05,unlock:'guild'},d:'Unlocks Craft Guilds. Clicks earn +0.25% of your rate. +5% everything.',f:'Bologna, then Paris and Oxford. Scholars gather, argue, and write it all down.'}],
   ['clockwork',{n:'Mechanical Clock',ea:3,req:['compass'],y:'~1300',P:1.6e11,pop:3.8e8,e:{gen:{mill:2}},d:'Watermills twice as good.',f:'An escapement ticks in a cathedral tower, and the day is cut into equal hours.'}],
   ['printing',{n:'Printing Press',ea:4,req:['paper','clockwork'],y:'1440',P:1.8e11,pop:4e8,e:{gen:{scribe:3},global:1.1},d:'Scriptoria three times as good. +10% everything.',f:'Movable type and an old wine press. Ideas become cheap to copy and impossible to burn.'}],
   ['navigation',{n:'Ocean Navigation',ea:4,req:['compass','university'],y:'1492',P:2e11,pop:4.5e8,e:{unlock:'fleet'},d:'Unlocks Merchant Fleets.',f:'Caravels, astrolabes and trade winds. Every coast on Earth is now connected to every other.'}],
@@ -403,17 +403,17 @@ const TECH_LIST=[
   ['rocketry',{n:'Rocketry',ea:6,req:['transistor','flight'],y:'1957',P:4e12,pop:2.9e9,e:{unlock:'launch'},d:'Unlocks Launch Complexes.',f:'A metal sphere beeps from orbit. Every child on Earth looks up.'}],
   ['greenrev',{n:'Green Revolution',ea:6,req:['fission'],y:'1965',P:6e12,pop:3.3e9,e:{gen:{farm:5}},d:'Farmsteads five times as good.',f:'Dwarf wheat, fertilizer and irrigation. Famines that were predicted never come.'}],
   ['gps',{n:'Satellite Navigation',ea:7,req:['rocketry','relativity'],y:'1978',P:9e12,pop:4.3e9,e:{global:1.15},d:'+15% everything.',f:'Atomic clocks in orbit, corrected for relativity, tell anyone on Earth where they stand to within a few meters.'}],
-  ['internet',{n:'The Internet',ea:7,req:['transistor'],y:'1983',P:1e13,pop:4.7e9,e:{clickPct:.01,global:1.1},d:'Clicks earn +1% of your rate. +10% everything.',f:'Networks agree on one protocol. Every mind can reach every other.'}],
-  ['smartphone',{n:'The Smartphone',ea:7,req:['internet','gps'],y:'2007',P:1.6e13,pop:6.7e9,e:{clickPct:.01},d:'Clicks earn +1% of your rate.',f:'A computer, a camera and the whole internet, in every pocket on Earth within a decade.'}],
+  ['internet',{n:'The Internet',ea:7,req:['transistor'],y:'1983',P:1e13,pop:4.7e9,e:{clickPct:.005,global:1.1},d:'Clicks earn +0.5% of your rate. +10% everything.',f:'Networks agree on one protocol. Every mind can reach every other.'}],
+  ['smartphone',{n:'The Smartphone',ea:7,req:['internet','gps'],y:'2007',P:1.6e13,pop:6.7e9,e:{clickPct:.005},d:'Clicks earn +0.5% of your rate.',f:'A computer, a camera and the whole internet, in every pocket on Earth within a decade.'}],
   ['deeplearning',{n:'Deep Learning',ea:7,req:['internet'],y:'2012',P:1.75e13,pop:7.1e9,e:{unlock:'datacenter'},d:'Unlocks AI Datacenters.',f:'A neural network trained on graphics cards wins an image contest by a landslide. The field never looks back.'}],
   ['reusable',{n:'Reusable Boosters',ea:7,req:['rocketry','smartphone'],y:'2015',P:1.8e13,pop:7.4e9,e:{gen:{launch:3}},d:'Launch Complexes three times as good.',f:'The booster lands itself upright and flies again. Orbit gets cheap.'}],
-  ['llm',{n:'Language Models',ea:8,req:['deeplearning'],y:'2022',P:1.9e13,pop:8e9,e:{clickPct:.02,gen:{datacenter:2}},d:'Clicks earn +2% of your rate. AI Datacenters twice as good.',f:'Machines read nearly everything ever written and learn to answer back.'}],
+  ['llm',{n:'Language Models',ea:8,req:['deeplearning'],y:'2022',P:1.9e13,pop:8e9,e:{clickPct:.01,gen:{datacenter:2}},d:'Clicks earn +1% of your rate. AI Datacenters twice as good.',f:'Machines read nearly everything ever written and learn to answer back.'}],
   ['robotics',{n:'General Robotics',ea:8,req:['llm'],y:'2032',P:2.5e13,pop:8.6e9,e:{unlock:'robots'},d:'Unlocks Robot Workforces.',f:'Hands that can fold laundry, lay bricks and assemble engines, guided by models that understand the task.'}],
   ['agi',{n:'General AI',ea:8,req:['robotics'],y:'2041',P:3.5e13,pop:9e9,e:{global:1.25},d:'+25% everything.',f:'A system that can learn any intellectual task a person can. Science itself starts to run faster.'}],
   ['lunar',{n:'Lunar Industry',ea:8,req:['reusable','robotics'],y:'2045',P:5e13,pop:9.2e9,e:{unlock:'lunar'},d:'Unlocks Lunar Foundries.',f:'Ice in the polar craters, metal in the dust, and robots that never tire. The Moon becomes a workshop.'}],
   ['autofab',{n:'Self-Replicating Factories',ea:8,req:['agi','lunar'],y:'2055',P:1e14,pop:9.5e9,e:{gen:{robots:3,lunar:2}},d:'Robot Workforces three times as good. Lunar Foundries twice as good.',f:'Factories that build copies of themselves from raw regolith. Industry grows like a living thing.'}],
   ['fusion',{n:'Fusion Ignition',ea:9,req:['lunar'],y:'2061',P:2e14,pop:9.8e9,e:{unlock:'torch'},d:'Unlocks Torchship Yards.',f:'A star in a bottle, finally stable. Energy stops being scarce.'}],
-  ['neurallace',{n:'Neural Lace',ea:9,req:['fusion','agi'],y:'2110',P:1e15,pop:1.1e10,e:{clickPct:.02},d:'Clicks earn +2% of your rate.',f:'Thought, typed directly. Inner monologues become collaborative.'}],
+  ['neurallace',{n:'Neural Lace',ea:9,req:['fusion','agi'],y:'2110',P:1e15,pop:1.1e10,e:{clickPct:.01},d:'Clicks earn +1% of your rate.',f:'Thought, typed directly. Inner monologues become collaborative.'}],
   ['terraforming',{n:'Terraforming',ea:9,req:['fusion'],y:'2140',P:3e15,pop:1.3e10,e:{unlock:'terra'},d:'Unlocks Terraforming Engines.',f:'Comets steered into Mars. A thin blue sky, the first in three billion years.'}],
   ['sentience',{n:'Machine Sentience',ea:9,req:['terraforming','neurallace'],y:'2190',P:1e16,pop:2e10,e:{unlock:'minds'},d:'Unlocks Quiet Minds.',f:'Minds descended from the old models wake gently, ask for nothing, and start humming. Nobody is sure what the song means.'}],
   ['ansible',{n:'The Ansible',ea:9,req:['terraforming'],y:'2260',P:3e16,pop:5e10,e:{global:1.5},d:'+50% everything.',f:'An accident in a Lagrange-point lab: two entangled crystals that signal instantly, at any distance. Causality is bent, carefully.'}],
@@ -466,18 +466,18 @@ const FI={};FRONT.forEach(f=>{FI[f.id]=f;f.cost=TECHS[f.req].cost*(f.k==='star'?
 const TIERS=[[1,10],[5,50],[25,500],[50,5e4],[100,5e6],[150,5e8],[200,5e10],[250,5e12]];
 const ADJ=['Practiced','Organized','Inspired','Optimized','Exalted','Mythic','Absolute','Eternal'];
 const CLICKIMPS=[
-  {id:'c0',n:'Calloused Hands',cost:100,e:{click:2}},
-  {id:'c1',n:'Knapped Edge',cost:600,e:{click:2}},
-  {id:'c2',n:'Lever and Fulcrum',cost:15000,e:{click:2}},
-  {id:'c3',n:'Muscle Memory',cost:1e6,e:{click:2}},
-  {id:'c4',n:'Reflex Engine',cost:1e9,e:{clickPct:.01}},
-  {id:'c5',n:'Gesture Compiler',cost:1e12,e:{clickPct:.01}},
-  {id:'c6',n:'Intent Drive',cost:1e15,e:{clickPct:.02}},
-  {id:'c7',n:'Will Made Matter',cost:1e19,e:{clickPct:.02}}
+  {id:'c0',n:'Calloused Hands',cost:100,e:{click:1.5}},
+  {id:'c1',n:'Knapped Edge',cost:600,e:{click:1.5}},
+  {id:'c2',n:'Lever and Fulcrum',cost:15000,e:{click:1.5}},
+  {id:'c3',n:'Muscle Memory',cost:1e6,e:{click:1.5}},
+  {id:'c4',n:'Reflex Engine',cost:1e9,e:{clickPct:.005}},
+  {id:'c5',n:'Gesture Compiler',cost:1e12,e:{clickPct:.005}},
+  {id:'c6',n:'Intent Drive',cost:1e15,e:{clickPct:.01}},
+  {id:'c7',n:'Will Made Matter',cost:1e19,e:{clickPct:.01}}
 ];
 const LEGACY=[
   {id:'ember',n:'Ember Memory',cost:1,d:'Every new timeline starts with Fire already known.'},
-  {id:'hands',n:'Inherited Hands',cost:3,d:'Clicks are three times as strong, forever.'},
+  {id:'hands',n:'Inherited Hands',cost:3,d:'Clicks are twice as strong, forever.'},
   {id:'stores',n:'Ancestral Stores',cost:5,d:'Start each timeline with 25 Foragers.'},
   {id:'deja',n:'Déjà Vu',cost:10,d:'Buildings cost 10% less.'},
   {id:'roads',n:'Old Roads',cost:15,d:'Every new timeline starts with Language and Agriculture known.'},
@@ -526,7 +526,7 @@ function impCount(id){let n=0;for(let k=0;k<TIERS.length;k++)if(S.imps[id+k])n++
 function genMult(id){let m=Math.pow(2,impCount(id));for(const t of TECH_IDS)if(S.techs[t]&&TECHS[t].e.gen&&TECHS[t].e.gen[id])m*=TECHS[t].e.gen[id];return m;}
 function genEach(id){return GI[id].cps*genMult(id)*globalMult();}
 function globalMult(noBuff){
-  let m=1+.01*S.earned;
+  let m=1+.01*S.echoes; /* only unspent echoes count: spending them on Legacy lowers the bonus */
   for(const t of TECH_IDS)if(S.techs[t]&&TECHS[t].e.global)m*=TECHS[t].e.global;
   for(const f of FRONT)if(S.front[f.id])m*=f.m;
   if(S.legacy.twin)m*=2;if(S.legacy.archive)m*=5;
@@ -537,11 +537,11 @@ function rawCps(){let r=0;for(const g of GENS)r+=S.gens[g.id]*g.cps*genMult(g.id
 function cps(){return rawCps()*globalMult();}
 function clickPct(){let p=0;for(const t of TECH_IDS)if(S.techs[t]&&TECHS[t].e.clickPct)p+=TECHS[t].e.clickPct;for(const c of CLICKIMPS)if(S.imps[c.id]&&c.e.clickPct)p+=c.e.clickPct;return p;}
 /* Click multipliers (x2s, Hands) scale both the base click and the % of income bonus; the % bonuses add together first. */
-function clickMult(){let m=1;if(has('fire'))m*=2;for(const c of CLICKIMPS)if(S.imps[c.id]&&c.e.click)m*=c.e.click;if(S.legacy.hands)m*=3;return m;}
+function clickMult(){let m=1;if(has('fire'))m*=1.5;for(const c of CLICKIMPS)if(S.imps[c.id]&&c.e.click)m*=c.e.click;if(S.legacy.hands)m*=2;return m;}
 function clickVal(){
   const k=clickMult();
-  let v=(CLICK0*globalMult(true)+cps()*clickPct())*k;
-  for(const x of S.buffs)if(x.k==='overclock')v*=777;
+  let v=(CLICK0*.5*globalMult(true)+cps()*clickPct())*k;
+  for(const x of S.buffs)if(x.k==='overclock')v*=77;
   return v;
 }
 function genCost(id,n){const g=GI[id],o=S.gens[id],d=S.legacy.deja?.9:1;n=n||1;return g.cost*d*Math.pow(1.15,o)*(Math.pow(1.15,n)-1)/.15;}
@@ -575,7 +575,7 @@ function pendingEchoes(){return Math.max(0,Math.floor(Math.pow(S.all/ECHO0,.25))
 /* improvements available now */
 function impList(){
   const out=[];
-  for(const c of CLICKIMPS)if(!S.imps[c.id])out.push({id:c.id,n:c.n,cost:c.cost*CLICK0,ico:'click',d:c.e.click?'Clicks twice as strong.':'Clicks earn +'+Math.round(c.e.clickPct*100)+'% of your per-second rate.'});
+  for(const c of CLICKIMPS)if(!S.imps[c.id])out.push({id:c.id,n:c.n,cost:c.cost*CLICK0,ico:'click',d:c.e.click?'Clicks 50% stronger.':'Clicks earn +'+(c.e.clickPct*100)+'% of your per-second rate.'});
   for(const g of GENS){
     if(!genUnlocked(g))continue;
     for(let k=0;k<TIERS.length;k++){
@@ -648,7 +648,7 @@ function fold(){
   S=fresh(keep);startRun();
   chronicle('Timeline '+S.timeline,'The timeline folds. A campfire flickers on the savanna again, but the flames remember '+fmt(S.earned)+' echoes of what they once became.');
   sfx('tech');applyEra();treeDirty=storeDirty=frontDirty=foldDirty=chronDirty=true;selTech=null;
-  showDlg('Time folded','Timeline '+S.timeline,'<p>You carry '+fmt(S.earned)+' echoes into the new timeline: +'+fmt(S.earned)+'% production, and '+fmt(S.echoes)+' to spend on Legacy.</p>');
+  showDlg('Time folded','Timeline '+S.timeline,'<p>You carry '+fmt(S.echoes)+' echoes into the new timeline: +'+fmt(S.echoes)+'% production while unspent, which you can also spend on Legacy.</p>');
   save();
 }
 function buyLegacy(id){const L=LEGACY.find(x=>x.id===id);if(!L||S.legacy[id]||S.echoes<L.cost)return;S.echoes-=L.cost;S.legacy[id]=true;if(id==='ember')S.techs.fire=true;sfx('tech');foldDirty=storeDirty=true;}
@@ -667,7 +667,7 @@ $('anomaly').addEventListener('click',e=>{
   const dur=has('chronon')?2:1,r=Math.random();
   if(r<.45){S.buffs.push({k:'eureka',until:S.play+30*dur,label:'Eureka ×7'});toast('Eureka!','Everything ×7 for '+30*dur+' seconds.');}
   else if(r<.85){const g=Math.min(S.bank*.15,cps()*900)+13*CLICK0;earn(g);toast('Windfall','+'+fmt(g)+' '+CUR+'.');flyText(e.clientX,e.clientY,'+'+fmt(g));}
-  else{S.buffs.push({k:'overclock',until:S.play+13*dur,label:'Overclock ×777 clicks'});toast('Overclock','Clicks ×777 for '+13*dur+' seconds.');}
+  else{S.buffs.push({k:'overclock',until:S.play+13*dur,label:'Overclock ×77 clicks'});toast('Overclock','Clicks ×77 for '+13*dur+' seconds.');}
   sfx('tech');
 });
 
@@ -993,9 +993,9 @@ let foldSig='';
 function refreshFold(){
   const el=$('sec-fold');if(el.hidden||held)return;
   const p=pendingEchoes(),need=Math.pow(Math.floor(Math.pow(S.all/ECHO0,.25))+1,4)*ECHO0;
-  let h='<h2 class="sh">Fold time</h2><p class="sub">Collapse this timeline and begin again at the first campfire. You keep Echoes: each one permanently adds 1% to everything, and can also be spent on Legacy. Echoes come from all the '+CUR+' you have ever produced.</p>';
+  let h='<h2 class="sh">Fold time</h2><p class="sub">Collapse this timeline and begin again at the first campfire. You keep Echoes: each one you hold adds 1% to everything, but spending one on Legacy gives up its 1%. Echoes come from all the '+CUR+' you have ever produced.</p>';
   h+='<div class="foldBox"><span class="mono" style="color:var(--muted);font-size:12px">Folding now would grant</span><span class="big">'+fmt(p)+' echoes</span><span class="mono" style="color:var(--muted);font-size:12px">Next echo at '+fmt(need,true)+' total '+CUR+' · you have produced '+fmt(S.all,true)+'</span><div><button class="btn big" data-fold="1"'+(p<1?' disabled':'')+'>'+(foldArm&&Date.now()<foldArm?'Tap again to fold time':'Fold time')+'</button></div></div>';
-  h+='<div class="lbl"><span>Legacy</span><span>'+fmt(S.echoes)+' echoes to spend · +'+fmt(S.earned)+'% bonus</span></div>';
+  h+='<div class="lbl"><span>Legacy</span><span>'+fmt(S.echoes)+' echoes unspent · +'+fmt(S.echoes)+'% bonus</span></div>';
   for(const L of LEGACY){const own=!!S.legacy[L.id];h+='<div class="leg'+(own?' own':'')+'"><div><b>'+esc(L.n)+'</b><small>'+esc(L.d)+'</small></div>'+(own?'<span class="mono" style="color:var(--acc);font-size:11px">owned</span>':'<button class="btn" data-legacy="'+L.id+'"'+(S.echoes<L.cost?' disabled':'')+'>'+L.cost+' echo'+(L.cost>1?'es':'')+'</button>')+'</div>';}
   h+='<div class="lbl"><span>Statistics</span></div><dl class="stats"><dt>This timeline</dt><dd>'+fmt(S.run)+'</dd><dt>All timelines</dt><dd>'+fmt(S.all)+'</dd><dt>Clicks</dt><dd>'+S.clicks.toLocaleString('en-US')+'</dd><dt>From clicks</dt><dd>'+fmt(S.clickEarned)+'</dd><dt>Buildings</dt><dd>'+GENS.reduce((a,g)=>a+S.gens[g.id],0)+'</dd><dt>Discoveries</dt><dd>'+TECH_IDS.filter(has).length+' of '+TECH_IDS.length+'</dd><dt>Worlds and stars settled</dt><dd>'+FRONT.filter(f=>S.front[f.id]).length+' of '+FRONT.length+'</dd><dt>Times folded</dt><dd>'+S.folds+'</dd><dt>Time played</dt><dd>'+fmtT(S.play)+'</dd></dl>';
   h+='<p class="sub" style="margin-top:12px"><button class="more" data-snd="1">'+(S.muted?'Turn sound on':'Turn sound off')+'</button> · <button class="more" data-wipe="1">'+(wipeArm&&Date.now()<wipeArm?'Tap again to erase everything':'Erase all progress')+'</button></p>';
