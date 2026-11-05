@@ -540,7 +540,7 @@ function clickPct(){let p=0;for(const t of TECH_IDS)if(S.techs[t]&&TECHS[t].e.cl
 function clickMult(){let m=1;if(has('fire'))m*=1.5;for(const c of CLICKIMPS)if(S.imps[c.id]&&c.e.click)m*=c.e.click;if(S.legacy.hands)m*=2;return m;}
 function clickVal(){
   const k=clickMult();
-  let v=(CLICK0*.5*globalMult(true)+cps()*clickPct())*k;
+  let v=(CLICK0*globalMult(true)+cps()*clickPct())*k;
   for(const x of S.buffs)if(x.k==='overclock')v*=77;
   return v;
 }
