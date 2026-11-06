@@ -1025,6 +1025,26 @@ async function doSave(){
   state.last=nowMs();
   try{await window.storage.set('wild-isle-save',JSON.stringify(state));}catch(e){console.error('save failed',e);}
 }
+/* One-time correction for saves made before the 4-per-species cap counted every exhibit, inventory
+   animal and egg: merge a species' duplicate exhibits into one and trim anything past 4. */
+function fixSpeciesCaps(s){
+  if(s.capFixed)return;
+  s.capFixed=true;
+  const items=s.items||[],inv=s.inv||[],breeds=(s.hatch&&s.hatch.breeds)||[];
+  const species=new Set(items.filter(i=>i.kind==='exhibit').map(i=>i.sp));
+  for(const sp of species){
+    const ex=items.filter(i=>i.kind==='exhibit'&&i.sp===sp).sort((p,q)=>q.count-p.count);
+    const keep=ex[0];
+    let placed=ex.reduce((n,i)=>n+i.count,0);
+    for(const o of ex.slice(1)){items.splice(items.indexOf(o),1);for(const b of breeds)if(b.exhibit===o.id)b.exhibit=keep.id;}
+    const eggs=breeds.filter(b=>b.res===sp);
+    let invN=inv.filter(v=>v.sp===sp).length;
+    // trim surplus in this order: eggs, inventory animals, then the exhibit itself
+    while(eggs.length&&placed+invN+eggs.length>4)breeds.splice(breeds.indexOf(eggs.pop()),1);
+    for(let j=inv.length-1;j>=0&&placed+invN+eggs.length>4;j--)if(inv[j].sp===sp){inv.splice(j,1);invN--;}
+    keep.count=Math.max(1,Math.min(placed,4-invN-eggs.length));
+  }
+}
 async function loadState(){
   try{const r=await window.storage.get('wild-isle-save');
     if(r&&r.value){const s=JSON.parse(r.value);
@@ -1033,6 +1053,7 @@ async function loadState(){
         if(s.v===2)migrateV2(s);
         state=Object.assign(freshState(),s);state.v=3;
         if(!state.seen)state.seen={};
+        fixSpeciesCaps(state);
         return true;}}
   }catch(e){/* no save yet */}
   state=freshState();return false;
